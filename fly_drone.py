@@ -19,9 +19,12 @@ timestamp="{:%Y_%m_%d_%H_%M}".format(datetime.now())
 import control_params as cp
 import blob_detect as bd
 
+from mockduino import MockArduino
+
 def openArduino():
 
-    return serial.Serial('/dev/ttyACM0', 115200, timeout=.001)
+    # return serial.Serial('/dev/ttyACM0', 115200, timeout=.001)
+    return MockArduino()
 
 
 ###############################################

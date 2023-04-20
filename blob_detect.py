@@ -112,7 +112,9 @@ def add_blobs(crop_frame):
             offset_line=np.array(keypoints[rightpt].pt)-np.array(keypoints[leftpt].pt)
             theta=-1*math.atan2(offset_line[1], offset_line[0])
             
-            im_with_midpoint = cv2.drawKeypoints(frame, [keypoints[middlepoint]], np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            im_with_midpoint = cv2.drawKeypoints(frame,
+                    [keypoints[middlepoint]], np.array([]), (0, 0, 255),
+                    cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
             im_with_midpoint_frontpoint = cv2.drawKeypoints(
                     im_with_midpoint, [keypoints[frontpoint]], np.array([]),

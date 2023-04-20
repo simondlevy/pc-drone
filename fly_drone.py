@@ -1,10 +1,15 @@
 #!/usr/bin/python3
 
-"""
+'''
 Created on Mon Feb 08 23:00:39 2016
 
 @author: perrytsao
-"""
+
+Python2=>3 translation by Simon D. Levy 
+
+MIT License
+'''
+
 import cv2  
 import numpy as np
 import pickle
@@ -14,7 +19,7 @@ import serial# time# msvcrt
 import time
 import timeit
 from datetime import datetime
-timestamp="{:%Y_%m_%d_%H_%M}".format(datetime.now())
+timestamp='{:%Y_%m_%d_%H_%M}'.format(datetime.now())
  
 import control_params as cp
 import blob_detect as bd
@@ -32,8 +37,8 @@ def openArduino():
 mass=.014 # 14g for drone and cage and the markers
           # 50px in x,y directions = 7cm
           # Distance between blobs = 7cm
-          # 49.1 px (distance between blobs) => 23.25" height
-          # 74 px => 15.5" height
+          # 49.1 px (distance between blobs) => 23.25' height
+          # 74 px => 15.5' height
 # z axis flight sequence calculations
 # maxrate= 1 cm/s
 # 20 samples / s
@@ -140,11 +145,11 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
         tseq=np.concatenate((tseq, np.linspace(tseq[-1], theta_endpoint, xpoints)))    
     return list(xseq), list(yseq), list(zseq), list(tseq)
 
-cv2.namedWindow("preview")
+cv2.namedWindow('preview')
 
 vc = cv2.VideoCapture(0)
 
-fname="drone_track_640_480_USBFHD01M"
+fname='drone_track_640_480_USBFHD01M'
 width=640
 height=480
 fps=30
@@ -165,7 +170,7 @@ zpos=50
 xypos=(350, 250)
 theta=0
 
-command=""
+command=''
 start_flying=0
 no_position_cnt=0
 
@@ -190,7 +195,7 @@ ELEVATOR_MID=cp.ELEVATOR_MID
 AILERON_MID=cp.AILERON_MID
 RUDDER_MID=cp.RUDDER_MID
 
-speeds=""
+speeds=''
 
 xpos_target=300
 ypos_target=200
@@ -237,21 +242,21 @@ try:
         toc_old=toc        
         toc=timeit.default_timer()
         # prints out time since the last frame was read
-        print("deltaT: %0.4f  fps: %0.1f" % (toc - toc_old, 1/(toc-toc_old)))
+        print('deltaT: %0.4f  fps: %0.1f' % (toc - toc_old, 1/(toc-toc_old)))
             
         frame_undistort=bd.undistort_crop(frame_o)
         toc2=timeit.default_timer()
-        print("deltaT_execute_undistort: %0.4f" % (toc2 - toc))
+        print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
         frame, zpos, xypos, theta=bd.add_blobs(frame_undistort)
                 
         toc2=timeit.default_timer()
-        print("deltaT_execute_blob_detect: %0.4f" % (toc2 - toc))
+        print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
         
         if start_flying:
             try: 
                 if flt_mode != LANDING_FM:
-                    print("Zpos: %i Xpos: %i Ypos: %i" % (zpos, xypos[0], xypos[1]))
+                    print('Zpos: %i Xpos: %i Ypos: %i' % (zpos, xypos[0], xypos[1]))
     
                     e_dz_old=e_dz                
                     e_dz=zpos-zpos_target
@@ -295,11 +300,11 @@ try:
                     rudder= cp.Kt*(e_dt*cp.Kpt+cp.Kit*e_it+cp.Kdt*e_d2t)+RUDDER_MID                    
                     
                     if zpos > 0:
-                        print("highalt")
+                        print('highalt')
                         aileron=clamp(aileron, 1000, 2000)
                         elevator=clamp(elevator, 1000, 2000)
                     else: 
-                        print("lowalt")
+                        print('lowalt')
                         aileron=clamp(aileron, 1400, 1600)
                         elevator=clamp(elevator, 1400, 1600)
                     no_position_cnt=0
@@ -311,7 +316,7 @@ try:
             except Exception as e:
                 print (e)
                 no_position_cnt+=1
-                print("STOPPED. no position or error. ")
+                print('STOPPED. no position or error. ')
                 if no_position_cnt>15:
                     throttle=1000
                     start_flying=0  
@@ -319,22 +324,22 @@ try:
         ## Serial comms - write to Arduino
         throttle=clamp(throttle, 1000, 2000)
         rudder=clamp(rudder, 1000, 2000)
-        command="%i,%i,%i,%i"% (throttle, aileron, elevator, rudder)
-        print("[PC]: "+command)
-        arduino.write((command+"\n").encode())
+        command='%i,%i,%i,%i'% (throttle, aileron, elevator, rudder)
+        print('[PC]: '+command)
+        arduino.write((command+'\n').encode())
                 
         ## Serial comms - read back from Arduino
         data = arduino.readline()
         while data:
-            print("[AU]: "+data.rstrip("\n")) #strip out the new lines for now
+            print('[AU]: '+data.rstrip('\n')) #strip out the new lines for now
             # (better to do .read() in the long run for this reason    
             data=arduino.readline()
         
         ## Monitor keyboard
-        speeds= "dz:  %+5.2f dx:  %+5.2f  dy: %+5.2f" % (dz, dx, dy)     
-        targets="tsz: %+5.2f tsx: %+5.2f tsy: %+5.2f" % (zspeed, xspeed, yspeed)  
-        gains="Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f" % (cp.Kpz, cp.Kiz, cp.Kdz)  
-        errors_z="e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f" % (e_dz, e_iz, e_d2z) 
+        speeds= 'dz:  %+5.2f dx:  %+5.2f  dy: %+5.2f' % (dz, dx, dy)     
+        targets='tsz: %+5.2f tsx: %+5.2f tsy: %+5.2f' % (zspeed, xspeed, yspeed)  
+        gains='Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f' % (cp.Kpz, cp.Kiz, cp.Kdz)  
+        errors_z='e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' % (e_dz, e_iz, e_d2z) 
         flighttoc=timeit.default_timer()
         cv2.putText(frame, command,(10,50), font, .8,(255,255,255),2,cv2.LINE_AA)
         #cv2.putText(frame, speeds,(10,75), font, .8,(255,255,255),2,cv2.LINE_AA)        
@@ -344,13 +349,13 @@ try:
         cv2.putText(frame, 'Flt#: {0} Time:{1:0.3f}'.format(flightnum,flighttoc-flighttic),(10,75), font, .8,(255,255,255),2,cv2.LINE_AA)
         cv2.rectangle(frame, (int(xpos_target)-5, int(ypos_target)-5), (int(xpos_target)+5, int(ypos_target)+5), (255,0,0), thickness=1, lineType=8, shift=0)
         #dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
-        cv2.imshow("preview", frame)
+        cv2.imshow('preview', frame)
         toc2=timeit.default_timer()
-        print("deltaT_execute_imshow: %0.4f" % (toc2 - toc))        
+        print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))        
         
         key = cv2.waitKey(wait_time)
         toc2=timeit.default_timer()
-        print("deltaT_execute_waitkey: %0.4f" % (toc2 - toc))
+        print('deltaT_execute_waitkey: %0.4f' % (toc2 - toc))
         #key = ord('0')
         if start_flying:
             # start recording to video when flying
@@ -387,7 +392,7 @@ try:
         if key == 27: # exit on ESC
             break
         elif key == 32: # space - take a snapshot and save it
-            cv2.imwrite(fname+str(ii)+".jpg", frame)
+            cv2.imwrite(fname+str(ii)+'.jpg', frame)
             ii+=1
         elif key == 119: #w
             throttle=THROTTLE_MID
@@ -405,10 +410,10 @@ try:
             reload(cp)
             # this lists out all the variables in module cp
             # and records their values. 
-            controlvarnames=[item for item in dir(cp) if not item.startswith("__")]
+            controlvarnames=[item for item in dir(cp) if not item.startswith('__')]
             controldata=[eval('cp.'+item) for item in controlvarnames]
             flt_mode=NORMAL_FM           
-            print("START FLYING")
+            print('START FLYING')
         elif key == ord('e'): 
             throttle=THROTTLE_MID
             aileron=AILERON_MID # turns left
@@ -425,7 +430,7 @@ try:
             reload(cp)
             # this lists out all the variables in module cp
             # and records their values. 
-            controlvarnames=[item for item in dir(cp) if not item.startswith("__")]
+            controlvarnames=[item for item in dir(cp) if not item.startswith('__')]
             controldata=[eval('cp.'+item) for item in controlvarnames]    
                         
             xpos_target_seq=[xpos_target]
@@ -443,7 +448,7 @@ try:
                         
             flt_mode=PROGRAM_SEQ_FM
             
-            print("START FLYING")
+            print('START FLYING')
             
         elif key == 115: #s
             #throttle=1000
@@ -475,12 +480,12 @@ try:
                 'rot90_right', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)                                
         # print out the time needed to execute everything except the image reload
         toc2=timeit.default_timer()
-        print("deltaT_execute_other: %0.4f" % (toc2 - toc))
+        print('deltaT_execute_other: %0.4f' % (toc2 - toc))
         
         # read next frame
         rval, frame_o = vc.read()
         toc2=timeit.default_timer()
-        print("deltaT_execute_nextframe: %0.4f" % (toc2 - toc))
+        print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))
         
 finally:
     # close the connection
@@ -492,5 +497,5 @@ finally:
     arduino.close()
     # close it again so it can be reopened the next time it is run.      
     vc.release()
-    cv2.destroyWindow("preview")
+    cv2.destroyWindow('preview')
     out.release()

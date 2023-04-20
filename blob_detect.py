@@ -113,65 +113,88 @@ def add_blobs(crop_frame):
             theta=-1*math.atan2(offset_line[1], offset_line[0])
             
             im_with_midpoint = cv2.drawKeypoints(frame, [keypoints[middlepoint]], np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            im_with_midpoint_frontpoint = cv2.drawKeypoints(im_with_midpoint, [keypoints[frontpoint]], np.array([]), (255,0,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            keypoints_side=[keypoints[i] for i in [leftpt]]
-            im_with_keypoints1 = cv2.drawKeypoints(im_with_midpoint_frontpoint, keypoints_side, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            keypoints_side=[keypoints[i] for i in [rightpt]]
-            im_with_keypoints = cv2.drawKeypoints(im_with_keypoints1, keypoints_side, np.array([]), (255,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            
-            textstr="%0.4f dist. %i,%i center, %0.2f deg" % (max_dist_val, keypoints[middlepoint].pt[0], keypoints[middlepoint].pt[1], theta*180/math.pi)
-            max_blob_dist=max_dist_val
-            blob_center=keypoints[middlepoint].pt 
+
+            im_with_midpoint_frontpoint = cv2.drawKeypoints(
+                    im_with_midpoint, [keypoints[frontpoint]], np.array([]),
+                    (255, 0, 0),
+                    cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+            keypoints_side = [keypoints[i] for i in [leftpt]]
+
+            im_with_keypoints1 = cv2.drawKeypoints(
+                    im_with_midpoint_frontpoint, keypoints_side, np.array([]),
+                    (0, 255, 0),
+                    cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+            keypoints_side = [keypoints[i] for i in [rightpt]]
+
+            im_with_keypoints = cv2.drawKeypoints(
+                    im_with_keypoints1, keypoints_side, np.array([]),
+                    (255, 255, 255),
+                    cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+            textstr = ("%0.4f dist. %i,%i center, %0.2f deg" %
+                       (max_dist_val, keypoints[middlepoint].pt[0],
+                        keypoints[middlepoint].pt[1], theta*180/math.pi))
+
+            max_blob_dist = max_dist_val
+            blob_center = keypoints[middlepoint].pt
             keypoints[middlepoint].pt[1]
             font = cv2.FONT_HERSHEY_SIMPLEX
-            cv2.putText(im_with_keypoints, textstr,(10,25), font, .8,(255,255,255),2,cv2.LINE_AA)
+            cv2.putText(im_with_keypoints,
+                        textstr, (10, 25),  font,  .8, (255, 255, 255), 2,
+                        cv2.LINE_AA)
+
         # Draw detected blobs as red circles.
-        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the circle corresponds to the size of blob
-        #im_with_keypoints = cv2.drawKeypoints(frame, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the
+        # circle corresponds to the size of blob
+        # im_with_keypoints = cv2.drawKeypoints(frame, keypoints, np.array([]),
+        # (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         else:
-            im_with_keypoints=crop_frame    
+            im_with_keypoints = crop_frame
             print("%i blobs" % (len(keypoints)))
-            max_blob_dist=None
-            blob_center=None
-            theta=None
+            max_blob_dist = None
+            blob_center = None
+            theta = None
     else:
         print("no blobs")
-        im_with_keypoints=crop_frame
-        max_blob_dist=None
-        blob_center=None
-        theta=None
-    return im_with_keypoints, max_blob_dist, blob_center, theta #, keypoint_in_orders
+        im_with_keypoints = crop_frame
+        max_blob_dist = None
+        blob_center = None
+        theta = None
 
+    return (im_with_keypoints,
+            max_blob_dist, blob_center, theta)  # , keypoint_in_orders
 
 
 # Setup SimpleBlobDetector parameters.
 params = cv2.SimpleBlobDetector_Params()
- 
+
 # Change thresholds
-params.minThreshold = 0;
-params.maxThreshold = 256;
- 
+params.minThreshold = 0
+params.maxThreshold = 256
+
 # Filter by Area.
 params.filterByArea = True
 params.minArea = 30
- 
+
 # Filter by Circularity
 params.filterByCircularity = True
 params.minCircularity = 0.1
- 
+
 # Filter by Convexity
 params.filterByConvexity = True
 params.minConvexity = 0.5
- 
+
 # Filter by Inertia
-params.filterByInertia =True
+params.filterByInertia = True
 params.minInertiaRatio = 0.01
 
 # load params to undistort images
-calfile=np.load('camera_cal_data_2016_03_25_15_23.npz')
-newcameramtx=calfile['newcameramtx']
-roi=calfile['roi']
-mtx=calfile['mtx']
-dist=calfile['dist']
+calfile = np.load('camera_cal_data_2016_03_25_15_23.npz')
+newcameramtx = calfile['newcameramtx']
+roi = calfile['roi']
+mtx = calfile['mtx']
+dist = calfile['dist']
 
-map1, map2=init_undistort()
+map1, map2 = init_undistort()

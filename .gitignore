@@ -1,5 +1,6 @@
 __pycache__/
 *.avi
+*.swp
 archive/
 debug_videos/
 flight_data/

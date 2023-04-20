@@ -69,51 +69,55 @@ def add_blobs(crop_frame):
             dcalc=[np.linalg.norm(dis_vectors[i]) for i in range(6)]
 
             # find the closest point to all of them, that is the middle point
-            mean_a=np.array([dcalc[i] for i in [0,1,2]]).sum()/4.0
-            mean_b=np.array([dcalc[i] for i in [0,3,4]]).sum()/4.0
-            mean_c=np.array([dcalc[i] for i in [1,3,5]]).sum()/4.0
-            mean_d=np.array([dcalc[i] for i in [2,4,5]]).sum()/4.0
-            middlepoint=np.argmin(np.array([mean_a, mean_b, mean_c, mean_d]))
+            mean_a = np.array([dcalc[i] for i in [0,1,2]]).sum()/4.0
+            mean_b = np.array([dcalc[i] for i in [0,3,4]]).sum()/4.0
+            mean_c = np.array([dcalc[i] for i in [1,3,5]]).sum()/4.0
+            mean_d = np.array([dcalc[i] for i in [2,4,5]]).sum()/4.0
+            middlepoint = np.argmin(np.array([mean_a, mean_b, mean_c, mean_d]))
 
-            idx=np.argmax(dcalc) # find two furthest points, those are left and right sidepoints
-            max_dist_val=np.max(dcalc)            
+            # find two furthest points, those are left and right sidepoints
+            idx = np.argmax(dcalc) 
+            max_dist_val = np.max(dcalc)            
+
             #print(max_dist_val)
-            if idx ==0:
-                sidepts=[0,1]
-            elif idx==1:
-                sidepts=[0,2]        
-            elif idx==2:
-                sidepts=[0,3]  
-            elif idx==3:
-                sidepts=[1,2]                  
-            elif idx==4:
-                sidepts=[1,3]                  
-            elif idx==5:
-                sidepts=[2,3]            
-                
+
+            if idx == 0:
+                sidepts = [0, 1]
+            elif idx == 1:
+                sidepts = [0, 2]
+            elif idx == 2:
+                sidepts = [0, 3]
+            elif idx == 3:
+                sidepts = [1, 2]
+            elif idx == 4:
+                sidepts = [1, 3]
+            elif idx == 5:
+                sidepts = [2, 3]
+
             # the frontpoint is the remaining one.
-            frontpoint=6-np.array(sidepts+[middlepoint]).sum()    
-            
+            frontpoint = 6 - np.array(sidepts+[middlepoint]).sum()
+
             # now determine which side point is the left one
-            # http://stackoverflow.com/questions/1560492/how-to-tell-whether-a-point-is-to-the-right-or-left-side-of-a-line
-            a=keypoints[middlepoint].pt
-            b=keypoints[frontpoint].pt
-            c=keypoints[sidepts[0]].pt
+            # http://stackoverflow.com/questions/1560492/
+            # how-to-tell-whether-a-point-is-to-the-right-or-left-side-of-a-line
+            a = keypoints[middlepoint].pt
+            b = keypoints[frontpoint].pt
+            c = keypoints[sidepts[0]].pt
             if ((b[0] - a[0])*(c[1] - a[1]) - (b[1] - a[1])*(c[0] - a[0])) < 0:
-                leftpt=sidepts[0]
-                rightpt=sidepts[1]
+                leftpt = sidepts[0]
+                rightpt = sidepts[1]
             else:
-                leftpt=sidepts[1]
-                rightpt=sidepts[0]
-            
-            
-            # Calculate angle
-            # frontpoint - midpoint
-            offset_line=np.array(keypoints[rightpt].pt)-np.array(keypoints[leftpt].pt)
-            theta=-1*math.atan2(offset_line[1], offset_line[0])
-            
-            im_with_midpoint = cv2.drawKeypoints(frame,
-                    [keypoints[middlepoint]], np.array([]), (0, 0, 255),
+                leftpt = sidepts[1]
+                rightpt = sidepts[0]
+
+            # Calculate angle frontpoint - midpoint
+            offset_line = np.array(
+                    keypoints[rightpt].pt)-np.array(keypoints[leftpt].pt)
+
+            theta = -math.atan2(offset_line[1], offset_line[0])
+
+            im_with_midpoint = cv2.drawKeypoints(
+                    frame, [keypoints[middlepoint]], np.array([]), (0, 0, 255),
                     cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
             im_with_midpoint_frontpoint = cv2.drawKeypoints(

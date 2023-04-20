@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/python3
+
 """
 Created on Mon Feb 08 23:00:39 2016
 
@@ -237,8 +238,8 @@ try:
         
         if start_flying:
             try: 
-                if flt_mode <> LANDING_FM:
-                    print "Zpos: %i Xpos: %i Ypos: %i" % (zpos, xypos[0], xypos[1])
+                if flt_mode != LANDING_FM:
+                    print("Zpos: %i Xpos: %i Ypos: %i" % (zpos, xypos[0], xypos[1]))
     
                     e_dz_old=e_dz                
                     e_dz=zpos-zpos_target
@@ -282,11 +283,11 @@ try:
                     rudder= cp.Kt*(e_dt*cp.Kpt+cp.Kit*e_it+cp.Kdt*e_d2t)+RUDDER_MID                    
                     
                     if zpos > 0:
-                        print "highalt"
+                        print("highalt")
                         aileron=clamp(aileron, 1000, 2000)
                         elevator=clamp(elevator, 1000, 2000)
                     else: 
-                        print "lowalt" 
+                        print("lowalt")
                         aileron=clamp(aileron, 1400, 1600)
                         elevator=clamp(elevator, 1400, 1600)
                     no_position_cnt=0
@@ -298,7 +299,7 @@ try:
             except Exception as e:
                 print (e)
                 no_position_cnt+=1
-                print "STOPPED. no position or error. "
+                print("STOPPED. no position or error. ")
                 if no_position_cnt>15:
                     throttle=1000
                     start_flying=0  
@@ -307,13 +308,13 @@ try:
         throttle=clamp(throttle, 1000, 2000)
         rudder=clamp(rudder, 1000, 2000)
         command="%i,%i,%i,%i"% (throttle, aileron, elevator, rudder)
-        print "[PC]: "+command
+        print("[PC]: "+command)
         arduino.write(command+"\n")
                 
         ## Serial comms - read back from Arduino
         data = arduino.readline()
         while data:
-            print "[AU]: "+data.rstrip("\n") #strip out the new lines for now
+            print("[AU]: "+data.rstrip("\n")) #strip out the new lines for now
             # (better to do .read() in the long run for this reason    
             data=arduino.readline()
         
@@ -359,7 +360,7 @@ try:
                 ypos_target=ypos_target_seq.pop(0)
                 zpos_target=zpos_target_seq.pop(0)
                 theta_target=theta_target_seq.pop(0)
-                print 'seq len %i' % len(xpos_target_seq)
+                print('seq len %i' % len(xpos_target_seq))
             elif flt_mode == PROGRAM_SEQ_FM:
                 flt_mode = LANDING_FM
                 
@@ -395,7 +396,7 @@ try:
             controlvarnames=[item for item in dir(cp) if not item.startswith("__")]
             controldata=[eval('cp.'+item) for item in controlvarnames]
             flt_mode=NORMAL_FM           
-            print "START FLYING"
+            print("START FLYING")
         elif key == ord('e'): 
             throttle=THROTTLE_MID
             aileron=AILERON_MID # turns left
@@ -430,7 +431,7 @@ try:
                         
             flt_mode=PROGRAM_SEQ_FM
             
-            print "START FLYING"            
+            print("START FLYING")
             
         elif key == 115: #s
             #throttle=1000

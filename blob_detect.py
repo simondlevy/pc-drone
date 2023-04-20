@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import cv2
 import numpy as np
 import itertools
@@ -54,7 +56,7 @@ def add_blobs(crop_frame):
     reversemask=255-mask
     keypoints = detector.detect(reversemask)
     if keypoints:
-        print "found blobs"
+        print("found blobs")
         if len(keypoints) > 4:
             keypoints.sort(key=(lambda s: s.size))
             keypoints=keypoints[0:3]
@@ -75,7 +77,7 @@ def add_blobs(crop_frame):
 
             idx=np.argmax(dcalc) # find two furthest points, those are left and right sidepoints
             max_dist_val=np.max(dcalc)            
-            #print max_dist_val
+            #print(max_dist_val)
             if idx ==0:
                 sidepts=[0,1]
             elif idx==1:
@@ -128,12 +130,12 @@ def add_blobs(crop_frame):
         #im_with_keypoints = cv2.drawKeypoints(frame, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         else:
             im_with_keypoints=crop_frame    
-            print "%i blobs" % (len(keypoints))
+            print("%i blobs" % (len(keypoints)))
             max_blob_dist=None
             blob_center=None
             theta=None
     else:
-        print "no blobs"
+        print("no blobs")
         im_with_keypoints=crop_frame
         max_blob_dist=None
         blob_center=None

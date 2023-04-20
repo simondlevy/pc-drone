@@ -19,6 +19,11 @@ timestamp="{:%Y_%m_%d_%H_%M}".format(datetime.now())
 import control_params as cp
 import blob_detect as bd
 
+def openArduino():
+
+    return serial.Serial('/dev/ttyACM0', 115200, timeout=.001)
+
+
 ###############################################
 # drone parameters
 mass=.014 # 14g for drone and cage and the markers
@@ -133,7 +138,8 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
     return list(xseq), list(yseq), list(zseq), list(tseq)
 
 cv2.namedWindow("preview")
-vc = cv2.VideoCapture(1)
+
+vc = cv2.VideoCapture(0)
 
 fname="drone_track_640_480_USBFHD01M"
 width=640
@@ -208,8 +214,11 @@ PROGRAM_SEQ_FM=2
 flt_mode=NORMAL_FM
 
 recording_data=0
+
 try: 
-    arduino=serial.Serial('COM4', 115200, timeout=.001)
+    
+    arduino = openArduino()
+
     time.sleep(1) #give the connection a second to settle    
     
     if vc.isOpened(): # try to get the first frame
@@ -309,7 +318,7 @@ try:
         rudder=clamp(rudder, 1000, 2000)
         command="%i,%i,%i,%i"% (throttle, aileron, elevator, rudder)
         print("[PC]: "+command)
-        arduino.write(command+"\n")
+        arduino.write((command+"\n").encode())
                 
         ## Serial comms - read back from Arduino
         data = arduino.readline()
@@ -439,7 +448,7 @@ try:
             flt_mode = LANDING_FM
         elif key == 114: #r - reset the serial port so Arduino will bind to another CX-10
             arduino.close()
-            arduino=serial.Serial('COM4', 115200, timeout=.001)
+            arduino = openArduino()
         elif key == ord('1'):
             xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
                 'takeoff', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)
@@ -476,7 +485,7 @@ finally:
     # re-open the serial port which will w for Arduino Uno to do a reset
     # this forces the quadcopter to power off motors.  Will need to power
     # cycle the drone to reconnect
-    arduino=serial.Serial('COM4', 115200, timeout=.001)
+    arduino = openArduino()
     arduino.close()
     # close it again so it can be reopened the next time it is run.      
     vc.release()

@@ -2,6 +2,6 @@ __pycache__/
 *.avi
 *.swp
 archive/
-debug_videos/
+videos/
 flight_data/
 color_cal/

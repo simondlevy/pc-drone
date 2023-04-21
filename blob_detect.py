@@ -71,7 +71,9 @@ def add_blobs(crop_frame):
     if keypoints:
         print('found blobs')
         if len(keypoints) > 4:
-            keypoints.sort(key=(lambda s: s.size))
+            print(keypoints)
+            # keypoints.sort(key=(lambda s: s.size))
+            keypoints = sorted(keypoints, key=(lambda s: s.size))
             keypoints = keypoints[0:3]
         if len(keypoints) == 4:
             pts = np.array([keypoints[i].pt for i in range(4)])

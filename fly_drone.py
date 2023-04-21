@@ -13,18 +13,21 @@ MIT License
 import cv2  
 import numpy as np
 import pickle
+import os
 #import itertools
-
 import serial# time# msvcrt
 import time
 import timeit
 from datetime import datetime
+
 timestamp='{:%Y_%m_%d_%H_%M}'.format(datetime.now())
  
 import control_params as cp
 import blob_detect as bd
 
 from mockduino import MockArduino
+
+SAVE_VIDEO_DIR = './videos'
 
 def openArduino():
 
@@ -158,8 +161,10 @@ vc.set(cv2.CAP_PROP_FRAME_WIDTH,width)
 vc.set(cv2.CAP_PROP_FRAME_HEIGHT,height)
 vc.set(cv2.CAP_PROP_FPS,fps) 
 
+if not os.path.exists(SAVE_VIDEO_DIR):
+    os.makedirs(SAVE_VIDEO_DIR)
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-out = cv2.VideoWriter('flight_data\\'+timestamp+'_video.avi',fourcc, 20.0, (width,height),1)
+out = cv2.VideoWriter(SAVE_VIDEO_DIR + '/flight_data\\'+timestamp+'_video.avi',fourcc, 20.0, (width,height),1)
 
 throttle=1000
 aileron=1500 # moves left/right
@@ -248,9 +253,10 @@ try:
         toc2=timeit.default_timer()
         print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
-        frame, zpos, xypos, theta=bd.add_blobs(frame_undistort)
+        frame, zpos, xypos, theta = bd.add_blobs(frame_undistort)
                 
         toc2=timeit.default_timer()
+
         print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
         
         if start_flying:

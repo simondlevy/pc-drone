@@ -26,8 +26,6 @@ import blob_detect as bd
 
 SAVE_VIDEO_DIR = './videos'
 
-timestamp = '{:%Y_%m_%d_%H_%M}'.format(datetime.now())
-
 
 def openArduino():
 
@@ -177,6 +175,8 @@ if not os.path.exists(SAVE_VIDEO_DIR):
     os.makedirs(SAVE_VIDEO_DIR)
 
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+
+timestamp = '{:%Y_%m_%d_%H_%M}'.format(datetime.now())
 
 out = cv2.VideoWriter(
         SAVE_VIDEO_DIR + '/flight_data\\' + timestamp + '_video.avi',

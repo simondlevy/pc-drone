@@ -26,6 +26,15 @@ import control_params as cp
 
 SAVE_VIDEO_DIR = './videos'
 
+FONT_FACE = cv2.FONT_HERSHEY_SIMPLEX
+FONT_SCALE = 0.8
+FONT_COLOR = (255, 255, 255)
+
+
+def putText(frame, text, pos):
+    cv2.putText(frame, text, pos,
+                FONT_FACE, FONT_SCALE, FONT_COLOR, 2, cv2.LINE_AA)
+
 
 # create maps for undistortion
 def init_undistort(mtx, dist, newcameramtx):
@@ -168,10 +177,7 @@ def add_blobs(crop_frame, params):
             max_blob_dist = max_dist_val
             blob_center = keypoints[middlepoint].pt
             keypoints[middlepoint].pt[1]
-            font = cv2.FONT_HERSHEY_SIMPLEX
-            cv2.putText(im_with_keypoints,
-                        textstr, (10, 25),  font,  .8, (255, 255, 255), 2,
-                        cv2.LINE_AA)
+            putText(im_with_keypoints, textstr, (10, 25))
 
         # Draw detected blobs as red circles.
         # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the
@@ -426,7 +432,6 @@ def main():
     zpos_targ_seq = [zpos_target]
     theta_targ_seq = [theta_target]
 
-    font = cv2.FONT_HERSHEY_SIMPLEX
     # tic = timeit.default_timer()
     # toc = 0
     flighttic = timeit.default_timer()
@@ -579,14 +584,10 @@ def main():
             #             (e_dz, e_iz, e_d2z))
 
             flighttoc = timeit.default_timer()
-            cv2.putText(frame, command, (10, 50), font, .8, (255, 255, 255), 2,
-                        cv2.LINE_AA)
+            putText(frame, command, (10, 50))
 
-            cv2.putText(frame,
-                        'Flt#: {0} Time:{1:0.3f}'.format(
-                            flightnum, flighttoc - flighttic), (10, 75), font,
-                        .8, (255, 255, 255), 2, cv2.LINE_AA)
-
+            putText(frame,
+                    'Flt#: {0} Time:{1:0.3f}'.format(flightnum, flighttoc - flighttic), (10, 75))
             cv2.rectangle(frame, (int(x_target)-5, int(ypos_target)-5),
                           (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
                           thickness=1, lineType=8, shift=0)

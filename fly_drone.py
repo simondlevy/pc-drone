@@ -27,28 +27,14 @@ import blob_detect as bd
 SAVE_VIDEO_DIR = './videos'
 
 
+def clamp(n, minn, maxn):
+    return max(min(maxn, n), minn)
+
+
 def openArduino():
 
     # return serial.Serial('/dev/ttyACM0', 115200, timeout=.001)
     return MockArduino()
-
-
-###############################################
-# drone parameters
-mass = .014  # 14g for drone and cage and the markers
-# 50px in x,y directions = 7cm
-# Distance between blobs = 7cm
-# 49.1 px (distance between blobs) => 23.25' height
-# 74 px => 15.5' height
-# z axis flight sequence calculations
-# maxrate= 1 cm/s
-# 20 samples / s
-# 25px in z axis = 8 in = 20cm
-# 1.25px / cm
-# 1.25px / s
-# 0.0625px / sample
-
-###############################################
 
 
 def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
@@ -218,9 +204,6 @@ e_d2x = 0
 e_d2y = 0
 e_d2t = 0
 
-
-def clamp(n, minn, maxn):
-    return max(min(maxn, n), minn)
 
 
 THROTTLE_MID = cp.THROTTLE_MID

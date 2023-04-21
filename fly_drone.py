@@ -5,29 +5,29 @@ Created on Mon Feb 08 23:00:39 2016
 
 @author: perrytsao
 
-Python2=>3 translation by Simon D. Levy 
+Python2=>3 translation by Simon D. Levy
 
 MIT License
 '''
 
-import cv2  
+import cv2
 import numpy as np
 import pickle
 import os
-#import itertools
-import serial# time# msvcrt
+# import serial
 import time
 import timeit
 from datetime import datetime
 
-timestamp='{:%Y_%m_%d_%H_%M}'.format(datetime.now())
- 
+from mockduino import MockArduino
+
 import control_params as cp
 import blob_detect as bd
 
-from mockduino import MockArduino
-
 SAVE_VIDEO_DIR = './videos'
+
+timestamp = '{:%Y_%m_%d_%H_%M}'.format(datetime.now())
+
 
 def openArduino():
 
@@ -37,11 +37,11 @@ def openArduino():
 
 ###############################################
 # drone parameters
-mass=.014 # 14g for drone and cage and the markers
-          # 50px in x,y directions = 7cm
-          # Distance between blobs = 7cm
-          # 49.1 px (distance between blobs) => 23.25' height
-          # 74 px => 15.5' height
+mass = .014  # 14g for drone and cage and the markers
+# 50px in x,y directions = 7cm
+# Distance between blobs = 7cm
+# 49.1 px (distance between blobs) => 23.25' height
+# 74 px => 15.5' height
 # z axis flight sequence calculations
 # maxrate= 1 cm/s
 # 20 samples / s
@@ -52,49 +52,52 @@ mass=.014 # 14g for drone and cage and the markers
 
 ###############################################
 
+
 def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
     # This function takes sequence lists and returns sequence lists.
     # Internally it uses numpy arrays.
-    # 
+    #
     # THe sequence lists must have some length so that the starting position
     # is known. Empty lists are not allowed.
-    xseq=np.array(xseq_list)        
-    yseq=np.array(yseq_list)            
-    zseq=np.array(zseq_list)            
-    tseq=np.array(tseq_list)        
-    
-    seqrate = 2    
+    xseq = np.array(xseq_list)
+    yseq = np.array(yseq_list)
+    zseq = np.array(zseq_list)
+    tseq = np.array(tseq_list)
+
+    seqrate = 2
+
     if seqname == 'land':
         zpoints = np.abs(np.round((zseq[-1]-45)/seqrate))
         zseq = np.concatenate((zseq, np.linspace(zseq[-1], 30, zpoints)))
         xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
         tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
+
     elif seqname == 'takeoff':
         zpoints = np.abs(np.round((zseq[-1]-65)/seqrate))
         zseq = np.concatenate((zseq, np.linspace(zseq[-1], 65, zpoints)))
         xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
         tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
-    elif seqname == 'box': # goes in a 10cm box pattern 
-        pts = np.abs(np.round((75)/seqrate))        
+
+    elif seqname == 'box':  # goes in a 10cm box pattern
+        pts = np.abs(np.round((75)/seqrate))
         fwd = np.linspace(0, 75, pts)
-        
         xseq = np.concatenate((xseq, fwd+xseq[-1]))
         xseq = np.concatenate((xseq, np.ones(pts)*xseq[-1]))
         xseq = np.concatenate((xseq, (-1*fwd)+xseq[-1]))
         xseq = np.concatenate((xseq, np.ones(pts)*xseq[-1]))
-        
-        yseq = np.concatenate((yseq, np.ones(pts)*yseq[-1]))        
+        yseq = np.concatenate((yseq, np.ones(pts)*yseq[-1]))
         yseq = np.concatenate((yseq, (-1*fwd)+yseq[-1]))
         yseq = np.concatenate((yseq, np.ones(pts)*yseq[-1]))
         yseq = np.concatenate((yseq, (fwd)+yseq[-1]))
-        
         zseq = np.concatenate((zseq, np.ones(4*pts)*zseq[-1]))
         tseq = np.concatenate((tseq, np.ones(pts)*tseq[-1]))
+
     elif seqname == 'up':
         zpoints = np.abs(np.round(12/seqrate))
-        zseq = np.concatenate((zseq, np.linspace(zseq[-1], zseq[-1]+12, zpoints)))
+        zseq = np.concatenate(
+                (zseq, np.linspace(zseq[-1], zseq[-1]+12, zpoints)))
         xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
         tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
@@ -105,18 +108,21 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
         xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
         tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
+
     elif seqname == 'left_spot':
         xpoints = np.abs(np.round((xseq[-1]-200)/1))
         xseq = np.concatenate((xseq, np.linspace(xseq[-1], 200, xpoints)))
         yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
         zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
         tseq = np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
+
     elif seqname == 'right_spot':
         xpoints = np.abs(np.round((xseq[-1]-400)/1))
         xseq = np.concatenate((xseq, np.linspace(xseq[-1], 400, xpoints)))
         yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
         zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
         tseq = np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
+
     elif seqname == 'hover':
         xpoints = 300  # 15s of hovering in one spot
         xseq = np.concatenate((xseq, np.ones(xpoints)*xseq[-1]))

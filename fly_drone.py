@@ -65,135 +65,157 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
     
     seqrate = 2    
     if seqname == 'land':
-        zpoints=np.abs(np.round((zseq[-1]-45)/seqrate))
-        zseq=np.concatenate((zseq, np.linspace(zseq[-1], 30, zpoints)))
-        xseq=np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
-        yseq=np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
-        tseq=np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
+        zpoints = np.abs(np.round((zseq[-1]-45)/seqrate))
+        zseq = np.concatenate((zseq, np.linspace(zseq[-1], 30, zpoints)))
+        xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
+        tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
     elif seqname == 'takeoff':
-        zpoints=np.abs(np.round((zseq[-1]-65)/seqrate))
-        zseq=np.concatenate((zseq, np.linspace(zseq[-1], 65, zpoints)))
-        xseq=np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
-        yseq=np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
-        tseq=np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
+        zpoints = np.abs(np.round((zseq[-1]-65)/seqrate))
+        zseq = np.concatenate((zseq, np.linspace(zseq[-1], 65, zpoints)))
+        xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
+        tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
     elif seqname == 'box': # goes in a 10cm box pattern 
-        pts=np.abs(np.round((75)/seqrate))        
-        fwd=np.linspace(0, 75, pts)
+        pts = np.abs(np.round((75)/seqrate))        
+        fwd = np.linspace(0, 75, pts)
         
-        xseq=np.concatenate((xseq, fwd+xseq[-1]))
-        xseq=np.concatenate((xseq, np.ones(pts)*xseq[-1]))
-        xseq=np.concatenate((xseq, (-1*fwd)+xseq[-1]))
-        xseq=np.concatenate((xseq, np.ones(pts)*xseq[-1]))
+        xseq = np.concatenate((xseq, fwd+xseq[-1]))
+        xseq = np.concatenate((xseq, np.ones(pts)*xseq[-1]))
+        xseq = np.concatenate((xseq, (-1*fwd)+xseq[-1]))
+        xseq = np.concatenate((xseq, np.ones(pts)*xseq[-1]))
         
-        yseq=np.concatenate((yseq, np.ones(pts)*yseq[-1]))        
-        yseq=np.concatenate((yseq, (-1*fwd)+yseq[-1]))
-        yseq=np.concatenate((yseq, np.ones(pts)*yseq[-1]))
-        yseq=np.concatenate((yseq, (fwd)+yseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(pts)*yseq[-1]))        
+        yseq = np.concatenate((yseq, (-1*fwd)+yseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(pts)*yseq[-1]))
+        yseq = np.concatenate((yseq, (fwd)+yseq[-1]))
         
-        zseq=np.concatenate((zseq, np.ones(4*pts)*zseq[-1]))
-        tseq=np.concatenate((tseq, np.ones(pts)*tseq[-1]))
+        zseq = np.concatenate((zseq, np.ones(4*pts)*zseq[-1]))
+        tseq = np.concatenate((tseq, np.ones(pts)*tseq[-1]))
     elif seqname == 'up':
-        zpoints=np.abs(np.round(12/seqrate))
-        zseq=np.concatenate((zseq, np.linspace(zseq[-1], zseq[-1]+12, zpoints)))
-        xseq=np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
-        yseq=np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
-        tseq=np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
+        zpoints = np.abs(np.round(12/seqrate))
+        zseq = np.concatenate((zseq, np.linspace(zseq[-1], zseq[-1]+12, zpoints)))
+        xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
+        tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
     elif seqname == 'down':
-        zpoints=np.abs(np.round(12/seqrate))
-        zseq=np.concatenate((zseq, np.linspace(zseq[-1], zseq[-1]-12, zpoints)))
-        xseq=np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
-        yseq=np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))   
-        tseq=np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
-    elif seqname == 'left_spot':    
-        xpoints=np.abs(np.round((xseq[-1]-200)/1))
-        xseq=np.concatenate((xseq, np.linspace(xseq[-1], 200, xpoints)))
-        yseq=np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
-        zseq=np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
-        tseq=np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
-    elif seqname == 'right_spot':    
-        xpoints=np.abs(np.round((xseq[-1]-400)/1))
-        xseq=np.concatenate((xseq, np.linspace(xseq[-1], 400, xpoints)))
-        yseq=np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
-        zseq=np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
-        tseq=np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
-    elif seqname == 'hover':    
-        xpoints=300 # 15s of hovering in one spot
-        xseq=np.concatenate((xseq, np.ones(xpoints)*xseq[-1]))
-        yseq=np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
-        zseq=np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
-        tseq=np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
-    elif seqname == 'rot90_left':     # this code does not take care of rotating past 180 degrees
-        xpoints=150 
-        theta_endpoint=tseq[-1]+np.pi/2
+        zpoints = np.abs(np.round(12/seqrate))
+        zseq = np.concatenate((zseq,
+                              np.linspace(zseq[-1], zseq[-1]-12, zpoints)))
+        xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
+        tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
+    elif seqname == 'left_spot':
+        xpoints = np.abs(np.round((xseq[-1]-200)/1))
+        xseq = np.concatenate((xseq, np.linspace(xseq[-1], 200, xpoints)))
+        yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
+        zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
+        tseq = np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
+    elif seqname == 'right_spot':
+        xpoints = np.abs(np.round((xseq[-1]-400)/1))
+        xseq = np.concatenate((xseq, np.linspace(xseq[-1], 400, xpoints)))
+        yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
+        zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
+        tseq = np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
+    elif seqname == 'hover':
+        xpoints = 300  # 15s of hovering in one spot
+        xseq = np.concatenate((xseq, np.ones(xpoints)*xseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
+        zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
+        tseq = np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
+
+    # this code does not take care of rotating past 180 degrees
+    elif seqname == 'rot90_left':
+        xpoints = 150
+        theta_endpoint = tseq[-1] + np.pi / 2
         if (theta_endpoint > np.pi):
-            theta_endpoint-=2*np.pi
-        elif (e_dt < (-1*np.pi)):
-            theta_endpoint+=2*np.pi        
-        xseq=np.concatenate((xseq, np.ones(xpoints)*xseq[-1]))
-        yseq=np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
-        zseq=np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
-        
-        tseq=np.concatenate((tseq, np.linspace(tseq[-1], theta_endpoint, xpoints)))
-    elif seqname == 'rot90_right':     # this code does not take care of rotating past 180 degrees
-        xpoints=150 
-        theta_endpoint=tseq[-1]-np.pi/2
+            theta_endpoint -= 2*np.pi
+        elif (e_dt < (-np.pi)):
+            theta_endpoint += 2 * np.pi
+        xseq = np.concatenate((xseq, np.ones(xpoints) * xseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(xpoints) * yseq[-1]))
+        zseq = np.concatenate((zseq, np.ones(xpoints) * zseq[-1]))
+        tseq = np.concatenate((
+            tseq, np.linspace(tseq[-1], theta_endpoint, xpoints)))
+
+    # this code does not take care of rotating past 180 degrees
+    elif seqname == 'rot90_right':
+        xpoints = 150
+        theta_endpoint = tseq[-1] - np.pi/2
         if (theta_endpoint > np.pi):
-            theta_endpoint-=2*np.pi
-        elif (e_dt < (-1*np.pi)):
-            theta_endpoint+=2*np.pi        
-        xseq=np.concatenate((xseq, np.ones(xpoints)*xseq[-1]))
-        yseq=np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
-        zseq=np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
-        
-        tseq=np.concatenate((tseq, np.linspace(tseq[-1], theta_endpoint, xpoints)))    
+            theta_endpoint -= 2*np.pi
+        elif (e_dt < (-np.pi)):
+            theta_endpoint += 2 * np.pi
+        xseq = np.concatenate((xseq, np.ones(xpoints)*xseq[-1]))
+        yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
+        zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
+        tseq = np.concatenate(
+                (tseq, np.linspace(tseq[-1], theta_endpoint, xpoints)))
     return list(xseq), list(yseq), list(zseq), list(tseq)
+
 
 cv2.namedWindow('preview')
 
 vc = cv2.VideoCapture(0)
 
-fname='drone_track_640_480_USBFHD01M'
-width=640
-height=480
-fps=30
-wait_time=1
-vc.set(cv2.CAP_PROP_FRAME_WIDTH,width)
-vc.set(cv2.CAP_PROP_FRAME_HEIGHT,height)
-vc.set(cv2.CAP_PROP_FPS,fps) 
+fname = 'drone_track_640_480_USBFHD01M'
+width = 640
+height = 480
+fps = 30
+wait_time = 1
+vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+vc.set(cv2.CAP_PROP_FPS, fps)
 
 if not os.path.exists(SAVE_VIDEO_DIR):
     os.makedirs(SAVE_VIDEO_DIR)
+
 fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-out = cv2.VideoWriter(SAVE_VIDEO_DIR + '/flight_data\\'+timestamp+'_video.avi',fourcc, 20.0, (width,height),1)
 
-throttle=1000
-aileron=1500 # moves left/right
-elevator=1500 #moves front back
-rudder=1500 # yaw, rotates the drone
+out = cv2.VideoWriter(
+        SAVE_VIDEO_DIR + '/flight_data\\' + timestamp + '_video.avi',
+        fourcc, 20.0, (width, height), 1)
 
-zpos=50
-xypos=(350, 250)
-theta=0
+throttle = 1000
+aileron = 1500  # moves left/right
+elevator = 1500  # moves front back
+rudder = 1500  # yaw, rotates the drone
 
-command=''
-start_flying=0
-no_position_cnt=0
+zpos = 50
+xypos = (350, 250)
+theta = 0
 
-dz=0
-dx=0
-dy=0
-xspeed=0
-yspeed=0
-zspeed=0
-dz_old=0
-dx_old=0
-dy_old=0
+command = ''
+start_flying = 0
+no_position_cnt = 0
 
-e_dz=0; e_dx=0; e_dy=0; e_dt=0
-e_iz=0; e_ix=0; e_iy=0; e_it=0
-e_d2z=0; e_d2x=0; e_d2y=0; e_d2t=0
+dz = 0
+dx = 0
+dy = 0
+xspeed = 0
+yspeed = 0
+zspeed = 0
+dz_old = 0
+dx_old = 0
+dy_old = 0
 
-clamp=lambda n, minn, maxn: (max(min(maxn, n), minn))
+e_dz = 0
+e_dx = 0
+e_dy = 0
+e_dt = 0
+e_iz = 0
+e_ix = 0
+e_iy = 0
+e_it = 0
+e_d2z = 0
+e_d2x = 0
+e_d2y = 0
+e_d2t = 0
+
+
+def clamp(n, minn, maxn):
+    return max(min(maxn, n), minn)
+
 
 THROTTLE_MID = cp.THROTTLE_MID
 ELEVATOR_MID = cp.ELEVATOR_MID

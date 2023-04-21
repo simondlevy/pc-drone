@@ -176,11 +176,9 @@ def add_blobs(crop_frame, params):
         # Draw detected blobs as red circles.
         # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the
         # circle corresponds to the size of blob
-        # im_with_keypoints = cv2.drawKeypoints(frame, keypoints, np.array([]),
-        # (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         else:
-            im_with_keypoints = crop_frame
             print('%i blob(s)' % (len(keypoints)))
+            im_with_keypoints = crop_frame
             max_blob_dist = None
             blob_center = None
             theta = None

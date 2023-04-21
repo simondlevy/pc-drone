@@ -195,107 +195,110 @@ e_d2z=0; e_d2x=0; e_d2y=0; e_d2t=0
 
 clamp=lambda n, minn, maxn: (max(min(maxn, n), minn))
 
-THROTTLE_MID=cp.THROTTLE_MID
-ELEVATOR_MID=cp.ELEVATOR_MID
-AILERON_MID=cp.AILERON_MID
-RUDDER_MID=cp.RUDDER_MID
+THROTTLE_MID = cp.THROTTLE_MID
+ELEVATOR_MID = cp.ELEVATOR_MID
+AILERON_MID = cp.AILERON_MID
+RUDDER_MID = cp.RUDDER_MID
 
-speeds=''
+speeds = ''
 
-xpos_target=300
-ypos_target=200
-zpos_target=65
-theta_target=0#45.0/180.0*np.pi
+xpos_target = 300
+ypos_target = 200
+zpos_target = 65
+theta_target = 0  # 45.0/180.0*np.pi
 
-xpos_targ_seq=[xpos_target]
-ypos_targ_seq=[ypos_target]
-zpos_targ_seq=[zpos_target]
-theta_targ_seq=[theta_target]
+xpos_targ_seq = [xpos_target]
+ypos_targ_seq = [ypos_target]
+zpos_targ_seq = [zpos_target]
+theta_targ_seq = [theta_target]
 
 font = cv2.FONT_HERSHEY_SIMPLEX
-tic=timeit.default_timer()
-toc=0
-flighttic=timeit.default_timer()
-flighttoc=timeit.default_timer()
-flightnum=0
+tic = timeit.default_timer()
+toc = 0
+flighttic = timeit.default_timer()
+flighttoc = timeit.default_timer()
+flightnum = 0
 
 # Flight modes
-NORMAL_FM=0
-LANDING_FM=1
-PROGRAM_SEQ_FM=2
+NORMAL_FM = 0
+LANDING_FM = 1
+PROGRAM_SEQ_FM = 2
 
-flt_mode=NORMAL_FM
+flt_mode = NORMAL_FM
 
-recording_data=0
+recording_data = 0
 
 controlvarnames = None
 controldata = None
 flightdata = None
 
-try: 
-    
+try:
+
     arduino = openArduino()
 
-    time.sleep(1) #give the connection a second to settle    
-    
-    if vc.isOpened(): # try to get the first frame
+    time.sleep(1)  # give the connection a second to settle
+
+    if vc.isOpened():  # try to get the first frame
         rval, frame_o = vc.read()
-        #frame_undistort=bd.undistort_crop(np.rot90(frame_o, 2))
-        frame_undistort=bd.undistort_crop(frame_o)   
-        frame, zpos, xypos, theta=bd.add_blobs(frame_undistort)
-        #frame, zpos, xypos=bd.add_blobs(frame_o)
+        # frame_undistort=bd.undistort_crop(np.rot90(frame_o, 2))
+        frame_undistort = bd.undistort_crop(frame_o)
+        frame, zpos, xypos, theta = bd.add_blobs(frame_undistort)
+        # frame, zpos, xypos=bd.add_blobs(frame_o)
     else:
         rval = False
-    ii=100
+    ii = 100
     while rval:
-        toc_old=toc        
-        toc=timeit.default_timer()
+        toc_old = toc
+        toc = timeit.default_timer()
         # prints out time since the last frame was read
         print('deltaT: %0.4f  fps: %0.1f' % (toc - toc_old, 1/(toc-toc_old)))
-            
-        frame_undistort=bd.undistort_crop(frame_o)
-        toc2=timeit.default_timer()
+
+        frame_undistort = bd.undistort_crop(frame_o)
+        toc2 = timeit.default_timer()
         print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
         frame, zpos, xypos, theta = bd.add_blobs(frame_undistort)
-                
-        toc2=timeit.default_timer()
+
+        toc2 = timeit.default_timer()
 
         print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
-        
+
         if start_flying:
-            try: 
+            try:
                 if flt_mode != LANDING_FM:
-                    print('Zpos: %i Xpos: %i Ypos: %i' % (zpos, xypos[0], xypos[1]))
-    
-                    e_dz_old=e_dz                
-                    e_dz=zpos-zpos_target
-                    e_iz+=e_dz
-                    e_iz=clamp(e_iz, -10000, 10000)
-                    e_d2z=e_dz-e_dz_old
-                    throttle= cp.Kz*(e_dz*cp.Kpz+cp.Kiz*e_iz+cp.Kdz*e_d2z)+THROTTLE_MID    
-      
-                    e_dx_old=e_dx   
-                    e_dx=xypos[0]-xpos_target
-                    e_ix+=e_dx
-                    e_ix=clamp(e_ix, -200000, 200000)
-                    e_d2x=e_dx-e_dx_old
-                    #aileron = cp.Kx*(e_dx*cp.Kpx+cp.Kix*e_ix+cp.Kdx*e_d2x)+AILERON_MID   
-                    xcommand= cp.Kx*(e_dx*cp.Kpx+cp.Kix*e_ix+cp.Kdx*e_d2x)
-                    
-                    
-                    e_dy_old=e_dy
-                    e_dy=xypos[1]-ypos_target    
-                    e_iy+=e_dy
-                    e_iy=clamp(e_iy, -200000, 200000)
-                    e_d2y=e_dy-e_dy_old
-                    #elevator= cp.Ky*(e_dy*cp.Kpy+cp.Kiy*e_iy+cp.Kdy*e_d2y)+ELEVATOR_MID
-                    ycommand=cp.Ky*(e_dy*cp.Kpy+cp.Kiy*e_iy+cp.Kdy*e_d2y)
-                    
+                    print('Zpos: %i Xpos: %i Ypos: %i' %
+                          (zpos, xypos[0], xypos[1]))
+                    e_dz_old = e_dz
+                    e_dz = zpos-zpos_target
+                    e_iz += e_dz
+                    e_iz = clamp(e_iz, -10000, 10000)
+                    e_d2z = e_dz-e_dz_old
+                    throttle = (cp.Kz * (e_dz * cp.Kpz + cp.Kiz * e_iz +
+                                cp.Kdz * e_d2z) + THROTTLE_MID)
+                    e_dx_old = e_dx
+                    e_dx = xypos[0]-xpos_target
+                    e_ix += e_dx
+                    e_ix = clamp(e_ix, -200000, 200000)
+                    e_d2x = e_dx - e_dx_old
+
+                    xcommand = cp.Kx * (
+                            e_dx * cp.Kpx + cp.Kix * e_ix + cp.Kdx * e_d2x)
+
+                    e_dy_old = e_dy
+                    e_dy = xypos[1] - ypos_target
+                    e_iy += e_dy
+                    e_iy = clamp(e_iy, -200000, 200000)
+                    e_d2y = e_dy-e_dy_old
+
+                    ycommand = (cp.Ky *
+                                (e_dy * cp.Kpy + cp.Kiy * e_iy + cp.Kdy *
+                                 e_d2y))
+
                     # commands are calculated in camera reference frame
-                    aileron=xcommand*np.cos(theta)+ycommand*np.sin(theta) + AILERON_MID
-                    elevator=-1*xcommand*np.sin(theta)+ycommand*np.cos(theta) + ELEVATOR_MID
-                    
+                    aileron = (xcommand * np.cos(theta) + ycommand *
+                               np.sin(theta) + AILERON_MID)
+                    elevator = (-xcommand * np.sin(theta) + ycommand *
+                                np.cos(theta) + ELEVATOR_MID)
                     e_dt_old = e_dt
                     e_dt = theta-theta_target
                     # angle error should always be less than 180degrees (pi

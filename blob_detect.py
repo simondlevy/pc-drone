@@ -5,7 +5,7 @@ import itertools
 
 # original undistort function.  Took 15ms to run. New version below only takes
 # 3ms.
-def undistort_crop2(orig_img):
+def undistort_crop2(orig_img, mtx):
     # undistort and crop
     # cv2.undistort(src, cameraMatrix, distCoeffs[, dst[,
     #               newCameraMatrix]]) -> dst
@@ -16,7 +16,7 @@ def undistort_crop2(orig_img):
 
 
 # create maps for undistortion
-def init_undistort():
+def init_undistort(mtx, dist, newcameramtx):
     # cv2.initUndistortRectifyMap(cameraMatrix, distCoeffs,
     #                              R, newCameraMatrix, size,
     #                             m1type[, map1[, map2]]) -> map1, map2
@@ -28,7 +28,7 @@ def init_undistort():
 
 # this is a faster undistort_crop that only does remapping. Requires call to
 # init_undistort first to to create the map1 and map2
-def undistort_crop(orig_img):
+def undistort_crop(orig_img, map1, map2, roi):
     # cv2.remap(src, map1, map2,
     #           interpolation[, dst[, borderMode[, borderValue]]]) -> dst
     dst = cv2.remap(orig_img, map1, map2, cv2.INTER_LINEAR)
@@ -209,12 +209,3 @@ def init_params():
     params.minInertiaRatio = 0.01
 
     return params
-
-# load params to undistort images
-calfile = np.load('camera_cal_data_2016_03_25_15_23.npz')
-newcameramtx = calfile['newcameramtx']
-roi = calfile['roi']
-mtx = calfile['mtx']
-dist = calfile['dist']
-
-map1, map2 = init_undistort()

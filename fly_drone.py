@@ -146,6 +146,15 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
 
 def main():
 
+
+    # load calibration data to undistort images
+    calfile = np.load('camera_cal_data_2016_03_25_15_23.npz')
+    newcameramtx = calfile['newcameramtx']
+    roi = calfile['roi']
+    mtx = calfile['mtx']
+    dist = calfile['dist']
+    map1, map2 = bd.init_undistort(mtx, dist, newcameramtx)
+
     cv2.namedWindow('preview')
 
     vc = cv2.VideoCapture(0)
@@ -256,7 +265,7 @@ def main():
         if vc.isOpened():  # try to get the first frame
             rval, frame_o = vc.read()
             # frame_undistort=bd.undistort_crop(np.rot90(frame_o, 2))
-            frame_undistort = bd.undistort_crop(frame_o)
+            frame_undistort = bd.undistort_crop(frame_o, map1, map2, roi)
             frame, zpos, xypos, theta = bd.add_blobs(frame_undistort, params)
             # frame, zpos, xypos=bd.add_blobs(frame_o)
         else:
@@ -268,7 +277,7 @@ def main():
             # prints out time since the last frame was read
             print('deltaT: %0.4f  fps: %0.1f' % (toc - toc_old, 1/(toc-toc_old)))
 
-            frame_undistort = bd.undistort_crop(frame_o)
+            frame_undistort = bd.undistort_crop(frame_o, map1, map2, roi)
             toc2 = timeit.default_timer()
             print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 

@@ -22,7 +22,7 @@ from datetime import datetime
 from mockduino import MockArduino
 
 import control_params as cp
-import blob_detect as bd
+from blob_detect import init_undistort, init_params, undistort_crop, add_blobs
 
 SAVE_VIDEO_DIR = './videos'
 
@@ -153,7 +153,7 @@ def main():
     roi = calfile['roi']
     mtx = calfile['mtx']
     dist = calfile['dist']
-    map1, map2 = bd.init_undistort(mtx, dist, newcameramtx)
+    map1, map2 = init_undistort(mtx, dist, newcameramtx)
 
     cv2.namedWindow('preview')
 
@@ -254,7 +254,7 @@ def main():
     controldata = None
     flightdata = None
 
-    params = bd.init_params()
+    params = init_params()
 
     try:
 
@@ -264,10 +264,10 @@ def main():
 
         if vc.isOpened():  # try to get the first frame
             rval, frame_o = vc.read()
-            # frame_undistort=bd.undistort_crop(np.rot90(frame_o, 2))
-            frame_undistort = bd.undistort_crop(frame_o, map1, map2, roi)
-            frame, zpos, xypos, theta = bd.add_blobs(frame_undistort, params)
-            # frame, zpos, xypos=bd.add_blobs(frame_o)
+            # frame_undistort=undistort_crop(np.rot90(frame_o, 2))
+            frame_undistort = undistort_crop(frame_o, map1, map2, roi)
+            frame, zpos, xypos, theta = add_blobs(frame_undistort, params)
+            # frame, zpos, xypos=add_blobs(frame_o)
         else:
             rval = False
         ii = 100
@@ -277,11 +277,11 @@ def main():
             # prints out time since the last frame was read
             print('deltaT: %0.4f  fps: %0.1f' % (toc - toc_old, 1/(toc-toc_old)))
 
-            frame_undistort = bd.undistort_crop(frame_o, map1, map2, roi)
+            frame_undistort = undistort_crop(frame_o, map1, map2, roi)
             toc2 = timeit.default_timer()
             print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
-            frame, zpos, xypos, theta = bd.add_blobs(frame_undistort, params)
+            frame, zpos, xypos, theta = add_blobs(frame_undistort, params)
 
             toc2 = timeit.default_timer()
 

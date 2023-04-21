@@ -177,7 +177,7 @@ def add_blobs(crop_frame, params):
             max_blob_dist = max_dist_val
             blob_center = keypoints[middlepoint].pt
             keypoints[middlepoint].pt[1]
-            putText(im_with_keypoints, textstr, (10, 25))
+            # putText(im_with_keypoints, textstr, (10, 25))
 
         # Draw detected blobs as red circles.
         # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the

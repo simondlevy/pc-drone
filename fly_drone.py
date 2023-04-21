@@ -245,6 +245,8 @@ def main():
     controldata = None
     flightdata = None
 
+    params = bd.init_params()
+
     try:
 
         arduino = openArduino()
@@ -255,7 +257,7 @@ def main():
             rval, frame_o = vc.read()
             # frame_undistort=bd.undistort_crop(np.rot90(frame_o, 2))
             frame_undistort = bd.undistort_crop(frame_o)
-            frame, zpos, xypos, theta = bd.add_blobs(frame_undistort)
+            frame, zpos, xypos, theta = bd.add_blobs(frame_undistort, params)
             # frame, zpos, xypos=bd.add_blobs(frame_o)
         else:
             rval = False
@@ -270,7 +272,7 @@ def main():
             toc2 = timeit.default_timer()
             print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
-            frame, zpos, xypos, theta = bd.add_blobs(frame_undistort)
+            frame, zpos, xypos, theta = bd.add_blobs(frame_undistort, params)
 
             toc2 = timeit.default_timer()
 

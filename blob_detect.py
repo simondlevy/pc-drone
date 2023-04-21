@@ -38,7 +38,7 @@ def undistort_crop(orig_img):
     return crop_frame
 
 
-def add_blobs(crop_frame):
+def add_blobs(crop_frame, params):
 
     # frame = cv2.GaussianBlur(crop_frame, (3, 3), 0)
     frame = crop_frame
@@ -184,29 +184,32 @@ def add_blobs(crop_frame):
     return (im_with_keypoints,
             max_blob_dist, blob_center, theta)  # , keypoint_in_orders
 
+def init_params():
 
-# Setup SimpleBlobDetector parameters.
-params = cv2.SimpleBlobDetector_Params()
+    # Setup SimpleBlobDetector parameters.
+    params = cv2.SimpleBlobDetector_Params()
 
-# Change thresholds
-params.minThreshold = 0
-params.maxThreshold = 256
+    # Change thresholds
+    params.minThreshold = 0
+    params.maxThreshold = 256
 
-# Filter by Area.
-params.filterByArea = True
-params.minArea = 30
+    # Filter by Area.
+    params.filterByArea = True
+    params.minArea = 30
 
-# Filter by Circularity
-params.filterByCircularity = True
-params.minCircularity = 0.1
+    # Filter by Circularity
+    params.filterByCircularity = True
+    params.minCircularity = 0.1
 
-# Filter by Convexity
-params.filterByConvexity = True
-params.minConvexity = 0.5
+    # Filter by Convexity
+    params.filterByConvexity = True
+    params.minConvexity = 0.5
 
-# Filter by Inertia
-params.filterByInertia = True
-params.minInertiaRatio = 0.01
+    # Filter by Inertia
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.01
+
+    return params
 
 # load params to undistort images
 calfile = np.load('camera_cal_data_2016_03_25_15_23.npz')

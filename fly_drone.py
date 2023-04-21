@@ -584,10 +584,10 @@ def main():
             #             (e_dz, e_iz, e_d2z))
 
             flighttoc = timeit.default_timer()
-            putText(frame, command, (10, 50))
+            putText(frame, 'Command: ' + command, (10, 50))
 
-            putText(frame,
-                    'Flt#: {0} Time:{1:0.3f}'.format(flightnum, flighttoc - flighttic), (10, 75))
+            putText(frame, 'Time: %5.3f' % (flighttoc - flighttic), (10, 75))
+
             cv2.rectangle(frame, (int(x_target)-5, int(ypos_target)-5),
                           (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
                           thickness=1, lineType=8, shift=0)

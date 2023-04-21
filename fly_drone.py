@@ -228,6 +228,10 @@ flt_mode=NORMAL_FM
 
 recording_data=0
 
+controlvarnames = None
+controldata = None
+flightdata = None
+
 try: 
     
     arduino = openArduino()
@@ -292,131 +296,143 @@ try:
                     aileron=xcommand*np.cos(theta)+ycommand*np.sin(theta) + AILERON_MID
                     elevator=-1*xcommand*np.sin(theta)+ycommand*np.cos(theta) + ELEVATOR_MID
                     
-                    e_dt_old=e_dt
-                    e_dt=theta-theta_target    
-                    # angle error should always be less than 180degrees (pi radians)
+                    e_dt_old = e_dt
+                    e_dt = theta-theta_target
+                    # angle error should always be less than 180degrees (pi
+                    # radians)
                     if (e_dt > np.pi):
-                        e_dt-=2*np.pi
-                    elif (e_dt < (-1*np.pi)):
-                        e_dt+=2*np.pi
-                                           
-                    e_it+=e_dt
-                    e_it=clamp(e_it, -200000, 200000)
-                    e_d2t=e_dt-e_dt_old
-                    rudder= cp.Kt*(e_dt*cp.Kpt+cp.Kit*e_it+cp.Kdt*e_d2t)+RUDDER_MID                    
-                    
+                        e_dt -= 2*np.pi
+                    elif (e_dt < (-np.pi)):
+                        e_dt += 2*np.pi
+
+                    e_it += e_dt
+                    e_it = clamp(e_it, -200000, 200000)
+                    e_d2t = e_dt-e_dt_old
+                    rudder = cp.Kt * (
+                            e_dt * cp.Kpt + cp.Kit * e_it + cp.Kdt * e_d2t) + (
+                                    RUDDER_MID)
                     if zpos > 0:
                         print('highalt')
-                        aileron=clamp(aileron, 1000, 2000)
-                        elevator=clamp(elevator, 1000, 2000)
-                    else: 
+                        aileron = clamp(aileron, 1000, 2000)
+                        elevator = clamp(elevator, 1000, 2000)
+                    else:
                         print('lowalt')
-                        aileron=clamp(aileron, 1400, 1600)
-                        elevator=clamp(elevator, 1400, 1600)
-                    no_position_cnt=0
-                else: # landing mode
-                    throttle=throttle-20
-                
-                
-                
+                        aileron = clamp(aileron, 1400, 1600)
+                        elevator = clamp(elevator, 1400, 1600)
+                    no_position_cnt = 0
+                else:  # landing mode
+                    throttle = throttle-20
+
             except Exception as e:
-                print (e)
-                no_position_cnt+=1
+                print(e)
+                no_position_cnt += 1
                 print('STOPPED. no position or error. ')
-                if no_position_cnt>15:
-                    throttle=1000
-                    start_flying=0  
-        
-        ## Serial comms - write to Arduino
-        throttle=clamp(throttle, 1000, 2000)
-        rudder=clamp(rudder, 1000, 2000)
-        command='%i,%i,%i,%i'% (throttle, aileron, elevator, rudder)
+                if no_position_cnt > 15:
+                    throttle = 1000
+                    start_flying = 0
+
+        # Serial comms - write to Arduino
+        throttle = clamp(throttle, 1000, 2000)
+        rudder = clamp(rudder, 1000, 2000)
+        command = '%i,%i,%i,%i' % (throttle, aileron, elevator, rudder)
         print('[PC]: '+command)
         arduino.write((command+'\n').encode())
-                
-        ## Serial comms - read back from Arduino
+
+        # Serial comms - read back from Arduino
         data = arduino.readline()
         while data:
-            print('[AU]: '+data.rstrip('\n')) #strip out the new lines for now
-            # (better to do .read() in the long run for this reason    
-            data=arduino.readline()
-        
-        ## Monitor keyboard
-        speeds= 'dz:  %+5.2f dx:  %+5.2f  dy: %+5.2f' % (dz, dx, dy)     
-        targets='tsz: %+5.2f tsx: %+5.2f tsy: %+5.2f' % (zspeed, xspeed, yspeed)  
-        gains='Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f' % (cp.Kpz, cp.Kiz, cp.Kdz)  
-        errors_z='e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' % (e_dz, e_iz, e_d2z) 
-        flighttoc=timeit.default_timer()
-        cv2.putText(frame, command,(10,50), font, .8,(255,255,255),2,cv2.LINE_AA)
-        #cv2.putText(frame, speeds,(10,75), font, .8,(255,255,255),2,cv2.LINE_AA)        
-        #cv2.putText(frame, targets,(10,100), font, .8,(255,255,255),2,cv2.LINE_AA) 
-        #cv2.putText(frame, gains,(10,125), font, .8,(255,255,255),2,cv2.LINE_AA)         
-        #cv2.putText(frame, errors_z,(10,150), font, .8,(255,255,255),2,cv2.LINE_AA)         
-        cv2.putText(frame, 'Flt#: {0} Time:{1:0.3f}'.format(flightnum,flighttoc-flighttic),(10,75), font, .8,(255,255,255),2,cv2.LINE_AA)
-        cv2.rectangle(frame, (int(xpos_target)-5, int(ypos_target)-5), (int(xpos_target)+5, int(ypos_target)+5), (255,0,0), thickness=1, lineType=8, shift=0)
-        #dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
+            print('[AU]: '+data.rstrip('\n'))  # strip out the new lines
+            # (better to do .read() in the long run for this reason
+            data = arduino.readline()
+
+        # Monitor keyboard
+        speeds = 'dz:  %+5.2f dx:  %+5.2f  dy: %+5.2f' % (dz, dx, dy)
+        targets = ('tsz: %+5.2f tsx: %+5.2f tsy: %+5.2f' %
+                   (zspeed, xspeed, yspeed))
+        gains = ('Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f' %
+                 (cp.Kpz, cp.Kiz, cp.Kdz))
+        errors_z = ('e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' %
+                    (e_dz, e_iz, e_d2z))
+        flighttoc = timeit.default_timer()
+        cv2.putText(frame, command, (10, 50), font, .8, (255, 255, 255), 2,
+                    cv2.LINE_AA)
+
+        cv2.putText(frame,
+                    'Flt#: {0} Time:{1:0.3f}'.format(
+                        flightnum, flighttoc - flighttic), (10, 75), font, .8,
+                    (255, 255, 255), 2, cv2.LINE_AA)
+
+        cv2.rectangle(frame, (int(xpos_target)-5, int(ypos_target)-5),
+                      (int(xpos_target)+5, int(ypos_target)+5), (255, 0, 0),
+                      thickness=1, lineType=8, shift=0)
+
+        # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
         cv2.imshow('preview', frame)
-        toc2=timeit.default_timer()
-        print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))        
-        
+        toc2 = timeit.default_timer()
+        print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
+
         key = cv2.waitKey(wait_time)
-        toc2=timeit.default_timer()
+        toc2 = timeit.default_timer()
         print('deltaT_execute_waitkey: %0.4f' % (toc2 - toc))
-        #key = ord('0')
+        # key = ord('0')
         if start_flying:
             # start recording to video when flying
-            frame_pad=cv2.copyMakeBorder(frame,91,0,75,00,cv2.BORDER_CONSTANT,value=[255,0,0])
+            frame_pad = cv2.copyMakeBorder(frame, 91, 0, 75, 00,
+                                           cv2.BORDER_CONSTANT,
+                                           value=[255, 0, 0])
             out.write(frame_pad)
             if xypos is None:
-                xypos=np.zeros(2)
-                zpos=0
-            flightdata=np.vstack((flightdata, np.array([flighttoc-flighttic, 
-                        xypos[0], xypos[1], zpos,
-                        dx, dy, dz,
-                        e_dx, e_ix, e_d2x,
-                        e_dy, e_iy, e_d2y,
-                        e_dz, e_iz, e_d2z,
-                        xspeed, yspeed, zspeed,
-                        throttle, aileron, elevator, rudder])))
+                xypos = np.zeros(2)
+                zpos = 0
+            flightdata = np.vstack((flightdata, np.array([flighttoc-flighttic,
+                                    xypos[0], xypos[1], zpos, dx, dy, dz,
+                                    e_dx, e_ix, e_d2x, e_dy, e_iy, e_d2y,
+                                    e_dz, e_iz, e_d2z, xspeed, yspeed, zspeed,
+                                    throttle, aileron, elevator, rudder])))
             if len(xpos_targ_seq) > 1:
-                xpos_target=xpos_targ_seq.pop(0)
-                ypos_target=ypos_targ_seq.pop(0)
-                zpos_target=zpos_targ_seq.pop(0)
-                theta_target=theta_targ_seq.pop(0)
+                xpos_target = xpos_targ_seq.pop(0)
+                ypos_target = ypos_targ_seq.pop(0)
+                zpos_target = zpos_targ_seq.pop(0)
+                theta_target = theta_targ_seq.pop(0)
                 print('seq len %i' % len(xpos_targ_seq))
             elif flt_mode == PROGRAM_SEQ_FM:
                 flt_mode = LANDING_FM
-                
+
         elif recording_data:
-            np.save('flight_data\\'+timestamp+'_flt'+str(flightnum)+'_'+'flightdata.npy', flightdata)
-            np.save('flight_data\\'+timestamp+'_flt'+str(flightnum)+'_'+'controldata.npy', controldata)
-            with open('flight_data\\'+timestamp+'_flt'+str(flightnum)+'_'+'controlvarnames.npy', 'wb') as f:
+            np.save('flight_data\\' + timestamp + '_flt' + str(flightnum) +
+                    '_' + 'flightdata.npy', flightdata)
+            np.save('flight_data\\' + timestamp + '_flt' + str(flightnum) +
+                    '_' + 'controldata.npy', controldata)
+            with open('flight_data\\' + timestamp + '_flt' + str(flightnum) +
+                      '_' + 'controlvarnames.npy', 'wb') as f:
                 pickle.dump(controlvarnames, f)
-            recording_data=0
-            
-            
-        if key == 27: # exit on ESC
+            recording_data = 0
+
+        if key == 27:  # exit on ESC
             break
-        elif key == 32: # space - take a snapshot and save it
+        elif key == 32:  # space - take a snapshot and save it
             cv2.imwrite(fname+str(ii)+'.jpg', frame)
-            ii+=1
-        elif key == 119: #w
-            throttle=THROTTLE_MID
-            aileron=AILERON_MID # turns left
-            elevator=ELEVATOR_MID
-            e_ix = 0; e_iy = 0; e_iz = 0
-            rudder=1500 # yaw, rotates the drone
-            start_flying=1
-            recording_data=1
-            flightdata=np.zeros(23)
-            flighttic=timeit.default_timer()
-            flighttoc=0
-            flightnum+=1
+            ii += 1
+        elif key == 119:  # w
+            throttle = THROTTLE_MID
+            aileron = AILERON_MID  # turns left
+            elevator = ELEVATOR_MID
+            e_ix = 0
+            e_iy = 0
+            e_iz = 0
+            rudder = 1500  # yaw, rotates the drone
+            start_flying = 1
+            recording_data = 1
+            flightdata = np.zeros(23)
+            flighttic = timeit.default_timer()
+            flighttoc = 0
+            flightnum += 1
 
             # reload(cp)  # ???
             # this lists out all the variables in module cp
-            # and records their values. 
-            controlvarnames = [item for item in dir(cp) if not item.startswith('__')]
+            # and records their values.
+            controlvarnames = [item for item in
+                               dir(cp) if not item.startswith('__')]
             controldata = [eval('cp.'+item) for item in controlvarnames]
             flt_mode = NORMAL_FM
             print('START FLYING')

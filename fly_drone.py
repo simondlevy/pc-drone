@@ -207,10 +207,10 @@ ypos_target=200
 zpos_target=65
 theta_target=0#45.0/180.0*np.pi
 
-xpos_target_seq=[xpos_target]
-ypos_target_seq=[ypos_target]
-zpos_target_seq=[zpos_target]
-theta_target_seq=[theta_target]
+xpos_targ_seq=[xpos_target]
+ypos_targ_seq=[ypos_target]
+zpos_targ_seq=[zpos_target]
+theta_targ_seq=[theta_target]
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 tic=timeit.default_timer()
@@ -378,12 +378,12 @@ try:
                         e_dz, e_iz, e_d2z,
                         xspeed, yspeed, zspeed,
                         throttle, aileron, elevator, rudder])))
-            if len(xpos_target_seq) > 1:
-                xpos_target=xpos_target_seq.pop(0)
-                ypos_target=ypos_target_seq.pop(0)
-                zpos_target=zpos_target_seq.pop(0)
-                theta_target=theta_target_seq.pop(0)
-                print('seq len %i' % len(xpos_target_seq))
+            if len(xpos_targ_seq) > 1:
+                xpos_target=xpos_targ_seq.pop(0)
+                ypos_target=ypos_targ_seq.pop(0)
+                zpos_target=zpos_targ_seq.pop(0)
+                theta_target=theta_targ_seq.pop(0)
+                print('seq len %i' % len(xpos_targ_seq))
             elif flt_mode == PROGRAM_SEQ_FM:
                 flt_mode = LANDING_FM
                 
@@ -413,86 +413,117 @@ try:
             flighttoc=0
             flightnum+=1
 
-            reload(cp)
+            # reload(cp)  # ???
             # this lists out all the variables in module cp
             # and records their values. 
-            controlvarnames=[item for item in dir(cp) if not item.startswith('__')]
-            controldata=[eval('cp.'+item) for item in controlvarnames]
-            flt_mode=NORMAL_FM           
+            controlvarnames = [item for item in dir(cp) if not item.startswith('__')]
+            controldata = [eval('cp.'+item) for item in controlvarnames]
+            flt_mode = NORMAL_FM
             print('START FLYING')
-        elif key == ord('e'): 
-            throttle=THROTTLE_MID
-            aileron=AILERON_MID # turns left
-            elevator=ELEVATOR_MID
-            e_ix = 0; e_iy = 0; e_iz = 0
-            rudder=1500 # yaw, rotates the drone
-            start_flying=1
-            recording_data=1
-            flightdata=np.zeros(23)
-            flighttic=timeit.default_timer()
-            flighttoc=0
-            flightnum+=1
+        elif key == ord('e'):
+            throttle = THROTTLE_MID
+            aileron = AILERON_MID  # turns left
+            elevator = ELEVATOR_MID
+            e_ix = 0
+            e_iy = 0
+            e_iz = 0
+            rudder = 1500  # yaw, rotates the drone
+            start_flying = 1
+            recording_data = 1
+            flightdata = np.zeros(23)
+            flighttic = timeit.default_timer()
+            flighttoc = 0
+            flightnum += 1
 
-            reload(cp)
+            # reload(cp)  # ???
             # this lists out all the variables in module cp
-            # and records their values. 
-            controlvarnames=[item for item in dir(cp) if not item.startswith('__')]
-            controldata=[eval('cp.'+item) for item in controlvarnames]    
-                        
-            xpos_target_seq=[xpos_target]
-            ypos_target_seq=[ypos_target]
-            zpos_target_seq=[zpos_target] 
-            theta_target_seq=[theta_target]
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'hover', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)              
-            
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'right_spot', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)              
-            
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'left_spot', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)              
-                        
-            flt_mode=PROGRAM_SEQ_FM
-            
+            # and records their values.
+            controlvarnames = [item for item in
+                               dir(cp) if not item.startswith('__')]
+            controldata = [eval('cp.'+item) for item in controlvarnames]
+
+            xpos_targ_seq = [xpos_target]
+            ypos_targ_seq = [ypos_target]
+            zpos_targ_seq = [zpos_target]
+            theta_targ_seq = [theta_target]
+
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                flight_sequence('hover', xpos_targ_seq, ypos_targ_seq,
+                                zpos_targ_seq, theta_targ_seq)
+
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                flight_sequence('right_spot', xpos_targ_seq, ypos_targ_seq,
+                                zpos_targ_seq, theta_targ_seq)
+
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                flight_sequence('left_spot', xpos_targ_seq, ypos_targ_seq,
+                                zpos_targ_seq, theta_targ_seq)
+
+            flt_mode = PROGRAM_SEQ_FM
+
             print('START FLYING')
-            
-        elif key == 115: #s
-            #throttle=1000
-            #start_flying=0
+
+        elif key == 115:  # s
+            # throttle=1000
+            # start_flying=0
             flt_mode = LANDING_FM
-        elif key == 114: #r - reset the serial port so Arduino will bind to another CX-10
+
+        # r - reset the serial port so Arduino will bind to another CX-10
+        elif key == 114:
             arduino.close()
             arduino = openArduino()
+
         elif key == ord('1'):
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'takeoff', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                    flight_sequence('takeoff', xpos_targ_seq,
+                                    ypos_targ_seq, zpos_targ_seq,
+                                    theta_targ_seq)
+
         elif key == ord('2'):
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'land', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                    flight_sequence('land', xpos_targ_seq,
+                                    ypos_targ_seq, zpos_targ_seq,
+                                    theta_targ_seq)
+
         elif key == ord('3'):
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'box', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                    flight_sequence('box', xpos_targ_seq, ypos_targ_seq,
+                                    zpos_targ_seq, theta_targ_seq)
+
         elif key == ord('4'):
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'left_spot', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)   
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                    flight_sequence('left_spot', xpos_targ_seq,
+                                    ypos_targ_seq, zpos_targ_seq,
+                                    theta_targ_seq)
+
         elif key == ord('5'):
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'right_spot', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)                
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                    flight_sequence('right_spot', xpos_targ_seq,
+                                    ypos_targ_seq, zpos_targ_seq,
+                                    theta_targ_seq)
+
         elif key == ord('6'):
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'rot90_left', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)                                
+            xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                    flight_sequence('rot90_left', xpos_targ_seq,
+                                    ypos_targ_seq, zpos_targ_seq,
+                                    theta_targ_seq)
+
         elif key == ord('7'):
-            xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq= flight_sequence(
-                'rot90_right', xpos_target_seq, ypos_target_seq, zpos_target_seq, theta_target_seq)                                
-        # print out the time needed to execute everything except the image reload
-        toc2=timeit.default_timer()
+            (xpos_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq) = \
+                    flight_sequence('rot90_right', xpos_targ_seq,
+                                    ypos_targ_seq, zpos_targ_seq,
+                                    theta_targ_seq)
+
+        # print out the time needed to execute everything except the image
+        # reload
+        toc2 = timeit.default_timer()
         print('deltaT_execute_other: %0.4f' % (toc2 - toc))
-        
+
         # read next frame
         rval, frame_o = vc.read()
-        toc2=timeit.default_timer()
+        toc2 = timeit.default_timer()
         print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))
-        
+
 finally:
     # close the connection
     arduino.close()
@@ -501,7 +532,7 @@ finally:
     # cycle the drone to reconnect
     arduino = openArduino()
     arduino.close()
-    # close it again so it can be reopened the next time it is run.      
+    # close it again so it can be reopened the next time it is run.
     vc.release()
     cv2.destroyWindow('preview')
     out.release()

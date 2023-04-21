@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import cv2
 import numpy as np
 import itertools
@@ -71,8 +69,6 @@ def add_blobs(crop_frame):
     if keypoints:
         print('found blobs')
         if len(keypoints) > 4:
-            print(keypoints)
-            # keypoints.sort(key=(lambda s: s.size))
             keypoints = sorted(keypoints, key=(lambda s: s.size))
             keypoints = keypoints[0:3]
         if len(keypoints) == 4:

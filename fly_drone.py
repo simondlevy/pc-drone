@@ -78,7 +78,6 @@ def add_blobs(crop_frame, params):
     reversemask = 255-mask
     keypoints = detector.detect(reversemask)
     if keypoints:
-        print('found blobs')
         if len(keypoints) > 4:
             keypoints = sorted(keypoints, key=(lambda s: s.size))
             keypoints = keypoints[0:3]
@@ -181,7 +180,7 @@ def add_blobs(crop_frame, params):
         # (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         else:
             im_with_keypoints = crop_frame
-            print('%i blobs' % (len(keypoints)))
+            print('%i blob(s)' % (len(keypoints)))
             max_blob_dist = None
             blob_center = None
             theta = None

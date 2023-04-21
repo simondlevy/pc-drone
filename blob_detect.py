@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import itertools
-import math
 
 
 # original undistort function.  Took 15ms to run. New version below only takes
@@ -126,7 +125,7 @@ def add_blobs(crop_frame, params):
             offset_line = np.array(
                     keypoints[rightpt].pt)-np.array(keypoints[leftpt].pt)
 
-            theta = -math.atan2(offset_line[1], offset_line[0])
+            theta = -np.arctan2(offset_line[1], offset_line[0])
 
             im_with_midpoint = cv2.drawKeypoints(
                     frame, [keypoints[middlepoint]], np.array([]), (0, 0, 255),
@@ -153,7 +152,7 @@ def add_blobs(crop_frame, params):
 
             textstr = ('%0.4f dist. %i,%i center, %0.2f deg' %
                        (max_dist_val, keypoints[middlepoint].pt[0],
-                        keypoints[middlepoint].pt[1], theta*180/math.pi))
+                        keypoints[middlepoint].pt[1], theta*180/np.pi))
 
             max_blob_dist = max_dist_val
             blob_center = keypoints[middlepoint].pt

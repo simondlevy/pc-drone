@@ -284,7 +284,7 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
 def main():
 
     # load calibration data to undistort images
-    calfile = np.load('camera_cal_data_2016_03_25_15_23.npz')
+    calfile = np.load('control/visual/camera_cal_data_2016_03_25_15_23.npz')
     newcameramtx = calfile['newcameramtx']
     roi = calfile['roi']
     mtx = calfile['mtx']

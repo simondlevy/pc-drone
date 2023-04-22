@@ -139,16 +139,17 @@ def handle_good_keypoints(frame, keypoints):
             (255, 255, 255),
             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-    textstr = ('%0.4f dist. %i,%i center, %0.2f deg' %
-               (max_dist_val, keypoints[middlepoint].pt[0],
-                keypoints[middlepoint].pt[1], theta*180/np.pi))
+    message = ('dist=%d  center=%d,%d theta=%d' %
+               (int(max_dist_val), 
+                int(keypoints[middlepoint].pt[0]),
+                int(keypoints[middlepoint].pt[1]),
+                int(np.degrees(theta))))
 
     max_blob_dist = max_dist_val
     blob_center = keypoints[middlepoint].pt
     keypoints[middlepoint].pt[1]
-    putText(img_with_keypoints, textstr, (10, 25))
 
-    return img_with_keypoints, blob_center, max_blob_dist, theta
+    return img_with_keypoints, blob_center, max_blob_dist, theta, message
 
 
 def add_blobs(crop_frame, params):
@@ -180,31 +181,37 @@ def add_blobs(crop_frame, params):
     reversemask = 255-mask
     keypoints = detector.detect(reversemask)
 
+    # Assume no keypoints found
+    message = 'No blobs'
+
     if keypoints is not None:
 
         if len(keypoints) > 4:
+            message = '%d blob(s)' % len(keypoints)
             keypoints = sorted(keypoints, key=(lambda s: s.size))
             keypoints = keypoints[0:3]
 
         if len(keypoints) == 4:
-            img_with_keypoints, blob_center, max_blob_dist, theta = \
+            img_with_keypoints, blob_center, max_blob_dist, theta, message = \
                     handle_good_keypoints(frame, keypoints)
 
         # Draw detected blobs as red circles.
         # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the
         # circle corresponds to the size of blob
         else:
-            print('%i blob(s)' % (len(keypoints)))
+            message = '%d blob(s)' % len(keypoints)
             img_with_keypoints = crop_frame
             max_blob_dist = None
             blob_center = None
             theta = None
+
     else:
-        print('no blobs')
         img_with_keypoints = crop_frame
         max_blob_dist = None
         blob_center = None
         theta = None
+
+    putText(img_with_keypoints, message, (10, 25))
 
     return (img_with_keypoints,
             max_blob_dist, blob_center, theta)  # , keypoint_in_orders

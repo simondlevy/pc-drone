@@ -11,7 +11,7 @@ class Comms:
 
     def write(self, command):
 
-        print(command)
+        pass
 
     def readline(self):
 

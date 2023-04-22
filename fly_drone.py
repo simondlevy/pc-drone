@@ -27,6 +27,7 @@ from comms.mock import Comms
 from blobs import init_params, get_keypoints
 import control_params as cp
 
+LOG_DIR = './logs'
 
 def put_text(frame, text, pos):
     cv2.putText(frame, text, pos,
@@ -301,17 +302,15 @@ def main():
     vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
     vc.set(cv2.CAP_PROP_FPS, fps)
 
-    SAVE_VIDEO_DIR = './videos'
-
-    if not os.path.exists(SAVE_VIDEO_DIR):
-        os.makedirs(SAVE_VIDEO_DIR)
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
 
     fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 
     timestamp = '{:%Y_%m_%d_%H_%M}'.format(datetime.now())
 
     out = cv2.VideoWriter(
-            SAVE_VIDEO_DIR + '/flight_data\\' + timestamp + '_video.avi',
+            LOG_DIR + '/' + timestamp + '_video.avi',
             fourcc, 20.0, (width, height), 1)
 
     throttle = 1000
@@ -403,6 +402,8 @@ def main():
             # toc2 = timeit.default_timer()
 
             # print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
+
+            print(start_flying)
 
             if start_flying:
 
@@ -550,11 +551,11 @@ def main():
                     flt_mode = LANDING_FM
 
             elif recording_data:
-                np.save('flight_data\\' + timestamp + '_flt' + str(flightnum) +
+                np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
                         '_' + 'flightdata.npy', flightdata)
-                np.save('flight_data\\' + timestamp + '_flt' + str(flightnum) +
+                np.save(LOG_DIR +'/' + timestamp + '_flt' + str(flightnum) +
                         '_' + 'controldata.npy', controldata)
-                with open('flight_data\\' + timestamp + '_flt' +
+                with open(LOG_DIR + '/' + timestamp + '_flt' +
                           str(flightnum) + '_' + 'controlvarnames.npy',
                           'wb') as f:
                     pickle.dump(controlvarnames, f)

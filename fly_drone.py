@@ -18,20 +18,14 @@ import time
 import timeit
 from datetime import datetime
 import itertools
-import serial
 
+# Uncomment one of these
+from comms.mockduino import Comms
+# from comms.realduino import Comms
+
+# Stuff you can tinker with
 from blobs import init_params, get_keypoints
-from mockduino import MockArduino
-
 import control_params as cp
-
-
-def open_arduino():
-
-    # Uncomment this when you're ready to fly!
-    # return serial.Serial('/dev/ttyACM0', 115200, timeout=.001)
-
-    return MockArduino()
 
 
 def put_text(frame, text, pos):
@@ -396,7 +390,7 @@ def main():
 
     try:
 
-        arduino = open_arduino()
+        comms = Comms()
 
         time.sleep(1)  # give the connection a second to settle
 
@@ -502,14 +496,14 @@ def main():
             rudder = clamp(rudder, 1000, 2000)
             command = '%i,%i,%i,%i' % (throttle, aileron, elevator, rudder)
             # print('[PC]: '+command)
-            arduino.write((command+'\n').encode())
+            comms.write((command+'\n').encode())
 
             # Serial comms - read back from Arduino
-            data = arduino.readline()
+            data = comms.readline()
             while data:
                 print('[AU]: '+data.rstrip('\n'))  # strip out the new lines
                 # (better to do .read() in the long run for this reason
-                data = arduino.readline()
+                data = comms.readline()
 
             # Monitor keyboard
 
@@ -658,8 +652,8 @@ def main():
 
             # r - reset the serial port so Arduino will bind to another CX-10
             elif key == 114:
-                arduino.close()
-                arduino = open_arduino()
+                comms.close()
+                comms = Comms()
 
             elif key >= ord('1') and key <= ord('7'):
 
@@ -687,12 +681,12 @@ def main():
 
     finally:
         # close the connection
-        arduino.close()
+        comms.close()
         # re-open the serial port which will w for Arduino Uno to do a reset
         # this forces the quadcopter to power off motors.  Will need to power
         # cycle the drone to reconnect
-        arduino = open_arduino()
-        arduino.close()
+        comms = Comms()
+        comms.close()
         # close it again so it can be reopened the next time it is run.
         vc.release()
         out.release()

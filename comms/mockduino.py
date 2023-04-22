@@ -1,5 +1,5 @@
 '''
-Mock serial port to simulate Arduino for testing
+Mock Arduino communications for testing
 
 Copyright (c) 2023 Simon D. Levy
 
@@ -7,11 +7,11 @@ MIT License
 '''
 
 
-class MockArduino:
+class Comms:
 
     def write(self, command):
 
-        pass
+        print(command)
 
     def readline(self):
 

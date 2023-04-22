@@ -10,7 +10,6 @@ Python2=>3 translation by Simon D. Levy
 MIT License
 '''
 
-import cv2
 import numpy as np
 import pickle
 import os
@@ -19,15 +18,14 @@ import timeit
 from datetime import datetime
 import itertools
 
-from state.visual import put_text, add_blobs, init_undistort, undistort_crop
-from state.visual import handle_good_keypoints
+# Uncomment one of these
+from state.visual import StateEstimator
+# from state.simulator import StateEstimator
 
 # Uncomment one of these
 from comms.mock import Comms
 # from comms.arduino import Comms
 
-# Stuff you can tinker with
-from state.visual.blobs import init_params, get_keypoints
 import pids
 
 LOG_DIR = './logs'
@@ -210,64 +208,29 @@ def main():
     controldata = None
     flightdata = None
 
-    params = init_params()
-
-    ##########################################################################
-
-    # load calibration data to undistort images
-    calfile = np.load('state/visual/camera_cal_data_2016_03_25_15_23.npz')
-    newcameramtx = calfile['newcameramtx']
-    roi = calfile['roi']
-    mtx = calfile['mtx']
-    dist = calfile['dist']
-    map1, map2 = init_undistort(mtx, dist, newcameramtx)
-
-    vc = cv2.VideoCapture(0)
-
-    fname = 'drone_track_640_480_USBFHD01M'
-    width = 640
-    height = 480
-    fps = 30
-    wait_time = 1
-    vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-    vc.set(cv2.CAP_PROP_FPS, fps)
-
-    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-
-    out = cv2.VideoWriter(
-            LOG_DIR + '/' + timestamp + '_video.avi',
-            fourcc, 20.0, (width, height), 1)
-
+    state = StateEstimator(LOG_DIR, timestamp)
 
     try:
 
         comms = Comms()
 
-        if vc.isOpened():  # try to get the first frame
-            rval, frame_o = vc.read()
-            # frame_undistort=undistort_crop(np.rot90(frame_o, 2))
-            frame_undistort = undistort_crop(frame_o, map1, map2, roi)
-            frame, zpos, xypos, theta = add_blobs(frame_undistort, params)
-            # frame, zpos, xypos=add_blobs(frame_o)
-
-        else:
-            rval = False
+        rval = state.ready()
 
         ii = 100
 
         while rval:
+
             # toc_old = toc
             # toc = timeit.default_timer()
             # prints out time since the last frame was read
             # print('deltaT: %0.4f  fps: %0.1f' %
             #       (toc - toc_old, 1/(toc-toc_old)))
 
-            frame_undistort = undistort_crop(frame_o, map1, map2, roi)
+
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
-            frame, zpos, xypos, theta = add_blobs(frame_undistort, params)
+            xypos, zpos, theta = state.update()
 
             # toc2 = timeit.default_timer()
 
@@ -376,32 +339,23 @@ def main():
             #             (e_dz, e_iz, e_d2z))
 
             flighttoc = timeit.default_timer()
-            put_text(frame, 'Command: ' + command, (10, 50))
 
-            put_text(frame, 'Time: %5.3f' % (flighttoc - flighttic), (10, 75))
+            key = state.display(command, flighttoc, flighttic, x_target, ypos_target)
 
-            cv2.rectangle(frame, (int(x_target)-5, int(ypos_target)-5),
-                          (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
-                          thickness=1, lineType=8, shift=0)
-
-            # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
-            cv2.imshow('Hit ESC to exit', frame)
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
-
-            key = cv2.waitKey(wait_time)
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_waitkey: %0.4f' % (toc2 - toc))
             # key = ord('0')
+
             if start_flying:
-                # start recording to video when flying
-                frame_pad = cv2.copyMakeBorder(frame, 91, 0, 75, 00,
-                                               cv2.BORDER_CONSTANT,
-                                               value=[255, 0, 0])
-                out.write(frame_pad)
+
+                state.record()
+
                 if xypos is None:
                     xypos = np.zeros(2)
                     zpos = 0
+
                 flightdata = np.vstack((flightdata,
                                         np.array([flighttoc - flighttic,
                                                   xypos[0], xypos[1],
@@ -434,7 +388,7 @@ def main():
             if key == 27:  # exit on ESC
                 break
             elif key == 32:  # space - take a snapshot and save it
-                cv2.imwrite(fname+str(ii)+'.jpg', frame)
+                state.snapshot(fname, ii)
                 ii += 1
             elif key == 119:  # w
                 throttle = THROTTLE_MID
@@ -531,8 +485,9 @@ def main():
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_other: %0.4f' % (toc2 - toc))
 
-            # read next frame
-            rval, frame_o = vc.read()
+            # read next state data
+            rval = state.acquire()
+
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))
 
@@ -545,8 +500,7 @@ def main():
         comms = Comms()
         comms.close()
         # close it again so it can be reopened the next time it is run.
-        vc.release()
-        out.release()
+        state.close()
 
 
 main()

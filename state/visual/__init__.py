@@ -7,7 +7,7 @@ import timeit
 from datetime import datetime
 import itertools
 
-from state.visual.blobs import init_params, get_keypoints
+from state.visual.blobs import get_keypoints, init_params
 
 def put_text(frame, text, pos):
     cv2.putText(frame, text, pos,
@@ -148,3 +148,97 @@ def handle_good_keypoints(frame, keypoints):
     return img_with_keypoints, blob_center, max_blob_dist, theta, message
 
 
+class StateEstimator:
+
+    def __init__(self, log_dir, timestamp):
+
+        self.params = init_params()
+
+        # load calibration data to undistort images
+        calfile = np.load('state/visual/camera_cal_data_2016_03_25_15_23.npz')
+        newcameramtx = calfile['newcameramtx']
+        self.roi = calfile['roi']
+        self.mtx = calfile['mtx']
+        self.dist = calfile['dist']
+        self.map1, self.map2 = init_undistort(self.mtx, self.dist, newcameramtx)
+
+        self.vc = cv2.VideoCapture(0)
+
+        self.fname = 'drone_track_640_480_USBFHD01M'
+        width = 640
+        height = 480
+        fps = 30
+        self.wait_time = 1
+        self.vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        self.vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        self.vc.set(cv2.CAP_PROP_FPS, fps)
+
+        fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+
+        self.out = cv2.VideoWriter(
+                log_dir + '/' + timestamp + '_video.avi',
+                fourcc, 20.0, (width, height), 1)
+
+        self.frame_o = None
+        self.key = None
+
+    def ready(self):
+
+        retval = False
+
+        if self.vc.isOpened():  # try to get the first frame
+            retval, self.frame_o = self.vc.read()
+            # frame_undistort=undistort_crop(np.rot90(self.frame_o, 2))
+            # frame_undistort =
+            #     undistort_crop(self.frame_o, self.map1, self.map2, self.roi)
+            # self.frame, zpos, xypos, theta = add_blobs(frame_undistort, params)
+            # frame, zpos, xypos=add_blobs(self.frame_o)
+
+        return retval
+
+    def update(self):
+
+        frame_undistort = undistort_crop(self.frame_o, self.map1, self.map2, self.roi)
+        self.frame, zpos, xypos, theta = add_blobs(frame_undistort, self.params)
+
+        return xypos, zpos, theta
+
+    def display(self, command, flighttoc, flighttic, x_target, ypos_target):
+
+        put_text(self.frame, 'Command: ' + command, (10, 50))
+
+        put_text(self.frame, 'Time: %5.3f' % (flighttoc - flighttic), (10, 75))
+
+        cv2.rectangle(self.frame, (int(x_target)-5, int(ypos_target)-5),
+                      (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
+                      thickness=1, lineType=8, shift=0)
+
+        # dst=cv2.resize(self.frame, (1280,960), cv2.INTER_NEAREST)
+        cv2.imshow('Hit ESC to exit', self.frame)
+
+        return cv2.waitKey(self.wait_time)
+    
+        # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
+
+    def record(self):
+
+        frame_pad = cv2.copyMakeBorder(self.frame, 91, 0, 75, 00,
+                                       cv2.BORDER_CONSTANT,
+                                       value=[255, 0, 0])
+        self.out.write(frame_pad)
+
+    def snapshot(self, fname, ii):
+
+        cv2.imwrite(fname+str(ii)+'.jpg', self.frame)
+
+    def acquire(self):
+
+        rval, self.frame_o = self.vc.read()
+
+        return rval
+
+    def close(self):
+
+        self.vc.release()
+
+        self.out.release()

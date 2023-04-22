@@ -33,9 +33,11 @@ def open_arduino():
 
     return MockArduino()
 
+
 def put_text(frame, text, pos):
     cv2.putText(frame, text, pos,
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
+
 
 def add_blobs(crop_frame, params):
 
@@ -64,6 +66,7 @@ def add_blobs(crop_frame, params):
 
     return (img_with_keypoints,
             max_blob_dist, blob_center, theta)  # , keypoint_in_orders
+
 
 # create maps for undistortion
 def init_undistort(mtx, dist, newcameramtx):
@@ -158,7 +161,7 @@ def handle_good_keypoints(frame, keypoints):
             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     message = ('dist=%d  center=%d,%d theta=%d' %
-               (int(max_dist_val), 
+               (int(max_dist_val),
                 int(keypoints[middlepoint].pt[0]),
                 int(keypoints[middlepoint].pt[1]),
                 int(np.degrees(theta))))
@@ -169,9 +172,9 @@ def handle_good_keypoints(frame, keypoints):
 
     return img_with_keypoints, blob_center, max_blob_dist, theta, message
 
+
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
-
 
 
 def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
@@ -666,7 +669,7 @@ def main():
                 command = commands[key - ord('1')]
 
                 (x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq) = (
-                        flight_sequence(command, 
+                        flight_sequence(command,
                                         x_targ_seq,
                                         ypos_targ_seq,
                                         zpos_targ_seq,

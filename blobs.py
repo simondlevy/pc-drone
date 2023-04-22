@@ -12,17 +12,7 @@ MIT License
 
 import cv2
 import numpy as np
-import pickle
-import os
-# import serial
-import time
-import timeit
-from datetime import datetime
-import itertools
 
-from mockduino import MockArduino
-
-import control_params as cp
 
 def init_params():
 
@@ -50,6 +40,7 @@ def init_params():
     params.minInertiaRatio = 0.01
 
     return params
+
 
 def get_keypoints(frame, params):
 

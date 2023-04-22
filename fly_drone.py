@@ -20,7 +20,7 @@ import timeit
 from datetime import datetime
 import itertools
 
-from blobs import init_params
+from blobs import init_params, get_keypoints
 from mockduino import MockArduino
 
 import control_params as cp
@@ -34,33 +34,10 @@ def add_blobs(crop_frame, params):
     # frame = cv2.GaussianBlur(crop_frame, (3, 3), 0)
     frame = crop_frame
 
-    # Convert BGR to HSV
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-    # define range of green color in HSV
-    # lower_green = np.array([60,20,20])
-    # upper_green = np.array([80,255,255])
-
-    # Actually purple
-    lower_green = np.array([115, 50, 10])
-    upper_green = np.array([160, 255, 255])
-
-    # Threshold the HSV image to get only blue colors
-    mask = cv2.inRange(hsv, lower_green, upper_green)
-
-    # mask = cv2.erode(mask, None, iterations=2)
-    mask = cv2.dilate(mask, None, iterations=1)
-
-    # Bitwise-AND mask and original image
-    # res = cv2.bitwise_and(frame,frame, mask= mask)
-    detector = cv2.SimpleBlobDetector_create(params)
-
-    # Detect blobs.
-    reversemask = 255 - mask
-    keypoints = detector.detect(reversemask)
-
     # Assume no keypoints found
     message = 'No blobs'
+
+    keypoints = get_keypoints(frame, params)
 
     if keypoints is not None:
 

@@ -81,18 +81,7 @@ def handle_good_keypoints(frame, keypoints):
 
     # print(max_dist_val)
 
-    if idx == 0:
-        sidepts = [0, 1]
-    elif idx == 1:
-        sidepts = [0, 2]
-    elif idx == 2:
-        sidepts = [0, 3]
-    elif idx == 3:
-        sidepts = [1, 2]
-    elif idx == 4:
-        sidepts = [1, 3]
-    elif idx == 5:
-        sidepts = [2, 3]
+    sidepts = ([0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3])[idx]
 
     # the frontpoint is the remaining one.
     frontpoint = 6 - np.array(sidepts+[middlepoint]).sum()

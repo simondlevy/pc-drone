@@ -25,7 +25,7 @@ from comms.mock import Comms
 
 # Stuff you can tinker with
 from control.visual.blobs import init_params, get_keypoints
-import control_params as cp
+import pids
 
 LOG_DIR = './logs'
 
@@ -333,10 +333,10 @@ def main():
     e_d2z, e_d2x, e_d2y, e_d2t  = 0, 0, 0, 0
     # dz_old = 0 # dx_old = 0 # dy_old = 0
 
-    THROTTLE_MID = cp.THROTTLE_MID
-    ELEVATOR_MID = cp.ELEVATOR_MID
-    AILERON_MID = cp.AILERON_MID
-    RUDDER_MID = cp.RUDDER_MID
+    THROTTLE_MID = pids.THROTTLE_MID
+    ELEVATOR_MID = pids.ELEVATOR_MID
+    AILERON_MID = pids.AILERON_MID
+    RUDDER_MID = pids.RUDDER_MID
 
     # speeds = ''
 
@@ -417,16 +417,16 @@ def main():
                         e_iz += e_dz
                         e_iz = clamp(e_iz, -10000, 10000)
                         e_d2z = e_dz-e_dz_old
-                        throttle = (cp.Kz * (e_dz * cp.Kpz + cp.Kiz * e_iz +
-                                    cp.Kdz * e_d2z) + THROTTLE_MID)
+                        throttle = (pids.Kz * (e_dz * pids.Kpz + pids.Kiz * e_iz +
+                                    pids.Kdz * e_d2z) + THROTTLE_MID)
                         e_dx_old = e_dx
                         e_dx = xypos[0]-x_target
                         e_ix += e_dx
                         e_ix = clamp(e_ix, -200000, 200000)
                         e_d2x = e_dx - e_dx_old
 
-                        xcommand = cp.Kx * (
-                                e_dx * cp.Kpx + cp.Kix * e_ix + cp.Kdx * e_d2x)
+                        xcommand = pids.Kx * (
+                                e_dx * pids.Kpx + pids.Kix * e_ix + pids.Kdx * e_d2x)
 
                         e_dy_old = e_dy
                         e_dy = xypos[1] - ypos_target
@@ -434,8 +434,8 @@ def main():
                         e_iy = clamp(e_iy, -200000, 200000)
                         e_d2y = e_dy-e_dy_old
 
-                        ycommand = (cp.Ky *
-                                    (e_dy * cp.Kpy + cp.Kiy * e_iy + cp.Kdy *
+                        ycommand = (pids.Ky *
+                                    (e_dy * pids.Kpy + pids.Kiy * e_iy + pids.Kdy *
                                      e_d2y))
 
                         # commands are calculated in camera reference frame
@@ -455,8 +455,8 @@ def main():
                         e_it += e_dt
                         e_it = clamp(e_it, -200000, 200000)
                         e_d2t = e_dt-e_dt_old
-                        rudder = cp.Kt * (
-                                e_dt * cp.Kpt + cp.Kit * e_it + cp.Kdt *
+                        rudder = pids.Kt * (
+                                e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
                                 e_d2t) + RUDDER_MID
                         if zpos > 0:
                             # print('highalt')
@@ -500,7 +500,7 @@ def main():
             #            (zspeed, xspeed, yspeed))
 
             # gains = ('Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f' %
-            #          (cp.Kpz, cp.Kiz, cp.Kdz))
+            #          (pids.Kpz, pids.Kiz, pids.Kdz))
 
             # errors_z = ('e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' %
             #             (e_dz, e_iz, e_d2z))
@@ -581,12 +581,12 @@ def main():
                 flighttoc = 0
                 flightnum += 1
 
-                # reload(cp)  # ???
-                # this lists out all the variables in module cp
+                # reload(pids)  # ???
+                # this lists out all the variables in module pids
                 # and records their values.
                 controlvarnames = [item for item in
-                                   dir(cp) if not item.startswith('__')]
-                controldata = [eval('cp.'+item) for item in controlvarnames]
+                                   dir(pids) if not item.startswith('__')]
+                controldata = [eval('pids.'+item) for item in controlvarnames]
                 flt_mode = NORMAL_FM
                 print('START FLYING')
             elif key == ord('e'):
@@ -604,12 +604,12 @@ def main():
                 flighttoc = 0
                 flightnum += 1
 
-                # reload(cp)  # ???
-                # this lists out all the variables in module cp
+                # reload(pids)  # ???
+                # this lists out all the variables in module pids
                 # and records their values.
                 controlvarnames = [item for item in
-                                   dir(cp) if not item.startswith('__')]
-                controldata = [eval('cp.'+item) for item in controlvarnames]
+                                   dir(pids) if not item.startswith('__')]
+                controldata = [eval('pids.'+item) for item in controlvarnames]
 
                 x_targ_seq = [x_target]
                 ypos_targ_seq = [ypos_target]

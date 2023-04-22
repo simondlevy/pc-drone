@@ -20,8 +20,8 @@ from datetime import datetime
 import itertools
 
 # Uncomment one of these
-from comms.mockduino import Comms
-# from comms.realduino import Comms
+from comms.mock import Comms
+# from comms.arduino import Comms
 
 # Stuff you can tinker with
 from blobs import init_params, get_keypoints
@@ -327,28 +327,12 @@ def main():
     start_flying = 0
     no_position_cnt = 0
 
-    dz = 0
-    dx = 0
-    dy = 0
-    xspeed = 0
-    yspeed = 0
-    zspeed = 0
-    # dz_old = 0
-    # dx_old = 0
-    # dy_old = 0
-
-    e_dz = 0
-    e_dx = 0
-    e_dy = 0
-    e_dt = 0
-    e_iz = 0
-    e_ix = 0
-    e_iy = 0
-    e_it = 0
-    e_d2z = 0
-    e_d2x = 0
-    e_d2y = 0
-    e_d2t = 0
+    dx, dy, dz = 0, 0, 0
+    xspeed, yspeed, zspeed = 0, 0, 0
+    e_dz, e_dx, e_dy, e_dt = 0, 0, 0, 0
+    e_iz, e_ix, e_iy, e_it = 0, 0, 0, 0
+    e_d2z, e_d2x, e_d2y, e_d2t  = 0, 0, 0, 0
+    # dz_old = 0 # dx_old = 0 # dy_old = 0
 
     THROTTLE_MID = cp.THROTTLE_MID
     ELEVATOR_MID = cp.ELEVATOR_MID
@@ -391,8 +375,6 @@ def main():
     try:
 
         comms = Comms()
-
-        time.sleep(1)  # give the connection a second to settle
 
         if vc.isOpened():  # try to get the first frame
             rval, frame_o = vc.read()

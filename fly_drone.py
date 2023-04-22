@@ -324,7 +324,7 @@ def main():
     theta = 0
 
     command = ''
-    start_flying = 0
+    start_flying = False
     no_position_cnt = 0
 
     dx, dy, dz = 0, 0, 0
@@ -384,7 +384,9 @@ def main():
             # frame, zpos, xypos=add_blobs(frame_o)
         else:
             rval = False
+
         ii = 100
+
         while rval:
             # toc_old = toc
             # toc = timeit.default_timer()
@@ -403,7 +405,9 @@ def main():
             # print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
 
             if start_flying:
+
                 try:
+
                     if flt_mode != LANDING_FM:
                         # print('Zpos: %i Xpos: %i Ypos: %i' %
                         #       (zpos, xypos[0], xypos[1]))
@@ -471,7 +475,7 @@ def main():
                     # print('STOPPED. no position or error. ')
                     if no_position_cnt > 15:
                         throttle = 1000
-                        start_flying = 0
+                        start_flying = False
 
             # Serial comms - write to Arduino
             throttle = clamp(throttle, 1000, 2000)
@@ -569,7 +573,7 @@ def main():
                 e_iy = 0
                 e_iz = 0
                 rudder = 1500  # yaw, rotates the drone
-                start_flying = 1
+                start_flying = True
                 recording_data = 1
                 flightdata = np.zeros(23)
                 flighttic = timeit.default_timer()
@@ -592,7 +596,7 @@ def main():
                 e_iy = 0
                 e_iz = 0
                 rudder = 1500  # yaw, rotates the drone
-                start_flying = 1
+                start_flying = True
                 recording_data = 1
                 flightdata = np.zeros(23)
                 flighttic = timeit.default_timer()
@@ -628,8 +632,8 @@ def main():
                 print('START FLYING')
 
             elif key == 115:  # s
-                # throttle=1000
-                # start_flying=0
+                # throttle = 1000
+                # start_flying = False
                 flt_mode = LANDING_FM
 
             # r - reset the serial port so Arduino will bind to another CX-10

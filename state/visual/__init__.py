@@ -227,9 +227,9 @@ class StateEstimator:
                                        value=[255, 0, 0])
         self.out.write(frame_pad)
 
-    def snapshot(self, fname, ii):
+    def snapshot(self, ii):
 
-        cv2.imwrite(fname+str(ii)+'.jpg', self.frame)
+        cv2.imwrite(self.fname+str(ii)+'.jpg', self.frame)
 
     def acquire(self):
 

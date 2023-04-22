@@ -13,10 +13,8 @@ MIT License
 import numpy as np
 import pickle
 import os
-import time
 import timeit
 from datetime import datetime
-import itertools
 
 # Uncomment one of these
 from state.visual import StateEstimator
@@ -169,7 +167,7 @@ def main():
     xspeed, yspeed, zspeed = 0, 0, 0
     e_dz, e_dx, e_dy, e_dt = 0, 0, 0, 0
     e_iz, e_ix, e_iy, e_it = 0, 0, 0, 0
-    e_d2z, e_d2x, e_d2y, e_d2t  = 0, 0, 0, 0
+    e_d2z, e_d2x, e_d2y, e_d2t = 0, 0, 0, 0
     # dz_old = 0 # dx_old = 0 # dy_old = 0
 
     THROTTLE_MID = pids.THROTTLE_MID
@@ -225,8 +223,6 @@ def main():
             # prints out time since the last frame was read
             # print('deltaT: %0.4f  fps: %0.1f' %
             #       (toc - toc_old, 1/(toc-toc_old)))
-
-
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
@@ -250,8 +246,11 @@ def main():
                         e_iz += e_dz
                         e_iz = clamp(e_iz, -10000, 10000)
                         e_d2z = e_dz-e_dz_old
-                        throttle = (pids.Kz * (e_dz * pids.Kpz + pids.Kiz * e_iz +
-                                    pids.Kdz * e_d2z) + THROTTLE_MID)
+                        throttle = (pids.Kz *
+                                    (e_dz * pids.Kpz +
+                                     pids.Kiz * e_iz +
+                                     pids.Kdz * e_d2z) +
+                                    THROTTLE_MID)
                         e_dx_old = e_dx
                         e_dx = xypos[0]-x_target
                         e_ix += e_dx
@@ -259,7 +258,9 @@ def main():
                         e_d2x = e_dx - e_dx_old
 
                         xcommand = pids.Kx * (
-                                e_dx * pids.Kpx + pids.Kix * e_ix + pids.Kdx * e_d2x)
+                                e_dx * pids.Kpx +
+                                pids.Kix * e_ix +
+                                pids.Kdx * e_d2x)
 
                         e_dy_old = e_dy
                         e_dy = xypos[1] - ypos_target
@@ -268,8 +269,9 @@ def main():
                         e_d2y = e_dy-e_dy_old
 
                         ycommand = (pids.Ky *
-                                    (e_dy * pids.Kpy + pids.Kiy * e_iy + pids.Kdy *
-                                     e_d2y))
+                                    (e_dy * pids.Kpy +
+                                     pids.Kiy * e_iy +
+                                     pids.Kdy * e_d2y))
 
                         # commands are calculated in camera reference frame
                         aileron = (xcommand * np.cos(theta) + ycommand *
@@ -340,7 +342,8 @@ def main():
 
             flighttoc = timeit.default_timer()
 
-            key = state.display(command, flighttoc, flighttic, x_target, ypos_target)
+            key = state.display(
+                    command, flighttoc, flighttic, x_target, ypos_target)
 
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
@@ -377,7 +380,7 @@ def main():
             elif recording_data:
                 np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
                         '_' + 'flightdata.npy', flightdata)
-                np.save(LOG_DIR +'/' + timestamp + '_flt' + str(flightnum) +
+                np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
                         '_' + 'controldata.npy', controldata)
                 with open(LOG_DIR + '/' + timestamp + '_flt' +
                           str(flightnum) + '_' + 'controlvarnames.npy',
@@ -388,7 +391,7 @@ def main():
             if key == 27:  # exit on ESC
                 break
             elif key == 32:  # space - take a snapshot and save it
-                state.snapshot(fname, ii)
+                state.snapshot(ii)
                 ii += 1
             elif key == 119:  # w
                 throttle = THROTTLE_MID

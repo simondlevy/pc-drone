@@ -58,7 +58,7 @@ def add_blobs(crop_frame, params):
                     handle_good_keypoints(frame, keypoints)
 
         else:
-            message = '%d keypoints(s)' % len(keypoints)
+            message = '%d keypoints' % len(keypoints)
 
     put_text(img_with_keypoints, message, (10, 25))
 
@@ -188,23 +188,21 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
     seqrate = 2
 
     if seqname == 'land':
-        zpoints = np.abs(np.round((zseq[-1]-45)/seqrate))
+        zpoints = int(np.abs(np.round((zseq[-1]-45)/seqrate)))
         zseq = np.concatenate((zseq, np.linspace(zseq[-1], 30, zpoints)))
         xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
         tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
 
     elif seqname == 'takeoff':
-        zpoints = np.abs(np.round((zseq[-1]-65)/seqrate))
-        print(zseq)
-        exit(0)
+        zpoints = int(np.abs(np.round((zseq[-1]-65)/seqrate)))
         zseq = np.concatenate((zseq, np.linspace(zseq[-1], 65, zpoints)))
         xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
         tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
 
     elif seqname == 'box':  # goes in a 10cm box pattern
-        pts = np.abs(np.round((75)/seqrate))
+        pts = int(np.abs(np.round((75)/seqrate)))
         fwd = np.linspace(0, 75, pts)
         xseq = np.concatenate((xseq, fwd+xseq[-1]))
         xseq = np.concatenate((xseq, np.ones(pts)*xseq[-1]))
@@ -224,6 +222,7 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
         xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
         tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
+
     elif seqname == 'down':
         zpoints = np.abs(np.round(12/seqrate))
         zseq = np.concatenate((zseq,
@@ -233,14 +232,14 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
         tseq = np.concatenate((tseq, np.ones(zpoints)*tseq[-1]))
 
     elif seqname == 'left_spot':
-        xpoints = np.abs(np.round((xseq[-1]-200)/1))
+        xpoints = int(np.abs(np.round((xseq[-1]-200)/1)))
         xseq = np.concatenate((xseq, np.linspace(xseq[-1], 200, xpoints)))
         yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
         zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
         tseq = np.concatenate((tseq, np.ones(xpoints)*tseq[-1]))
 
     elif seqname == 'right_spot':
-        xpoints = np.abs(np.round((xseq[-1]-400)/1))
+        xpoints = int(np.abs(np.round((xseq[-1]-400)/1)))
         xseq = np.concatenate((xseq, np.linspace(xseq[-1], 400, xpoints)))
         yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
         zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))

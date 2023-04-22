@@ -26,14 +26,10 @@ import control_params as cp
 
 SAVE_VIDEO_DIR = './videos'
 
-FONT_FACE = cv2.FONT_HERSHEY_SIMPLEX
-FONT_SCALE = 0.8
-FONT_COLOR = (255, 255, 255)
-
 
 def putText(frame, text, pos):
     cv2.putText(frame, text, pos,
-                FONT_FACE, FONT_SCALE, FONT_COLOR, 2, cv2.LINE_AA)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
 
 # create maps for undistortion
@@ -362,8 +358,6 @@ def main():
     dist = calfile['dist']
     map1, map2 = init_undistort(mtx, dist, newcameramtx)
 
-    cv2.namedWindow('preview')
-
     vc = cv2.VideoCapture(0)
 
     fname = 'drone_track_640_480_USBFHD01M'
@@ -600,7 +594,7 @@ def main():
                           thickness=1, lineType=8, shift=0)
 
             # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
-            cv2.imshow('preview', frame)
+            cv2.imshow('Hit ESC to exit', frame)
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
 
@@ -759,7 +753,6 @@ def main():
         arduino.close()
         # close it again so it can be reopened the next time it is run.
         vc.release()
-        cv2.destroyWindow('preview')
         out.release()
 
 

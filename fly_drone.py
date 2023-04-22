@@ -24,7 +24,7 @@ from comms.mock import Comms
 # from comms.arduino import Comms
 
 # Stuff you can tinker with
-from blobs import init_params, get_keypoints
+from control.visual.blobs import init_params, get_keypoints
 import control_params as cp
 
 LOG_DIR = './logs'

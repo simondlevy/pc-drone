@@ -44,35 +44,21 @@ def add_blobs(crop_frame, params):
 
     # Assume no keypoints found
     message = 'No blobs'
+    img_with_keypoints = crop_frame
+    max_blob_dist = None
+    blob_center = None
+    theta = None
 
     keypoints = get_keypoints(frame, params)
 
     if keypoints is not None:
 
-        if len(keypoints) > 4:
-            message = '%d blob(s)' % len(keypoints)
-            keypoints = sorted(keypoints, key=(lambda s: s.size))
-            keypoints = keypoints[0:3]
-
         if len(keypoints) == 4:
             img_with_keypoints, blob_center, max_blob_dist, theta, message = \
                     handle_good_keypoints(frame, keypoints)
 
-        # Draw detected blobs as red circles.
-        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the
-        # circle corresponds to the size of blob
         else:
             message = '%d blob(s)' % len(keypoints)
-            img_with_keypoints = crop_frame
-            max_blob_dist = None
-            blob_center = None
-            theta = None
-
-    else:
-        img_with_keypoints = crop_frame
-        max_blob_dist = None
-        blob_center = None
-        theta = None
 
     put_text(img_with_keypoints, message, (10, 25))
 

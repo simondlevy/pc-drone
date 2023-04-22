@@ -158,7 +158,7 @@ def main():
     theta = 0
 
     command = ''
-    start_flying = False
+    flying = False
     no_position_cnt = 0
 
     dx, dy, dz = 0, 0, 0
@@ -230,9 +230,9 @@ def main():
 
             # print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
 
-            print(start_flying)
+            print(flying)
 
-            if start_flying:
+            if flying:
 
                 try:
 
@@ -309,7 +309,7 @@ def main():
                     # print('STOPPED. no position or error. ')
                     if no_position_cnt > 15:
                         throttle = 1000
-                        start_flying = False
+                        flying = False
 
             # Serial comms - write to Arduino
             throttle = clamp(throttle, 1000, 2000)
@@ -326,15 +326,11 @@ def main():
                 data = comms.readline()
 
             # Monitor keyboard
-
             # speeds = 'dz:  %+5.2f dx:  %+5.2f  dy: %+5.2f' % (dz, dx, dy)
-
             # targets = ('tsz: %+5.2f tsx: %+5.2f tsy: %+5.2f' %
             #            (zspeed, xspeed, yspeed))
-
             # gains = ('Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f' %
             #          (pids.Kpz, pids.Kiz, pids.Kdz))
-
             # errors_z = ('e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' %
             #             (e_dz, e_iz, e_d2z))
 
@@ -349,7 +345,7 @@ def main():
             # print('deltaT_execute_waitkey: %0.4f' % (toc2 - toc))
             # key = ord('0')
 
-            if start_flying:
+            if flying:
 
                 state.record()
 
@@ -399,7 +395,7 @@ def main():
                 e_iy = 0
                 e_iz = 0
                 rudder = 1500  # yaw, rotates the drone
-                start_flying = True
+                flying = True
                 recording_data = 1
                 flightdata = np.zeros(23)
                 flighttic = timeit.default_timer()
@@ -422,7 +418,7 @@ def main():
                 e_iy = 0
                 e_iz = 0
                 rudder = 1500  # yaw, rotates the drone
-                start_flying = True
+                flying = True
                 recording_data = 1
                 flightdata = np.zeros(23)
                 flighttic = timeit.default_timer()
@@ -459,7 +455,7 @@ def main():
 
             elif key == 115:  # s
                 # throttle = 1000
-                # start_flying = False
+                # flying = False
                 flt_mode = LANDING_FM
 
             # r - reset the serial port so Arduino will bind to another CX-10

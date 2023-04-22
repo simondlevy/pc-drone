@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 
 '''
-Created on Mon Feb 08 23:00:39 2016
+Main drone-flying program
 
-@author: perrytsao
-
-Python2=>3 translation by Simon D. Levy
+Copyright (c) 2023 perrystao, Simon D. Levy
 
 MIT License
 '''

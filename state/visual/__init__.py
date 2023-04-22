@@ -1,9 +1,7 @@
 '''
-Created on Mon Feb 08 23:00:39 2016
+Visual state estimation using OpenCV
 
-@author: perrytsao
-
-Python2=>3 translation, factoring by Simon D. Levy
+Copyright (c) 2023 perrystao, Simon D. Levy
 
 MIT License
 '''
@@ -25,18 +23,13 @@ class StateEstimator:
         calfile = np.load('state/visual/camera_cal_data_2016_03_25_15_23.npz')
         newcameramtx = calfile['newcameramtx']
         self.roi = calfile['roi']
-        self.mtx = calfile['mtx']
-        self.dist = calfile['dist']
+        mtx = calfile['mtx']
+        dist = calfile['dist']
 
         frame_size = (640, 480)
 
         self.map1, self.map2 = cv2.initUndistortRectifyMap(
-                self.mtx,
-                self.dist,
-                None,
-                newcameramtx,
-                frame_size,
-                cv2.CV_32FC1)
+                mtx, dist, None, newcameramtx, frame_size, cv2.CV_32FC1)
 
         self.vc = cv2.VideoCapture(0)
 
@@ -51,7 +44,7 @@ class StateEstimator:
 
         fourcc = cv2.VideoWriter_fourcc(*'DIVX')
 
-        self.out = cv2.VideoWriter(
+        self.video_out = cv2.VideoWriter(
                 log_dir + '/' + timestamp + '_video.avi',
                 fourcc, 20.0, (width, height), 1)
 
@@ -106,7 +99,7 @@ class StateEstimator:
         frame_pad = cv2.copyMakeBorder(self.frame, 91, 0, 75, 00,
                                        cv2.BORDER_CONSTANT,
                                        value=[255, 0, 0])
-        self.out.write(frame_pad)
+        self.video_out.write(frame_pad)
 
     def snapshot(self, ii):
 
@@ -122,7 +115,7 @@ class StateEstimator:
 
         self.vc.release()
 
-        self.out.release()
+        self.video_out.release()
 
     def _add_blobs(self, crop_frame, params):
 

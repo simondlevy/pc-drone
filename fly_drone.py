@@ -43,7 +43,7 @@ def add_blobs(crop_frame, params):
     frame = crop_frame
 
     # Assume no keypoints found
-    message = 'No blobs'
+    message = 'No keypoints'
     img_with_keypoints = crop_frame
     max_blob_dist = None
     blob_center = None
@@ -58,7 +58,7 @@ def add_blobs(crop_frame, params):
                     handle_good_keypoints(frame, keypoints)
 
         else:
-            message = '%d blob(s)' % len(keypoints)
+            message = '%d keypoints(s)' % len(keypoints)
 
     put_text(img_with_keypoints, message, (10, 25))
 

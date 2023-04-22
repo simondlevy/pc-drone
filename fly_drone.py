@@ -24,7 +24,7 @@ from comms.mock import Comms
 # from comms.arduino import Comms
 
 # Stuff you can tinker with
-from control.visual.blobs import init_params, get_keypoints
+from state.visual.blobs import init_params, get_keypoints
 import pids
 
 LOG_DIR = './logs'
@@ -350,7 +350,7 @@ def main():
     ##########################################################################
 
     # load calibration data to undistort images
-    calfile = np.load('control/visual/camera_cal_data_2016_03_25_15_23.npz')
+    calfile = np.load('state/visual/camera_cal_data_2016_03_25_15_23.npz')
     newcameramtx = calfile['newcameramtx']
     roi = calfile['roi']
     mtx = calfile['mtx']

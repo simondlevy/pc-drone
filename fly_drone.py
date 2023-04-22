@@ -19,8 +19,8 @@ from state.visual import StateEstimator
 # from state.simulator import StateEstimator
 
 # Uncomment one of these
-from comms.mock import Comms
-# from comms.arduino import Comms
+# from comms.mock import Comms
+from comms.arduino import Comms
 
 import pids
 
@@ -210,294 +210,299 @@ def main():
 
         comms = Comms()
 
-        rval = state.ready()
+    except Exception as e:
 
-        ii = 100
+        print('Failed to open comms: %s' % str(e))
 
-        while rval:
+        exit(0)
 
-            # toc_old = toc
-            # toc = timeit.default_timer()
-            # prints out time since the last frame was read
-            # print('deltaT: %0.4f  fps: %0.1f' %
-            #       (toc - toc_old, 1/(toc-toc_old)))
-            # toc2 = timeit.default_timer()
-            # print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
+    rval = state.ready()
 
-            xypos, zpos, theta = state.update()
+    ii = 100
 
-            # toc2 = timeit.default_timer()
+    while rval:
 
-            # print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
+        # toc_old = toc
+        # toc = timeit.default_timer()
+        # prints out time since the last frame was read
+        # print('deltaT: %0.4f  fps: %0.1f' %
+        #       (toc - toc_old, 1/(toc-toc_old)))
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
-            print(flying)
+        xypos, zpos, theta = state.update()
 
-            if flying:
+        # toc2 = timeit.default_timer()
 
-                try:
+        # print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
 
-                    if flt_mode != LANDING_FM:
-                        # print('Zpos: %i Xpos: %i Ypos: %i' %
-                        #       (zpos, xypos[0], xypos[1]))
-                        e_dz_old = e_dz
-                        e_dz = zpos-zpos_target
-                        e_iz += e_dz
-                        e_iz = clamp(e_iz, -10000, 10000)
-                        e_d2z = e_dz-e_dz_old
-                        throttle = (pids.Kz *
-                                    (e_dz * pids.Kpz +
-                                     pids.Kiz * e_iz +
-                                     pids.Kdz * e_d2z) +
-                                    THROTTLE_MID)
-                        e_dx_old = e_dx
-                        e_dx = xypos[0]-x_target
-                        e_ix += e_dx
-                        e_ix = clamp(e_ix, -200000, 200000)
-                        e_d2x = e_dx - e_dx_old
+        print(flying)
 
-                        xcommand = pids.Kx * (
-                                e_dx * pids.Kpx +
-                                pids.Kix * e_ix +
-                                pids.Kdx * e_d2x)
+        if flying:
 
-                        e_dy_old = e_dy
-                        e_dy = xypos[1] - ypos_target
-                        e_iy += e_dy
-                        e_iy = clamp(e_iy, -200000, 200000)
-                        e_d2y = e_dy-e_dy_old
+            try:
 
-                        ycommand = (pids.Ky *
-                                    (e_dy * pids.Kpy +
-                                     pids.Kiy * e_iy +
-                                     pids.Kdy * e_d2y))
+                if flt_mode != LANDING_FM:
+                    # print('Zpos: %i Xpos: %i Ypos: %i' %
+                    #       (zpos, xypos[0], xypos[1]))
+                    e_dz_old = e_dz
+                    e_dz = zpos-zpos_target
+                    e_iz += e_dz
+                    e_iz = clamp(e_iz, -10000, 10000)
+                    e_d2z = e_dz-e_dz_old
+                    throttle = (pids.Kz *
+                                (e_dz * pids.Kpz +
+                                 pids.Kiz * e_iz +
+                                 pids.Kdz * e_d2z) +
+                                THROTTLE_MID)
+                    e_dx_old = e_dx
+                    e_dx = xypos[0]-x_target
+                    e_ix += e_dx
+                    e_ix = clamp(e_ix, -200000, 200000)
+                    e_d2x = e_dx - e_dx_old
 
-                        # commands are calculated in camera reference frame
-                        aileron = (xcommand * np.cos(theta) + ycommand *
-                                   np.sin(theta) + AILERON_MID)
-                        elevator = (-xcommand * np.sin(theta) + ycommand *
-                                    np.cos(theta) + ELEVATOR_MID)
-                        e_dt_old = e_dt
-                        e_dt = theta-theta_target
-                        # angle error should always be less than 180degrees (pi
-                        # radians)
-                        if (e_dt > np.pi):
-                            e_dt -= 2*np.pi
-                        elif (e_dt < (-np.pi)):
-                            e_dt += 2*np.pi
+                    xcommand = pids.Kx * (
+                            e_dx * pids.Kpx +
+                            pids.Kix * e_ix +
+                            pids.Kdx * e_d2x)
 
-                        e_it += e_dt
-                        e_it = clamp(e_it, -200000, 200000)
-                        e_d2t = e_dt-e_dt_old
-                        rudder = pids.Kt * (
-                                e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
-                                e_d2t) + RUDDER_MID
-                        if zpos > 0:
-                            # print('highalt')
-                            aileron = clamp(aileron, 1000, 2000)
-                            elevator = clamp(elevator, 1000, 2000)
-                        else:
-                            # print('lowalt')
-                            aileron = clamp(aileron, 1400, 1600)
-                            elevator = clamp(elevator, 1400, 1600)
-                        no_position_cnt = 0
-                    else:  # landing mode
-                        throttle = throttle-20
+                    e_dy_old = e_dy
+                    e_dy = xypos[1] - ypos_target
+                    e_iy += e_dy
+                    e_iy = clamp(e_iy, -200000, 200000)
+                    e_d2y = e_dy-e_dy_old
 
-                except Exception:
-                    # print(e)
-                    no_position_cnt += 1
-                    # print('STOPPED. no position or error. ')
-                    if no_position_cnt > 15:
-                        throttle = 1000
-                        flying = False
+                    ycommand = (pids.Ky *
+                                (e_dy * pids.Kpy +
+                                 pids.Kiy * e_iy +
+                                 pids.Kdy * e_d2y))
 
-            # Serial comms - write to Arduino
-            throttle = clamp(throttle, 1000, 2000)
-            rudder = clamp(rudder, 1000, 2000)
-            command = '%i,%i,%i,%i' % (throttle, aileron, elevator, rudder)
-            # print('[PC]: '+command)
-            comms.write((command+'\n').encode())
+                    # commands are calculated in camera reference frame
+                    aileron = (xcommand * np.cos(theta) + ycommand *
+                               np.sin(theta) + AILERON_MID)
+                    elevator = (-xcommand * np.sin(theta) + ycommand *
+                                np.cos(theta) + ELEVATOR_MID)
+                    e_dt_old = e_dt
+                    e_dt = theta-theta_target
+                    # angle error should always be less than 180degrees (pi
+                    # radians)
+                    if (e_dt > np.pi):
+                        e_dt -= 2*np.pi
+                    elif (e_dt < (-np.pi)):
+                        e_dt += 2*np.pi
 
-            # Serial comms - read back from Arduino
+                    e_it += e_dt
+                    e_it = clamp(e_it, -200000, 200000)
+                    e_d2t = e_dt-e_dt_old
+                    rudder = pids.Kt * (
+                            e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
+                            e_d2t) + RUDDER_MID
+                    if zpos > 0:
+                        # print('highalt')
+                        aileron = clamp(aileron, 1000, 2000)
+                        elevator = clamp(elevator, 1000, 2000)
+                    else:
+                        # print('lowalt')
+                        aileron = clamp(aileron, 1400, 1600)
+                        elevator = clamp(elevator, 1400, 1600)
+                    no_position_cnt = 0
+                else:  # landing mode
+                    throttle = throttle-20
+
+            except Exception:
+                # print(e)
+                no_position_cnt += 1
+                # print('STOPPED. no position or error. ')
+                if no_position_cnt > 15:
+                    throttle = 1000
+                    flying = False
+
+        # Serial comms - write to Arduino
+        throttle = clamp(throttle, 1000, 2000)
+        rudder = clamp(rudder, 1000, 2000)
+        command = '%i,%i,%i,%i' % (throttle, aileron, elevator, rudder)
+        # print('[PC]: '+command)
+        comms.write((command+'\n').encode())
+
+        # Serial comms - read back from Arduino
+        data = comms.readline()
+        while data:
+            print('[AU]: '+data.rstrip('\n'))  # strip out the new lines
+            # (better to do .read() in the long run for this reason
             data = comms.readline()
-            while data:
-                print('[AU]: '+data.rstrip('\n'))  # strip out the new lines
-                # (better to do .read() in the long run for this reason
-                data = comms.readline()
 
-            # Monitor keyboard
-            # speeds = 'dz:  %+5.2f dx:  %+5.2f  dy: %+5.2f' % (dz, dx, dy)
-            # targets = ('tsz: %+5.2f tsx: %+5.2f tsy: %+5.2f' %
-            #            (zspeed, xspeed, yspeed))
-            # gains = ('Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f' %
-            #          (pids.Kpz, pids.Kiz, pids.Kdz))
-            # errors_z = ('e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' %
-            #             (e_dz, e_iz, e_d2z))
+        # Monitor keyboard
+        # speeds = 'dz:  %+5.2f dx:  %+5.2f  dy: %+5.2f' % (dz, dx, dy)
+        # targets = ('tsz: %+5.2f tsx: %+5.2f tsy: %+5.2f' %
+        #            (zspeed, xspeed, yspeed))
+        # gains = ('Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f' %
+        #          (pids.Kpz, pids.Kiz, pids.Kdz))
+        # errors_z = ('e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' %
+        #             (e_dz, e_iz, e_d2z))
 
-            flighttoc = timeit.default_timer()
+        flighttoc = timeit.default_timer()
 
-            key = state.display(
-                    command, flighttoc, flighttic, x_target, ypos_target)
+        key = state.display(
+                command, flighttoc, flighttic, x_target, ypos_target)
 
-            # toc2 = timeit.default_timer()
-            # print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
-            # toc2 = timeit.default_timer()
-            # print('deltaT_execute_waitkey: %0.4f' % (toc2 - toc))
-            # key = ord('0')
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_waitkey: %0.4f' % (toc2 - toc))
+        # key = ord('0')
 
-            if flying:
+        if flying:
 
-                state.record()
+            state.record()
 
-                if xypos is None:
-                    xypos = np.zeros(2)
-                    zpos = 0
+            if xypos is None:
+                xypos = np.zeros(2)
+                zpos = 0
 
-                flightdata = np.vstack((flightdata,
-                                        np.array([flighttoc - flighttic,
-                                                  xypos[0], xypos[1],
-                                                  zpos, dx, dy, dz,
-                                                  e_dx, e_ix, e_d2x, e_dy,
-                                                  e_iy, e_d2y, e_dz, e_iz,
-                                                  e_d2z, xspeed, yspeed,
-                                                  zspeed, throttle, aileron,
-                                                  elevator, rudder])))
-                if len(x_targ_seq) > 1:
-                    x_target = x_targ_seq.pop(0)
-                    ypos_target = ypos_targ_seq.pop(0)
-                    zpos_target = zpos_targ_seq.pop(0)
-                    theta_target = theta_targ_seq.pop(0)
-                    print('seq len %i' % len(x_targ_seq))
-                elif flt_mode == PROGRAM_SEQ_FM:
-                    flt_mode = LANDING_FM
-
-            elif recording_data:
-                np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
-                        '_' + 'flightdata.npy', flightdata)
-                np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
-                        '_' + 'controldata.npy', controldata)
-                with open(LOG_DIR + '/' + timestamp + '_flt' +
-                          str(flightnum) + '_' + 'controlvarnames.npy',
-                          'wb') as f:
-                    pickle.dump(controlvarnames, f)
-                recording_data = 0
-
-            if key == 27:  # exit on ESC
-                break
-            elif key == 32:  # space - take a snapshot and save it
-                state.snapshot(ii)
-                ii += 1
-            elif key == 119:  # w
-                throttle = THROTTLE_MID
-                aileron = AILERON_MID  # turns left
-                elevator = ELEVATOR_MID
-                e_ix = 0
-                e_iy = 0
-                e_iz = 0
-                rudder = 1500  # yaw, rotates the drone
-                flying = True
-                recording_data = 1
-                flightdata = np.zeros(23)
-                flighttic = timeit.default_timer()
-                flighttoc = 0
-                flightnum += 1
-
-                # reload(pids)  # ???
-                # this lists out all the variables in module pids
-                # and records their values.
-                controlvarnames = [item for item in
-                                   dir(pids) if not item.startswith('__')]
-                controldata = [eval('pids.'+item) for item in controlvarnames]
-                flt_mode = NORMAL_FM
-                print('START FLYING')
-            elif key == ord('e'):
-                throttle = THROTTLE_MID
-                aileron = AILERON_MID  # turns left
-                elevator = ELEVATOR_MID
-                e_ix = 0
-                e_iy = 0
-                e_iz = 0
-                rudder = 1500  # yaw, rotates the drone
-                flying = True
-                recording_data = 1
-                flightdata = np.zeros(23)
-                flighttic = timeit.default_timer()
-                flighttoc = 0
-                flightnum += 1
-
-                # reload(pids)  # ???
-                # this lists out all the variables in module pids
-                # and records their values.
-                controlvarnames = [item for item in
-                                   dir(pids) if not item.startswith('__')]
-                controldata = [eval('pids.'+item) for item in controlvarnames]
-
-                x_targ_seq = [x_target]
-                ypos_targ_seq = [ypos_target]
-                zpos_targ_seq = [zpos_target]
-                theta_targ_seq = [theta_target]
-
-                x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
-                    flight_sequence('hover', x_targ_seq, ypos_targ_seq,
-                                    zpos_targ_seq, theta_targ_seq)
-
-                x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
-                    flight_sequence('right_spot', x_targ_seq, ypos_targ_seq,
-                                    zpos_targ_seq, theta_targ_seq)
-
-                x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
-                    flight_sequence('left_spot', x_targ_seq, ypos_targ_seq,
-                                    zpos_targ_seq, theta_targ_seq)
-
-                flt_mode = PROGRAM_SEQ_FM
-
-                print('START FLYING')
-
-            elif key == 115:  # s
-                # throttle = 1000
-                # flying = False
+            flightdata = np.vstack((flightdata,
+                                    np.array([flighttoc - flighttic,
+                                              xypos[0], xypos[1],
+                                              zpos, dx, dy, dz,
+                                              e_dx, e_ix, e_d2x, e_dy,
+                                              e_iy, e_d2y, e_dz, e_iz,
+                                              e_d2z, xspeed, yspeed,
+                                              zspeed, throttle, aileron,
+                                              elevator, rudder])))
+            if len(x_targ_seq) > 1:
+                x_target = x_targ_seq.pop(0)
+                ypos_target = ypos_targ_seq.pop(0)
+                zpos_target = zpos_targ_seq.pop(0)
+                theta_target = theta_targ_seq.pop(0)
+                print('seq len %i' % len(x_targ_seq))
+            elif flt_mode == PROGRAM_SEQ_FM:
                 flt_mode = LANDING_FM
 
-            # r - reset the serial port so Arduino will bind to another CX-10
-            elif key == 114:
-                comms.close()
-                comms = Comms()
+        elif recording_data:
+            np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
+                    '_' + 'flightdata.npy', flightdata)
+            np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
+                    '_' + 'controldata.npy', controldata)
+            with open(LOG_DIR + '/' + timestamp + '_flt' +
+                      str(flightnum) + '_' + 'controlvarnames.npy',
+                      'wb') as f:
+                pickle.dump(controlvarnames, f)
+            recording_data = 0
 
-            elif key >= ord('1') and key <= ord('7'):
+        if key == 27:  # exit on ESC
+            break
+        elif key == 32:  # space - take a snapshot and save it
+            state.snapshot(ii)
+            ii += 1
+        elif key == 119:  # w
+            throttle = THROTTLE_MID
+            aileron = AILERON_MID  # turns left
+            elevator = ELEVATOR_MID
+            e_ix = 0
+            e_iy = 0
+            e_iz = 0
+            rudder = 1500  # yaw, rotates the drone
+            flying = True
+            recording_data = 1
+            flightdata = np.zeros(23)
+            flighttic = timeit.default_timer()
+            flighttoc = 0
+            flightnum += 1
 
-                commands = ('takeoff', 'land', 'box', 'left_spot',
-                            'right_spot', 'rotate90_left', 'rotate90_right')
+            # reload(pids)  # ???
+            # this lists out all the variables in module pids
+            # and records their values.
+            controlvarnames = [item for item in
+                               dir(pids) if not item.startswith('__')]
+            controldata = [eval('pids.'+item) for item in controlvarnames]
+            flt_mode = NORMAL_FM
+            print('START FLYING')
+        elif key == ord('e'):
+            throttle = THROTTLE_MID
+            aileron = AILERON_MID  # turns left
+            elevator = ELEVATOR_MID
+            e_ix = 0
+            e_iy = 0
+            e_iz = 0
+            rudder = 1500  # yaw, rotates the drone
+            flying = True
+            recording_data = 1
+            flightdata = np.zeros(23)
+            flighttic = timeit.default_timer()
+            flighttoc = 0
+            flightnum += 1
 
-                command = commands[key - ord('1')]
+            # reload(pids)  # ???
+            # this lists out all the variables in module pids
+            # and records their values.
+            controlvarnames = [item for item in
+                               dir(pids) if not item.startswith('__')]
+            controldata = [eval('pids.'+item) for item in controlvarnames]
 
-                (x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq) = (
-                        flight_sequence(command,
-                                        x_targ_seq,
-                                        ypos_targ_seq,
-                                        zpos_targ_seq,
-                                        theta_targ_seq))
+            x_targ_seq = [x_target]
+            ypos_targ_seq = [ypos_target]
+            zpos_targ_seq = [zpos_target]
+            theta_targ_seq = [theta_target]
 
-            # print out the time needed to execute everything except the image
-            # reload
-            # toc2 = timeit.default_timer()
-            # print('deltaT_execute_other: %0.4f' % (toc2 - toc))
+            x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                flight_sequence('hover', x_targ_seq, ypos_targ_seq,
+                                zpos_targ_seq, theta_targ_seq)
 
-            # read next state data
-            rval = state.acquire()
+            x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                flight_sequence('right_spot', x_targ_seq, ypos_targ_seq,
+                                zpos_targ_seq, theta_targ_seq)
 
-            # toc2 = timeit.default_timer()
-            # print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))
+            x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+                flight_sequence('left_spot', x_targ_seq, ypos_targ_seq,
+                                zpos_targ_seq, theta_targ_seq)
 
-    finally:
-        # close the connection
-        comms.close()
-        # re-open the serial port which will w for Arduino Uno to do a reset
-        # this forces the quadcopter to power off motors.  Will need to power
-        # cycle the drone to reconnect
-        comms = Comms()
-        comms.close()
-        # close it again so it can be reopened the next time it is run.
-        state.close()
+            flt_mode = PROGRAM_SEQ_FM
+
+            print('START FLYING')
+
+        elif key == 115:  # s
+            # throttle = 1000
+            # flying = False
+            flt_mode = LANDING_FM
+
+        # r - reset the serial port so Arduino will bind to another CX-10
+        elif key == 114:
+            comms.close()
+            comms = Comms()
+
+        elif key >= ord('1') and key <= ord('7'):
+
+            commands = ('takeoff', 'land', 'box', 'left_spot',
+                        'right_spot', 'rotate90_left', 'rotate90_right')
+
+            command = commands[key - ord('1')]
+
+            (x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq) = (
+                    flight_sequence(command,
+                                    x_targ_seq,
+                                    ypos_targ_seq,
+                                    zpos_targ_seq,
+                                    theta_targ_seq))
+
+        # print out the time needed to execute everything except the image
+        # reload
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_other: %0.4f' % (toc2 - toc))
+
+        # read next state data
+        rval = state.acquire()
+
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))
+
+    # close the connection
+    comms.close()
+    # re-open the serial port which will w for Arduino Uno to do a reset
+    # this forces the quadcopter to power off motors.  Will need to power
+    # cycle the drone to reconnect
+    comms = Comms()
+    comms.close()
+    # close it again so it can be reopened the next time it is run.
+    state.close()
 
 
 main()

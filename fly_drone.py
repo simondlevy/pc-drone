@@ -14,18 +14,26 @@ import cv2
 import numpy as np
 import pickle
 import os
-# import serial
 import time
 import timeit
 from datetime import datetime
 import itertools
+import serial
 
 from blobs import init_params, get_keypoints
 from mockduino import MockArduino
 
 import control_params as cp
 
-def putText(frame, text, pos):
+
+def open_arduino():
+
+    # Uncomment this when you're ready to fly!
+    # return serial.Serial('/dev/ttyACM0', 115200, timeout=.001)
+
+    return MockArduino()
+
+def put_text(frame, text, pos):
     cv2.putText(frame, text, pos,
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
@@ -66,7 +74,7 @@ def add_blobs(crop_frame, params):
         blob_center = None
         theta = None
 
-    putText(img_with_keypoints, message, (10, 25))
+    put_text(img_with_keypoints, message, (10, 25))
 
     return (img_with_keypoints,
             max_blob_dist, blob_center, theta)  # , keypoint_in_orders
@@ -178,11 +186,6 @@ def handle_good_keypoints(frame, keypoints):
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
 
-
-def openArduino():
-
-    # return serial.Serial('/dev/ttyACM0', 115200, timeout=.001)
-    return MockArduino()
 
 
 def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
@@ -405,7 +408,7 @@ def main():
 
     try:
 
-        arduino = openArduino()
+        arduino = open_arduino()
 
         time.sleep(1)  # give the connection a second to settle
 
@@ -534,9 +537,9 @@ def main():
             #             (e_dz, e_iz, e_d2z))
 
             flighttoc = timeit.default_timer()
-            putText(frame, 'Command: ' + command, (10, 50))
+            put_text(frame, 'Command: ' + command, (10, 50))
 
-            putText(frame, 'Time: %5.3f' % (flighttoc - flighttic), (10, 75))
+            put_text(frame, 'Time: %5.3f' % (flighttoc - flighttic), (10, 75))
 
             cv2.rectangle(frame, (int(x_target)-5, int(ypos_target)-5),
                           (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
@@ -668,7 +671,7 @@ def main():
             # r - reset the serial port so Arduino will bind to another CX-10
             elif key == 114:
                 arduino.close()
-                arduino = openArduino()
+                arduino = open_arduino()
 
             elif key >= ord('1') and key <= ord('7'):
 
@@ -700,7 +703,7 @@ def main():
         # re-open the serial port which will w for Arduino Uno to do a reset
         # this forces the quadcopter to power off motors.  Will need to power
         # cycle the drone to reconnect
-        arduino = openArduino()
+        arduino = open_arduino()
         arduino.close()
         # close it again so it can be reopened the next time it is run.
         vc.release()

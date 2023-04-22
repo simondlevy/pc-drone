@@ -9,53 +9,7 @@ import itertools
 
 from state.visual.blobs import get_keypoints, init_params
 
-def put_text(frame, text, pos):
-    cv2.putText(frame, text, pos,
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
-
-def add_blobs(crop_frame, params):
-
-    # frame = cv2.GaussianBlur(crop_frame, (3, 3), 0)
-    frame = crop_frame
-
-    # Assume no keypoints found
-    message = 'No keypoints'
-    img_with_keypoints = crop_frame
-    max_blob_dist = None
-    blob_center = None
-    theta = None
-
-    keypoints = get_keypoints(frame, params)
-
-    if keypoints is not None:
-
-        if len(keypoints) == 4:
-            img_with_keypoints, blob_center, max_blob_dist, theta, message = \
-                    handle_good_keypoints(frame, keypoints)
-
-        else:
-            message = '%d keypoints' % len(keypoints)
-
-    put_text(img_with_keypoints, message, (10, 25))
-
-    return (img_with_keypoints,
-            max_blob_dist, blob_center, theta)  # , keypoint_in_orders
-
-
-# create maps for undistortion
-def init_undistort(mtx, dist, newcameramtx):
-    # cv2.initUndistortRectifyMap(cameraMatrix, distCoeffs,
-    #                              R, newCameraMatrix, size,
-    #                             m1type[, map1[, map2]]) -> map1, map2
-    frame_size = (640, 480)
-    map1, map2 = cv2.initUndistortRectifyMap(
-            mtx, dist, None, newcameramtx, frame_size, cv2.CV_32FC1)
-    return map1, map2
-
-
-# this is a faster undistort_crop that only does remapping. Requires call to
-# init_undistort first to to create the map1 and map2
 def undistort_crop(orig_img, map1, map2, roi):
     # cv2.remap(src, map1, map2,
     #           interpolation[, dst[, borderMode[, borderValue]]]) -> dst
@@ -160,7 +114,11 @@ class StateEstimator:
         self.roi = calfile['roi']
         self.mtx = calfile['mtx']
         self.dist = calfile['dist']
-        self.map1, self.map2 = init_undistort(self.mtx, self.dist, newcameramtx)
+
+        frame_size = (640, 480)
+
+        self.map1, self.map2 = cv2.initUndistortRectifyMap(
+                self.mtx, self.dist, None, newcameramtx, frame_size, cv2.CV_32FC1)
 
         self.vc = cv2.VideoCapture(0)
 
@@ -191,7 +149,7 @@ class StateEstimator:
             # frame_undistort=undistort_crop(np.rot90(self.frame_o, 2))
             # frame_undistort =
             #     undistort_crop(self.frame_o, self.map1, self.map2, self.roi)
-            # self.frame, zpos, xypos, theta = add_blobs(frame_undistort, params)
+            # self.frame, zpos, xypos, theta = self._add_blobs(frame_undistort, params)
             # frame, zpos, xypos=add_blobs(self.frame_o)
 
         return retval
@@ -199,15 +157,15 @@ class StateEstimator:
     def update(self):
 
         frame_undistort = undistort_crop(self.frame_o, self.map1, self.map2, self.roi)
-        self.frame, zpos, xypos, theta = add_blobs(frame_undistort, self.params)
+        self.frame, zpos, xypos, theta = self._add_blobs(frame_undistort, self.params)
 
         return xypos, zpos, theta
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
 
-        put_text(self.frame, 'Command: ' + command, (10, 50))
+        self._put_text(self.frame, 'Command: ' + command, (10, 50))
 
-        put_text(self.frame, 'Time: %5.3f' % (flighttoc - flighttic), (10, 75))
+        self._put_text(self.frame, 'Time: %5.3f' % (flighttoc - flighttic), (10, 75))
 
         cv2.rectangle(self.frame, (int(x_target)-5, int(ypos_target)-5),
                       (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
@@ -242,3 +200,36 @@ class StateEstimator:
         self.vc.release()
 
         self.out.release()
+
+    def _add_blobs(self, crop_frame, params):
+
+        # frame = cv2.GaussianBlur(crop_frame, (3, 3), 0)
+        frame = crop_frame
+
+        # Assume no keypoints found
+        message = 'No keypoints'
+        img_with_keypoints = crop_frame
+        max_blob_dist = None
+        blob_center = None
+        theta = None
+
+        keypoints = get_keypoints(frame, params)
+
+        if keypoints is not None:
+
+            if len(keypoints) == 4:
+                img_with_keypoints, blob_center, max_blob_dist, theta, message = \
+                        handle_good_keypoints(frame, keypoints)
+
+            else:
+                message = '%d keypoints' % len(keypoints)
+
+        self._put_text(img_with_keypoints, message, (10, 25))
+
+        return (img_with_keypoints,
+                max_blob_dist, blob_center, theta)  # , keypoint_in_orders
+
+    def _put_text(self,frame, text, pos):
+
+        cv2.putText(frame, text, pos,
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)

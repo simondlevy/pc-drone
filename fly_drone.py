@@ -20,17 +20,79 @@ import timeit
 from datetime import datetime
 import itertools
 
+from blobs import init_params
 from mockduino import MockArduino
 
 import control_params as cp
-
-SAVE_VIDEO_DIR = './videos'
-
 
 def putText(frame, text, pos):
     cv2.putText(frame, text, pos,
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2, cv2.LINE_AA)
 
+def add_blobs(crop_frame, params):
+
+    # frame = cv2.GaussianBlur(crop_frame, (3, 3), 0)
+    frame = crop_frame
+
+    # Convert BGR to HSV
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # define range of green color in HSV
+    # lower_green = np.array([60,20,20])
+    # upper_green = np.array([80,255,255])
+
+    # Actually purple
+    lower_green = np.array([115, 50, 10])
+    upper_green = np.array([160, 255, 255])
+
+    # Threshold the HSV image to get only blue colors
+    mask = cv2.inRange(hsv, lower_green, upper_green)
+
+    # mask = cv2.erode(mask, None, iterations=2)
+    mask = cv2.dilate(mask, None, iterations=1)
+
+    # Bitwise-AND mask and original image
+    # res = cv2.bitwise_and(frame,frame, mask= mask)
+    detector = cv2.SimpleBlobDetector_create(params)
+
+    # Detect blobs.
+    reversemask = 255 - mask
+    keypoints = detector.detect(reversemask)
+
+    # Assume no keypoints found
+    message = 'No blobs'
+
+    if keypoints is not None:
+
+        if len(keypoints) > 4:
+            message = '%d blob(s)' % len(keypoints)
+            keypoints = sorted(keypoints, key=(lambda s: s.size))
+            keypoints = keypoints[0:3]
+
+        if len(keypoints) == 4:
+            img_with_keypoints, blob_center, max_blob_dist, theta, message = \
+                    handle_good_keypoints(frame, keypoints)
+
+        # Draw detected blobs as red circles.
+        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the
+        # circle corresponds to the size of blob
+        else:
+            message = '%d blob(s)' % len(keypoints)
+            img_with_keypoints = crop_frame
+            max_blob_dist = None
+            blob_center = None
+            theta = None
+
+    else:
+        img_with_keypoints = crop_frame
+        max_blob_dist = None
+        blob_center = None
+        theta = None
+
+    putText(img_with_keypoints, message, (10, 25))
+
+    return (img_with_keypoints,
+            max_blob_dist, blob_center, theta)  # , keypoint_in_orders
 
 # create maps for undistortion
 def init_undistort(mtx, dist, newcameramtx):
@@ -136,100 +198,6 @@ def handle_good_keypoints(frame, keypoints):
 
     return img_with_keypoints, blob_center, max_blob_dist, theta, message
 
-
-def add_blobs(crop_frame, params):
-
-    # frame = cv2.GaussianBlur(crop_frame, (3, 3), 0)
-    frame = crop_frame
-
-    # Convert BGR to HSV
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
-    # define range of green color in HSV
-    # lower_green = np.array([60,20,20])
-    # upper_green = np.array([80,255,255])
-
-    # Actually purple
-    lower_green = np.array([115, 50, 10])
-    upper_green = np.array([160, 255, 255])
-
-    # Threshold the HSV image to get only blue colors
-    mask = cv2.inRange(hsv, lower_green, upper_green)
-    # mask = cv2.erode(mask, None, iterations=2)
-    mask = cv2.dilate(mask, None, iterations=1)
-
-    # Bitwise-AND mask and original image
-    # res = cv2.bitwise_and(frame,frame, mask= mask)
-    detector = cv2.SimpleBlobDetector_create(params)
-
-    # Detect blobs.
-    reversemask = 255-mask
-    keypoints = detector.detect(reversemask)
-
-    # Assume no keypoints found
-    message = 'No blobs'
-
-    if keypoints is not None:
-
-        if len(keypoints) > 4:
-            message = '%d blob(s)' % len(keypoints)
-            keypoints = sorted(keypoints, key=(lambda s: s.size))
-            keypoints = keypoints[0:3]
-
-        if len(keypoints) == 4:
-            img_with_keypoints, blob_center, max_blob_dist, theta, message = \
-                    handle_good_keypoints(frame, keypoints)
-
-        # Draw detected blobs as red circles.
-        # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the
-        # circle corresponds to the size of blob
-        else:
-            message = '%d blob(s)' % len(keypoints)
-            img_with_keypoints = crop_frame
-            max_blob_dist = None
-            blob_center = None
-            theta = None
-
-    else:
-        img_with_keypoints = crop_frame
-        max_blob_dist = None
-        blob_center = None
-        theta = None
-
-    putText(img_with_keypoints, message, (10, 25))
-
-    return (img_with_keypoints,
-            max_blob_dist, blob_center, theta)  # , keypoint_in_orders
-
-
-def init_params():
-
-    # Setup SimpleBlobDetector parameters.
-    params = cv2.SimpleBlobDetector_Params()
-
-    # Change thresholds
-    params.minThreshold = 0
-    params.maxThreshold = 256
-
-    # Filter by Area.
-    params.filterByArea = True
-    params.minArea = 30
-
-    # Filter by Circularity
-    params.filterByCircularity = True
-    params.minCircularity = 0.1
-
-    # Filter by Convexity
-    params.filterByConvexity = True
-    params.minConvexity = 0.5
-
-    # Filter by Inertia
-    params.filterByInertia = True
-    params.minInertiaRatio = 0.01
-
-    return params
-
-
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
 
@@ -262,6 +230,8 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
 
     elif seqname == 'takeoff':
         zpoints = np.abs(np.round((zseq[-1]-65)/seqrate))
+        print(zseq)
+        exit(0)
         zseq = np.concatenate((zseq, np.linspace(zseq[-1], 65, zpoints)))
         xseq = np.concatenate((xseq, np.ones(zpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(zpoints)*yseq[-1]))
@@ -368,6 +338,8 @@ def main():
     vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
     vc.set(cv2.CAP_PROP_FPS, fps)
+
+    SAVE_VIDEO_DIR = './videos'
 
     if not os.path.exists(SAVE_VIDEO_DIR):
         os.makedirs(SAVE_VIDEO_DIR)
@@ -729,8 +701,10 @@ def main():
                 command = commands[key - ord('1')]
 
                 (x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq) = (
-                        flight_sequence(command, x_targ_seq,
-                                        ypos_targ_seq, zpos_targ_seq,
+                        flight_sequence(command, 
+                                        x_targ_seq,
+                                        ypos_targ_seq,
+                                        zpos_targ_seq,
                                         theta_targ_seq))
 
             # print out the time needed to execute everything except the image

@@ -116,26 +116,26 @@ def handle_good_keypoints(frame, keypoints):
 
     theta = -np.arctan2(offset_line[1], offset_line[0])
 
-    im_with_midpoint = cv2.drawKeypoints(
+    img_with_midpoint = cv2.drawKeypoints(
             frame, [keypoints[middlepoint]], np.array([]), (0, 0, 255),
             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-    im_with_midpoint_frontpoint = cv2.drawKeypoints(
-            im_with_midpoint, [keypoints[frontpoint]], np.array([]),
+    img_with_midpoint_frontpoint = cv2.drawKeypoints(
+            img_with_midpoint, [keypoints[frontpoint]], np.array([]),
             (255, 0, 0),
             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     keypoints_side = [keypoints[i] for i in [leftpt]]
 
-    im_with_keypoints1 = cv2.drawKeypoints(
-            im_with_midpoint_frontpoint, keypoints_side, np.array([]),
+    img_with_keypoints1 = cv2.drawKeypoints(
+            img_with_midpoint_frontpoint, keypoints_side, np.array([]),
             (0, 255, 0),
             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     keypoints_side = [keypoints[i] for i in [rightpt]]
 
-    im_with_keypoints = cv2.drawKeypoints(
-            im_with_keypoints1, keypoints_side, np.array([]),
+    img_with_keypoints = cv2.drawKeypoints(
+            img_with_keypoints1, keypoints_side, np.array([]),
             (255, 255, 255),
             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
@@ -146,9 +146,9 @@ def handle_good_keypoints(frame, keypoints):
     max_blob_dist = max_dist_val
     blob_center = keypoints[middlepoint].pt
     keypoints[middlepoint].pt[1]
-    putText(im_with_keypoints, textstr, (10, 25))
+    putText(img_with_keypoints, textstr, (10, 25))
 
-    return im_with_keypoints, blob_center, max_blob_dist, theta
+    return img_with_keypoints, blob_center, max_blob_dist, theta
 
 
 def add_blobs(crop_frame, params):
@@ -187,7 +187,7 @@ def add_blobs(crop_frame, params):
             keypoints = keypoints[0:3]
 
         if len(keypoints) == 4:
-            im_with_keypoints, blob_center, max_blob_dist, theta = \
+            img_with_keypoints, blob_center, max_blob_dist, theta = \
                     handle_good_keypoints(frame, keypoints)
 
         # Draw detected blobs as red circles.
@@ -195,18 +195,18 @@ def add_blobs(crop_frame, params):
         # circle corresponds to the size of blob
         else:
             print('%i blob(s)' % (len(keypoints)))
-            im_with_keypoints = crop_frame
+            img_with_keypoints = crop_frame
             max_blob_dist = None
             blob_center = None
             theta = None
     else:
         print('no blobs')
-        im_with_keypoints = crop_frame
+        img_with_keypoints = crop_frame
         max_blob_dist = None
         blob_center = None
         theta = None
 
-    return (im_with_keypoints,
+    return (img_with_keypoints,
             max_blob_dist, blob_center, theta)  # , keypoint_in_orders
 
 

@@ -57,6 +57,7 @@ def undistort_crop(orig_img, map1, map2, roi):
     crop_frame = dst[y:y+h, x:x+w]
     return crop_frame
 
+
 def handle_good_keypoints(frame, keypoints):
 
     pts = np.array([keypoints[i].pt for i in range(4)])
@@ -145,7 +146,7 @@ def handle_good_keypoints(frame, keypoints):
     max_blob_dist = max_dist_val
     blob_center = keypoints[middlepoint].pt
     keypoints[middlepoint].pt[1]
-    # putText(im_with_keypoints, textstr, (10, 25))
+    putText(im_with_keypoints, textstr, (10, 25))
 
     return im_with_keypoints, blob_center, max_blob_dist, theta
 
@@ -186,7 +187,8 @@ def add_blobs(crop_frame, params):
             keypoints = keypoints[0:3]
 
         if len(keypoints) == 4:
-            im_with_keypoints, blob_center, max_blob_dist, theta = handle_good_keypoints(frame, keypoints)
+            im_with_keypoints, blob_center, max_blob_dist, theta = \
+                    handle_good_keypoints(frame, keypoints)
 
         # Draw detected blobs as red circles.
         # cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures the size of the

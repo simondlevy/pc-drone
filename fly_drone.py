@@ -283,35 +283,11 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
 
 def main():
 
-    # load calibration data to undistort images
-    calfile = np.load('control/visual/camera_cal_data_2016_03_25_15_23.npz')
-    newcameramtx = calfile['newcameramtx']
-    roi = calfile['roi']
-    mtx = calfile['mtx']
-    dist = calfile['dist']
-    map1, map2 = init_undistort(mtx, dist, newcameramtx)
-
-    vc = cv2.VideoCapture(0)
-
-    fname = 'drone_track_640_480_USBFHD01M'
-    width = 640
-    height = 480
-    fps = 30
-    wait_time = 1
-    vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-    vc.set(cv2.CAP_PROP_FPS, fps)
-
+    # Create logging directory if needed
     if not os.path.exists(LOG_DIR):
         os.makedirs(LOG_DIR)
 
-    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
-
     timestamp = '{:%Y_%m_%d_%H_%M}'.format(datetime.now())
-
-    out = cv2.VideoWriter(
-            LOG_DIR + '/' + timestamp + '_video.avi',
-            fourcc, 20.0, (width, height), 1)
 
     throttle = 1000
     aileron = 1500  # moves left/right
@@ -371,6 +347,34 @@ def main():
 
     params = init_params()
 
+    ##########################################################################
+
+    # load calibration data to undistort images
+    calfile = np.load('control/visual/camera_cal_data_2016_03_25_15_23.npz')
+    newcameramtx = calfile['newcameramtx']
+    roi = calfile['roi']
+    mtx = calfile['mtx']
+    dist = calfile['dist']
+    map1, map2 = init_undistort(mtx, dist, newcameramtx)
+
+    vc = cv2.VideoCapture(0)
+
+    fname = 'drone_track_640_480_USBFHD01M'
+    width = 640
+    height = 480
+    fps = 30
+    wait_time = 1
+    vc.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+    vc.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    vc.set(cv2.CAP_PROP_FPS, fps)
+
+    fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+
+    out = cv2.VideoWriter(
+            LOG_DIR + '/' + timestamp + '_video.avi',
+            fourcc, 20.0, (width, height), 1)
+
+
     try:
 
         comms = Comms()
@@ -381,6 +385,7 @@ def main():
             frame_undistort = undistort_crop(frame_o, map1, map2, roi)
             frame, zpos, xypos, theta = add_blobs(frame_undistort, params)
             # frame, zpos, xypos=add_blobs(frame_o)
+
         else:
             rval = False
 

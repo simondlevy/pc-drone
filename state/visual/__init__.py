@@ -109,14 +109,14 @@ class StateEstimator:
 
         self.video_out.release()
 
-    def _add_blobs(self, crop_frame, params):
+    def _add_blobs(self, frame_undistort, params):
 
-        # frame = cv2.GaussianBlur(crop_frame, (3, 3), 0)
-        frame = crop_frame
+        # frame = cv2.GaussianBlur(frame_undistort, (3, 3), 0)
+        frame = frame_undistort
 
         # Assume no keypoints found
         message = 'No keypoints'
-        img_with_keypoints = crop_frame
+        img_with_keypoints = frame_undistort
         result = None
 
         keypoints = get_keypoints(frame, params)

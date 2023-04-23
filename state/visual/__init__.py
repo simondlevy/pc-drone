@@ -65,7 +65,7 @@ class StateEstimator:
         frame_undistort = self._undistort_crop(
                 self.frame_o, self.map1, self.map2, self.roi)
 
-        self.frame, state = self._add_blobs(frame_undistort, self.params)
+        self.frame, state = self._add_blobs(frame_undistort)
 
         return state
 
@@ -109,7 +109,7 @@ class StateEstimator:
 
         self.video_out.release()
 
-    def _add_blobs(self, frame_undistort, params):
+    def _add_blobs(self, frame_undistort):
 
         # frame = cv2.GaussianBlur(frame_undistort, (3, 3), 0)
         frame = frame_undistort
@@ -119,7 +119,7 @@ class StateEstimator:
         img_with_keypoints = frame_undistort
         result = None
 
-        keypoints = get_keypoints(frame, params)
+        keypoints = get_keypoints(frame, self.params)
 
         if keypoints is not None:
 

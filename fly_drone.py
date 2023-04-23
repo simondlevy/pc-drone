@@ -37,7 +37,7 @@ class FlyDrone:
 
     def __init__(self, state, comms, timestamp):
 
-        self.state = state
+        self.estimator = state
         self.comms = comms
         self.timestamp = timestamp
 
@@ -90,15 +90,13 @@ class FlyDrone:
 
     def begin(self):
 
-        return self.state.ready()
+        return self.estimator.ready()
 
     def step(self):
 
-        state = self.state.update()
+        state = self.estimator.update()
 
         if self.flying:
-
-            print(state)
 
             # State estimator failed; cut the throttle!
             if state is None:
@@ -128,11 +126,11 @@ class FlyDrone:
 
         self.flighttoc = timeit.default_timer()
 
-        key = self.state.display(
+        key = self.estimator.display(
                 command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
         if self.flying:
 
-            self.state.record()
+            self.estimator.record()
 
             if self.xypos is None:
                 self.xypos = np.zeros(2)
@@ -171,7 +169,7 @@ class FlyDrone:
             return False
 
         elif key == 32:  # space - take a snapshot and save it
-            self.state.snapshot(self.snapnum)
+            self.estimator.snapshot(self.snapnum)
             self.snapnum += 1
 
         elif key == 119:  # w
@@ -259,7 +257,7 @@ class FlyDrone:
                                     self.zpos_targ_seq,
                                     self.theta_targ_seq))
         # read next state data
-        return self.state.acquire()
+        return self.estimator.acquire()
 
     def _get_demands(self):
 

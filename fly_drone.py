@@ -91,12 +91,11 @@ class FlyDrone:
         self.controldata = None
         self.flightdata = None
 
+        self.snapnum = 100
 
     def start(self):
 
         rval = self.state.ready()
-
-        ii = 100
 
         while rval:
 
@@ -269,8 +268,8 @@ class FlyDrone:
             if key == 27:  # exit on ESC
                 break
             elif key == 32:  # space - take a snapshot and save it
-                self.state.snapshot(ii)
-                ii += 1
+                self.state.snapshot(self.snapnum)
+                self.snapnum += 1
             elif key == 119:  # w
                 self.throttle = self.THROTTLE_MID
                 self.roll = self.ROLL_MID  # turns left

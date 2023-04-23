@@ -27,9 +27,6 @@ import pids
 LOG_DIR = './logs'
 
 
-def clamp(n, minn, maxn):
-    return max(min(maxn, n), minn)
-
 
 def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
     # This function takes sequence lists and returns sequence lists.
@@ -237,7 +234,7 @@ class FlyDrone:
                         e_dz_old = e_dz
                         e_dz = self.zpos-self.zpos_target
                         e_iz += e_dz
-                        e_iz = clamp(e_iz, -10000, 10000)
+                        e_iz = self._clamp(e_iz, -10000, 10000)
                         e_d2z = e_dz-e_dz_old
                         self.throttle = (pids.Kz *
                                     (e_dz * pids.Kpz +
@@ -247,7 +244,7 @@ class FlyDrone:
                         e_dx_old = e_dx
                         e_dx = self.xypos[0]-self.x_target
                         e_ix += e_dx
-                        e_ix = clamp(e_ix, -200000, 200000)
+                        e_ix = self._clamp(e_ix, -200000, 200000)
                         e_d2x = e_dx - e_dx_old
 
                         xcommand = pids.Kx * (
@@ -258,7 +255,7 @@ class FlyDrone:
                         e_dy_old = e_dy
                         e_dy = self.xypos[1] - self.ypos_target
                         e_iy += e_dy
-                        e_iy = clamp(e_iy, -200000, 200000)
+                        e_iy = self._clamp(e_iy, -200000, 200000)
                         e_d2y = e_dy-e_dy_old
 
                         ycommand = (pids.Ky *
@@ -281,19 +278,19 @@ class FlyDrone:
                             e_dt += 2*np.pi
 
                         e_it += e_dt
-                        e_it = clamp(e_it, -200000, 200000)
+                        e_it = self._clamp(e_it, -200000, 200000)
                         e_d2t = e_dt-e_dt_old
                         self.yaw = pids.Kt * (
                                 e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
                                 e_d2t) + YAW_MID
                         if self.zpos > 0:
                             # print('highalt')
-                            self.roll = clamp(self.roll, 1000, 2000)
-                            self.pitch = clamp(self.pitch, 1000, 2000)
+                            self.roll = self._clamp(self.roll, 1000, 2000)
+                            self.pitch = self._clamp(self.pitch, 1000, 2000)
                         else:
                             # print('lowalt')
-                            self.roll = clamp(self.roll, 1400, 1600)
-                            self.pitch = clamp(self.pitch, 1400, 1600)
+                            self.roll = self._clamp(self.roll, 1400, 1600)
+                            self.pitch = self._clamp(self.pitch, 1400, 1600)
                         self.no_position_cnt = 0
                     else:  # landing mode
                         self.throttle = self.throttle-20
@@ -307,8 +304,8 @@ class FlyDrone:
                         self.flying = False
 
             # Serial comms - write to Arduino
-            self.throttle = clamp(self.throttle, 1000, 2000)
-            self.yaw = clamp(self.yaw, 1000, 2000)
+            self.throttle = self._clamp(self.throttle, 1000, 2000)
+            self.yaw = self._clamp(self.yaw, 1000, 2000)
             command = '%i,%i,%i,%i' % (self.throttle, self.roll, self.pitch, self.yaw)
             # print('[PC]: '+command)
             self.comms.write((command+'\n').encode())
@@ -482,6 +479,9 @@ class FlyDrone:
 
             # toc2 = timeit.default_timer()
             # print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))
+
+    def _clamp(self, n, minn, maxn):
+        return max(min(maxn, n), minn)
 
 
 

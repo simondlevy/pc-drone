@@ -192,6 +192,14 @@ class FlyDrone:
         self.flighttoc = timeit.default_timer()
         self.flightnum = 0
 
+        self.flt_mode = self.NORMAL_FM
+
+        self.recording_data = 0
+
+        self.controlvarnames = None
+        self.controldata = None
+        self.flightdata = None
+
 
 def main():
 
@@ -216,14 +224,6 @@ def main():
         exit(0)
 
     self = FlyDrone(timestamp)
-
-    flt_mode = self.NORMAL_FM
-
-    recording_data = 0
-
-    controlvarnames = None
-    controldata = None
-    flightdata = None
 
     rval = state.ready()
 
@@ -251,7 +251,7 @@ def main():
 
             try:
 
-                if flt_mode != self.LANDING_FM:
+                if self.flt_mode != self.LANDING_FM:
                     # print('Zpos: %i Xpos: %i Ypos: %i' %
                     #       (self.zpos, self.xypos[0], self.xypos[1]))
                     e_dz_old = e_dz
@@ -368,7 +368,7 @@ def main():
                 self.xypos = np.zeros(2)
                 self.zpos = 0
 
-            flightdata = np.vstack((flightdata,
+            self.flightdata = np.vstack((self.flightdata,
                                     np.array([self.flighttoc - self.flighttic,
                                               self.xypos[0], self.xypos[1],
                                               self.zpos, self.dx, self.dy, self.dz,
@@ -383,19 +383,19 @@ def main():
                 self.zpos_target = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
                 print('seq len %i' % len(self.x_targ_seq))
-            elif flt_mode == self.PROGRAM_SEQ_FM:
-                flt_mode = self.LANDING_FM
+            elif self.flt_mode == self.PROGRAM_SEQ_FM:
+                self.flt_mode = self.LANDING_FM
 
-        elif recording_data:
+        elif self.recording_data:
             np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(self.flightnum) +
-                    '_' + 'flightdata.npy', flightdata)
+                    '_' + 'self.flightdata.npy', self.flightdata)
             np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(self.flightnum) +
-                    '_' + 'controldata.npy', controldata)
+                    '_' + 'self.controldata.npy', self.controldata)
             with open(LOG_DIR + '/' + self.timestamp + '_flt' +
-                      str(self.flightnum) + '_' + 'controlvarnames.npy',
+                      str(self.flightnum) + '_' + 'self.controlvarnames.npy',
                       'wb') as f:
-                pickle.dump(controlvarnames, f)
-            recording_data = 0
+                pickle.dump(self.controlvarnames, f)
+            self.recording_data = 0
 
         if key == 27:  # exit on ESC
             break
@@ -411,8 +411,8 @@ def main():
             e_iz = 0
             self.yaw = 1500  # self.yaw, rotates the drone
             self.flying = True
-            recording_data = 1
-            flightdata = np.zeros(23)
+            self.recording_data = 1
+            self.flightdata = np.zeros(23)
             self.flighttic = timeit.default_timer()
             self.flighttoc = 0
             self.flightnum += 1
@@ -420,10 +420,10 @@ def main():
             # reload(pids)  # ???
             # this lists out all the variables in module pids
             # and records their values.
-            controlvarnames = [item for item in
+            self.controlvarnames = [item for item in
                                dir(pids) if not item.startswith('__')]
-            controldata = [eval('pids.'+item) for item in controlvarnames]
-            flt_mode = self.NORMAL_FM
+            self.controldata = [eval('pids.'+item) for item in self.controlvarnames]
+            self.flt_mode = self.NORMAL_FM
             print('START FLYING')
         elif key == ord('e'):
             self.throttle = self.THROTTLE_MID
@@ -434,8 +434,8 @@ def main():
             e_iz = 0
             self.yaw = 1500  # self.yaw, rotates the drone
             self.flying = True
-            recording_data = 1
-            flightdata = np.zeros(23)
+            self.recording_data = 1
+            self.flightdata = np.zeros(23)
             self.flighttic = timeit.default_timer()
             self.flighttoc = 0
             self.flightnum += 1
@@ -443,9 +443,9 @@ def main():
             # reload(pids)  # ???
             # this lists out all the variables in module pids
             # and records their values.
-            controlvarnames = [item for item in
+            self.controlvarnames = [item for item in
                                dir(pids) if not item.startswith('__')]
-            controldata = [eval('pids.'+item) for item in controlvarnames]
+            self.controldata = [eval('pids.'+item) for item in self.controlvarnames]
 
             self.x_targ_seq = [self.x_target]
             self.ypos_targ_seq = [self.ypos_target]
@@ -464,14 +464,14 @@ def main():
                 flight_sequence('left_spot', self.x_targ_seq, self.ypos_targ_seq,
                                 self.zpos_targ_seq, self.theta_targ_seq)
 
-            flt_mode = self.PROGRAM_SEQ_FM
+            self.flt_mode = self.PROGRAM_SEQ_FM
 
             print('START FLYING')
 
         elif key == 115:  # s
             # throttle = 1000
             # flying = False
-            flt_mode = self.LANDING_FM
+            self.flt_mode = self.LANDING_FM
 
         # r - reset the serial port so Arduino will bind to another CX-10
         elif key == 114:

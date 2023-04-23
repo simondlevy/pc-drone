@@ -112,30 +112,30 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
     # this code does not take care of rotating past 180 degrees
     elif seqname == 'rot90_left':
         xpoints = 150
-        theta_endpoint = tseq[-1] + np.pi / 2
-        if (theta_endpoint > np.pi):
-            theta_endpoint -= 2*np.pi
+        self.theta_endpoint = tseq[-1] + np.pi / 2
+        if (self.theta_endpoint > np.pi):
+            self.theta_endpoint -= 2*np.pi
         # elif (e_dt < (-np.pi)):  # XXX e_dt undefined
-        #     theta_endpoint += 2 * np.pi
+        #     self.theta_endpoint += 2 * np.pi
         xseq = np.concatenate((xseq, np.ones(xpoints) * xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(xpoints) * yseq[-1]))
         zseq = np.concatenate((zseq, np.ones(xpoints) * zseq[-1]))
         tseq = np.concatenate((
-            tseq, np.linspace(tseq[-1], theta_endpoint, xpoints)))
+            tseq, np.linspace(tseq[-1], self.theta_endpoint, xpoints)))
 
     # this code does not take care of rotating past 180 degrees
     elif seqname == 'rot90_right':
         xpoints = 150
-        theta_endpoint = tseq[-1] - np.pi/2
-        if (theta_endpoint > np.pi):
-            theta_endpoint -= 2*np.pi
+        self.theta_endpoint = tseq[-1] - np.pi/2
+        if (self.theta_endpoint > np.pi):
+            self.theta_endpoint -= 2*np.pi
         # elif (e_dt < (-np.pi)):  # XXX e_dt undefined
-        #     theta_endpoint += 2 * np.pi
+        #     self.theta_endpoint += 2 * np.pi
         xseq = np.concatenate((xseq, np.ones(xpoints)*xseq[-1]))
         yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
         zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
         tseq = np.concatenate(
-                (tseq, np.linspace(tseq[-1], theta_endpoint, xpoints)))
+                (tseq, np.linspace(tseq[-1], self.theta_endpoint, xpoints)))
 
     return list(xseq), list(yseq), list(zseq), list(tseq)
 
@@ -151,6 +151,20 @@ class FlyDrone:
         self.pitch = 1500  # moves front back
         self.yaw = 1500  # self.yaw, rotates the drone
 
+        self.zpos = 50
+        self.xypos = (350, 250)
+        self.theta = 0
+
+        self.command = ''
+        self.flying = False
+        self.no_position_cnt = 0
+
+        self.dx, self.dy, self.dz = 0, 0, 0
+        self.xspeed, self.yspeed, self.zspeed = 0, 0, 0
+        self.e_dz, self.e_dx, self.e_dy, self.e_dt = 0, 0, 0, 0
+        self.e_iz, self.e_ix, self.e_iy, self.e_it = 0, 0, 0, 0
+        self.e_d2z, self.e_d2x, self.e_d2y, self.e_d2t = 0, 0, 0, 0
+        # dz_old = 0 # dx_old = 0 # dy_old = 0
 
 def main():
 
@@ -176,21 +190,6 @@ def main():
 
     self = FlyDrone(timestamp)
 
-    zpos = 50
-    xypos = (350, 250)
-    theta = 0
-
-    command = ''
-    flying = False
-    no_position_cnt = 0
-
-    dx, dy, dz = 0, 0, 0
-    xspeed, yspeed, zspeed = 0, 0, 0
-    e_dz, e_dx, e_dy, e_dt = 0, 0, 0, 0
-    e_iz, e_ix, e_iy, e_it = 0, 0, 0, 0
-    e_d2z, e_d2x, e_d2y, e_d2t = 0, 0, 0, 0
-    # dz_old = 0 # dx_old = 0 # dy_old = 0
-
     THROTTLE_MID = pids.THROTTLE_MID
     ELEVATOR_MID = pids.ELEVATOR_MID
     AILERON_MID = pids.AILERON_MID
@@ -200,13 +199,13 @@ def main():
 
     x_target = 300
     ypos_target = 200
-    zpos_target = 65
-    theta_target = 0  # 45.0/180.0*np.pi
+    self.zpos_target = 65
+    self.theta_target = 0  # 45.0/180.0*np.pi
 
     x_targ_seq = [x_target]
     ypos_targ_seq = [ypos_target]
-    zpos_targ_seq = [zpos_target]
-    theta_targ_seq = [theta_target]
+    self.zpos_targ_seq = [self.zpos_target]
+    self.theta_targ_seq = [self.theta_target]
 
     # tic = timeit.default_timer()
     # toc = 0
@@ -241,23 +240,23 @@ def main():
         # toc2 = timeit.default_timer()
         # print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
-        xypos, zpos, theta = state.update()
+        self.xypos, self.zpos, self.theta = state.update()
 
         # toc2 = timeit.default_timer()
 
         # print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
 
-        print(flying)
+        print(self.flying)
 
-        if flying:
+        if self.flying:
 
             try:
 
                 if flt_mode != LANDING_FM:
                     # print('Zpos: %i Xpos: %i Ypos: %i' %
-                    #       (zpos, xypos[0], xypos[1]))
+                    #       (self.zpos, self.xypos[0], self.xypos[1]))
                     e_dz_old = e_dz
-                    e_dz = zpos-zpos_target
+                    e_dz = self.zpos-self.zpos_target
                     e_iz += e_dz
                     e_iz = clamp(e_iz, -10000, 10000)
                     e_d2z = e_dz-e_dz_old
@@ -267,7 +266,7 @@ def main():
                                  pids.Kdz * e_d2z) +
                                 THROTTLE_MID)
                     e_dx_old = e_dx
-                    e_dx = xypos[0]-x_target
+                    e_dx = self.xypos[0]-x_target
                     e_ix += e_dx
                     e_ix = clamp(e_ix, -200000, 200000)
                     e_d2x = e_dx - e_dx_old
@@ -278,7 +277,7 @@ def main():
                             pids.Kdx * e_d2x)
 
                     e_dy_old = e_dy
-                    e_dy = xypos[1] - ypos_target
+                    e_dy = self.xypos[1] - ypos_target
                     e_iy += e_dy
                     e_iy = clamp(e_iy, -200000, 200000)
                     e_d2y = e_dy-e_dy_old
@@ -289,12 +288,12 @@ def main():
                                  pids.Kdy * e_d2y))
 
                     # commands are calculated in camera reference frame
-                    self.roll = (xcommand * np.cos(theta) + ycommand *
-                               np.sin(theta) + AILERON_MID)
-                    self.pitch = (-xcommand * np.sin(theta) + ycommand *
-                                np.cos(theta) + ELEVATOR_MID)
+                    self.roll = (xcommand * np.cos(self.theta) + ycommand *
+                               np.sin(self.theta) + AILERON_MID)
+                    self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
+                                np.cos(self.theta) + ELEVATOR_MID)
                     e_dt_old = e_dt
-                    e_dt = theta-theta_target
+                    e_dt = self.theta-self.theta_target
                     # angle error should always be less than 180degrees (pi
                     # radians)
                     if (e_dt > np.pi):
@@ -308,7 +307,7 @@ def main():
                     self.yaw = pids.Kt * (
                             e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
                             e_d2t) + RUDDER_MID
-                    if zpos > 0:
+                    if self.zpos > 0:
                         # print('highalt')
                         self.roll = clamp(self.roll, 1000, 2000)
                         self.pitch = clamp(self.pitch, 1000, 2000)
@@ -316,17 +315,17 @@ def main():
                         # print('lowalt')
                         self.roll = clamp(self.roll, 1400, 1600)
                         self.pitch = clamp(self.pitch, 1400, 1600)
-                    no_position_cnt = 0
+                    self.no_position_cnt = 0
                 else:  # landing mode
                     self.throttle = self.throttle-20
 
             except Exception:
                 # print(e)
-                no_position_cnt += 1
+                self.no_position_cnt += 1
                 # print('STOPPED. no position or error. ')
-                if no_position_cnt > 15:
+                if self.no_position_cnt > 15:
                     self.throttle = 1000
-                    flying = False
+                    self.flying = False
 
         # Serial comms - write to Arduino
         self.throttle = clamp(self.throttle, 1000, 2000)
@@ -362,28 +361,28 @@ def main():
         # print('deltaT_execute_waitkey: %0.4f' % (toc2 - toc))
         # key = ord('0')
 
-        if flying:
+        if self.flying:
 
             state.record()
 
-            if xypos is None:
-                xypos = np.zeros(2)
-                zpos = 0
+            if self.xypos is None:
+                self.xypos = np.zeros(2)
+                self.zpos = 0
 
             flightdata = np.vstack((flightdata,
                                     np.array([flighttoc - flighttic,
-                                              xypos[0], xypos[1],
-                                              zpos, dx, dy, dz,
-                                              e_dx, e_ix, e_d2x, e_dy,
-                                              e_iy, e_d2y, e_dz, e_iz,
-                                              e_d2z, xspeed, yspeed,
-                                              zspeed, self.throttle, self.roll,
+                                              self.xypos[0], self.xypos[1],
+                                              self.zpos, self.dx, self.dy, self.dz,
+                                              self.e_dx, self.e_ix, self.e_d2x, self.e_dy,
+                                              self.e_iy, self.e_d2y, self.e_dz, self.e_iz,
+                                              self.e_d2z, self.xspeed, self.yspeed,
+                                              self.zspeed, self.throttle, self.roll,
                                               self.pitch, self.yaw])))
             if len(x_targ_seq) > 1:
                 x_target = x_targ_seq.pop(0)
                 ypos_target = ypos_targ_seq.pop(0)
-                zpos_target = zpos_targ_seq.pop(0)
-                theta_target = theta_targ_seq.pop(0)
+                self.zpos_target = self.zpos_targ_seq.pop(0)
+                self.theta_target = self.theta_targ_seq.pop(0)
                 print('seq len %i' % len(x_targ_seq))
             elif flt_mode == PROGRAM_SEQ_FM:
                 flt_mode = LANDING_FM
@@ -412,7 +411,7 @@ def main():
             e_iy = 0
             e_iz = 0
             self.yaw = 1500  # self.yaw, rotates the drone
-            flying = True
+            self.flying = True
             recording_data = 1
             flightdata = np.zeros(23)
             flighttic = timeit.default_timer()
@@ -435,7 +434,7 @@ def main():
             e_iy = 0
             e_iz = 0
             self.yaw = 1500  # self.yaw, rotates the drone
-            flying = True
+            self.flying = True
             recording_data = 1
             flightdata = np.zeros(23)
             flighttic = timeit.default_timer()
@@ -451,20 +450,20 @@ def main():
 
             x_targ_seq = [x_target]
             ypos_targ_seq = [ypos_target]
-            zpos_targ_seq = [zpos_target]
-            theta_targ_seq = [theta_target]
+            self.zpos_targ_seq = [self.zpos_target]
+            self.theta_targ_seq = [self.theta_target]
 
-            x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+            x_targ_seq, ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
                 flight_sequence('hover', x_targ_seq, ypos_targ_seq,
-                                zpos_targ_seq, theta_targ_seq)
+                                self.zpos_targ_seq, self.theta_targ_seq)
 
-            x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+            x_targ_seq, ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
                 flight_sequence('right_spot', x_targ_seq, ypos_targ_seq,
-                                zpos_targ_seq, theta_targ_seq)
+                                self.zpos_targ_seq, self.theta_targ_seq)
 
-            x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq = \
+            x_targ_seq, ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
                 flight_sequence('left_spot', x_targ_seq, ypos_targ_seq,
-                                zpos_targ_seq, theta_targ_seq)
+                                self.zpos_targ_seq, self.theta_targ_seq)
 
             flt_mode = PROGRAM_SEQ_FM
 
@@ -487,12 +486,12 @@ def main():
 
             command = commands[key - ord('1')]
 
-            (x_targ_seq, ypos_targ_seq, zpos_targ_seq, theta_targ_seq) = (
+            (x_targ_seq, ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq) = (
                     flight_sequence(command,
                                     x_targ_seq,
                                     ypos_targ_seq,
-                                    zpos_targ_seq,
-                                    theta_targ_seq))
+                                    self.zpos_targ_seq,
+                                    self.theta_targ_seq))
 
         # print out the time needed to execute everything except the image
         # reload

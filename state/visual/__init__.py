@@ -117,7 +117,7 @@ class StateEstimator:
         # Assume no keypoints found
         message = 'No keypoints'
         img_with_keypoints = frame_undistort
-        result = None
+        state = None
 
         keypoints = get_keypoints(frame, self.params)
 
@@ -126,7 +126,7 @@ class StateEstimator:
             if len(keypoints) == 4:
                 (img_with_keypoints, blob_center, max_blob_dist, theta, message) = \
                         self._handle_good_keypoints(frame, keypoints)
-                result = max_blob_dist, blob_center, theta
+                state = max_blob_dist, blob_center, theta
 
             else:
                 message = '%d keypoints' % len(keypoints)
@@ -135,7 +135,7 @@ class StateEstimator:
 
         self.frame = img_with_keypoints
 
-        return result
+        return state
 
     def _put_text(self, frame, text, pos):
 

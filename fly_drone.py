@@ -119,6 +119,8 @@ class FlyDrone:
 
             try:
 
+                self._update()
+
                 if self.flt_mode != self.LANDING_FM:
                     # print('Zpos: %i Xpos: %i Ypos: %i' %
                     #       (self.zpos, self.xypos[0], self.xypos[1]))
@@ -267,9 +269,11 @@ class FlyDrone:
 
         if key == 27:  # exit on ESC
             return False
+
         elif key == 32:  # space - take a snapshot and save it
             self.state.snapshot(self.snapnum)
             self.snapnum += 1
+
         elif key == 119:  # w
             self.throttle = self.THROTTLE_MID
             self.roll = self.ROLL_MID  # turns left
@@ -372,6 +376,10 @@ class FlyDrone:
         # print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))
 
         return running
+
+    def _update(self):
+
+        pass
 
     def _clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)

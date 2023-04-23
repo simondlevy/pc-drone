@@ -147,8 +147,10 @@ class FlyDrone:
     LANDING_FM = 1
     PROGRAM_SEQ_FM = 2
 
-    def __init__(self, timestamp):
+    def __init__(self, state, comms, timestamp):
 
+        self.state = state
+        self.comms = comms
         self.timestamp = timestamp
 
         self.throttle = 1000
@@ -223,7 +225,7 @@ def main():
         print('Failed to create state estimator: %s' % str(e))
         exit(0)
 
-    self = FlyDrone(timestamp)
+    self = FlyDrone(state, comms, timestamp)
 
     rval = state.ready()
 

@@ -148,6 +148,20 @@ def main():
 
     timestamp = '{:%Y_%m_%d_%H_%M}'.format(datetime.now())
 
+    # Try to open comms; exit on failure
+    try:
+        comms = Comms()
+    except Exception as e:
+        print('Failed to open comms: %s' % str(e))
+        exit(0)
+
+    # Try to create state estimator; exit on failure
+    try:
+        state = StateEstimator(LOG_DIR, timestamp)
+    except Exception as e:
+        print('Failed to create state estimator: %s' % str(e))
+        exit(0)
+
     throttle = 1000
     aileron = 1500  # moves left/right
     elevator = 1500  # moves front back
@@ -203,18 +217,6 @@ def main():
     controlvarnames = None
     controldata = None
     flightdata = None
-
-    state = StateEstimator(LOG_DIR, timestamp)
-
-    try:
-
-        comms = Comms()
-
-    except Exception as e:
-
-        print('Failed to open comms: %s' % str(e))
-
-        exit(0)
 
     rval = state.ready()
 

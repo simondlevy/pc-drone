@@ -166,6 +166,12 @@ class FlyDrone:
         self.e_d2z, self.e_d2x, self.e_d2y, self.e_d2t = 0, 0, 0, 0
         # dz_old = 0 # dx_old = 0 # dy_old = 0
 
+        self.THROTTLE_MID = pids.THROTTLE_MID
+        self.ELEVATOR_MID = pids.ELEVATOR_MID
+        self.AILERON_MID = pids.AILERON_MID
+        self.RUDDER_MID = pids.RUDDER_MID
+
+
 def main():
 
     # Create logging directory if needed
@@ -189,11 +195,6 @@ def main():
         exit(0)
 
     self = FlyDrone(timestamp)
-
-    THROTTLE_MID = pids.THROTTLE_MID
-    ELEVATOR_MID = pids.ELEVATOR_MID
-    AILERON_MID = pids.AILERON_MID
-    RUDDER_MID = pids.RUDDER_MID
 
     # speeds = ''
 
@@ -264,7 +265,7 @@ def main():
                                 (e_dz * pids.Kpz +
                                  pids.Kiz * e_iz +
                                  pids.Kdz * e_d2z) +
-                                THROTTLE_MID)
+                                self.THROTTLE_MID)
                     e_dx_old = e_dx
                     e_dx = self.xypos[0]-x_target
                     e_ix += e_dx
@@ -289,9 +290,9 @@ def main():
 
                     # commands are calculated in camera reference frame
                     self.roll = (xcommand * np.cos(self.theta) + ycommand *
-                               np.sin(self.theta) + AILERON_MID)
+                               np.sin(self.theta) + self.AILERON_MID)
                     self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
-                                np.cos(self.theta) + ELEVATOR_MID)
+                                np.cos(self.theta) + self.ELEVATOR_MID)
                     e_dt_old = e_dt
                     e_dt = self.theta-self.theta_target
                     # angle error should always be less than 180degrees (pi
@@ -404,9 +405,9 @@ def main():
             state.snapshot(ii)
             ii += 1
         elif key == 119:  # w
-            self.throttle = THROTTLE_MID
-            self.roll = AILERON_MID  # turns left
-            self.pitch = ELEVATOR_MID
+            self.throttle = self.THROTTLE_MID
+            self.roll = self.AILERON_MID  # turns left
+            self.pitch = self.ELEVATOR_MID
             e_ix = 0
             e_iy = 0
             e_iz = 0
@@ -427,9 +428,9 @@ def main():
             flt_mode = NORMAL_FM
             print('START FLYING')
         elif key == ord('e'):
-            self.throttle = THROTTLE_MID
-            self.roll = AILERON_MID  # turns left
-            self.pitch = ELEVATOR_MID
+            self.throttle = self.THROTTLE_MID
+            self.roll = self.AILERON_MID  # turns left
+            self.pitch = self.ELEVATOR_MID
             e_ix = 0
             e_iy = 0
             e_iz = 0

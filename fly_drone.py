@@ -227,7 +227,7 @@ def main():
 
     self = FlyDrone(state, comms, timestamp)
 
-    rval = state.ready()
+    rval = self.state.ready()
 
     ii = 100
 
@@ -241,7 +241,7 @@ def main():
         # toc2 = timeit.default_timer()
         # print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
 
-        self.xypos, self.zpos, self.theta = state.update()
+        self.xypos, self.zpos, self.theta = self.state.update()
 
         # toc2 = timeit.default_timer()
 
@@ -353,7 +353,7 @@ def main():
 
         self.flighttoc = timeit.default_timer()
 
-        key = state.display(
+        key = self.state.display(
                 command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
 
         # toc2 = timeit.default_timer()
@@ -364,7 +364,7 @@ def main():
 
         if self.flying:
 
-            state.record()
+            self.state.record()
 
             if self.xypos is None:
                 self.xypos = np.zeros(2)
@@ -402,7 +402,7 @@ def main():
         if key == 27:  # exit on ESC
             break
         elif key == 32:  # space - take a snapshot and save it
-            state.snapshot(ii)
+            self.state.snapshot(ii)
             ii += 1
         elif key == 119:  # w
             self.throttle = self.THROTTLE_MID
@@ -500,7 +500,7 @@ def main():
         # print('deltaT_execute_other: %0.4f' % (toc2 - toc))
 
         # read next state data
-        rval = state.acquire()
+        rval = self.state.acquire()
 
         # toc2 = timeit.default_timer()
         # print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))

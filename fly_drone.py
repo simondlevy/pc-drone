@@ -176,6 +176,17 @@ class FlyDrone:
         self.zpos_target = 65
         self.theta_target = 0  # 45.0/180.0*np.pi
 
+        # speeds = ''
+        self.x_targ_seq = [self.x_target]
+        self.ypos_targ_seq = [self.ypos_target]
+        self.zpos_targ_seq = [self.zpos_target]
+        self.theta_targ_seq = [self.theta_target]
+        # tic = timeit.default_timer()
+        # toc = 0
+        self.flighttic = timeit.default_timer()
+        self.flighttoc = timeit.default_timer()
+        self.flightnum = 0
+
 
 def main():
 
@@ -200,19 +211,6 @@ def main():
         exit(0)
 
     self = FlyDrone(timestamp)
-
-    # speeds = ''
-
-    x_targ_seq = [self.x_target]
-    ypos_targ_seq = [self.ypos_target]
-    self.zpos_targ_seq = [self.zpos_target]
-    self.theta_targ_seq = [self.theta_target]
-
-    # tic = timeit.default_timer()
-    # toc = 0
-    flighttic = timeit.default_timer()
-    flighttoc = timeit.default_timer()
-    flightnum = 0
 
     # Flight modes
     NORMAL_FM = 0
@@ -351,10 +349,10 @@ def main():
         # errors_z = ('e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' %
         #             (e_dz, e_iz, e_d2z))
 
-        flighttoc = timeit.default_timer()
+        self.flighttoc = timeit.default_timer()
 
         key = state.display(
-                command, flighttoc, flighttic, self.x_target, self.ypos_target)
+                command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
 
         # toc2 = timeit.default_timer()
         # print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
@@ -371,7 +369,7 @@ def main():
                 self.zpos = 0
 
             flightdata = np.vstack((flightdata,
-                                    np.array([flighttoc - flighttic,
+                                    np.array([self.flighttoc - self.flighttic,
                                               self.xypos[0], self.xypos[1],
                                               self.zpos, self.dx, self.dy, self.dz,
                                               self.e_dx, self.e_ix, self.e_d2x, self.e_dy,
@@ -379,22 +377,22 @@ def main():
                                               self.e_d2z, self.xspeed, self.yspeed,
                                               self.zspeed, self.throttle, self.roll,
                                               self.pitch, self.yaw])))
-            if len(x_targ_seq) > 1:
-                self.x_target = x_targ_seq.pop(0)
-                self.ypos_target = ypos_targ_seq.pop(0)
+            if len(self.x_targ_seq) > 1:
+                self.x_target = self.x_targ_seq.pop(0)
+                self.ypos_target = self.ypos_targ_seq.pop(0)
                 self.zpos_target = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
-                print('seq len %i' % len(x_targ_seq))
+                print('seq len %i' % len(self.x_targ_seq))
             elif flt_mode == PROGRAM_SEQ_FM:
                 flt_mode = LANDING_FM
 
         elif recording_data:
-            np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(flightnum) +
+            np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(self.flightnum) +
                     '_' + 'flightdata.npy', flightdata)
-            np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(flightnum) +
+            np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(self.flightnum) +
                     '_' + 'controldata.npy', controldata)
             with open(LOG_DIR + '/' + self.timestamp + '_flt' +
-                      str(flightnum) + '_' + 'controlvarnames.npy',
+                      str(self.flightnum) + '_' + 'controlvarnames.npy',
                       'wb') as f:
                 pickle.dump(controlvarnames, f)
             recording_data = 0
@@ -415,9 +413,9 @@ def main():
             self.flying = True
             recording_data = 1
             flightdata = np.zeros(23)
-            flighttic = timeit.default_timer()
-            flighttoc = 0
-            flightnum += 1
+            self.flighttic = timeit.default_timer()
+            self.flighttoc = 0
+            self.flightnum += 1
 
             # reload(pids)  # ???
             # this lists out all the variables in module pids
@@ -438,9 +436,9 @@ def main():
             self.flying = True
             recording_data = 1
             flightdata = np.zeros(23)
-            flighttic = timeit.default_timer()
-            flighttoc = 0
-            flightnum += 1
+            self.flighttic = timeit.default_timer()
+            self.flighttoc = 0
+            self.flightnum += 1
 
             # reload(pids)  # ???
             # this lists out all the variables in module pids
@@ -449,21 +447,21 @@ def main():
                                dir(pids) if not item.startswith('__')]
             controldata = [eval('pids.'+item) for item in controlvarnames]
 
-            x_targ_seq = [self.x_target]
-            ypos_targ_seq = [self.ypos_target]
+            self.x_targ_seq = [self.x_target]
+            self.ypos_targ_seq = [self.ypos_target]
             self.zpos_targ_seq = [self.zpos_target]
             self.theta_targ_seq = [self.theta_target]
 
-            x_targ_seq, ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
-                flight_sequence('hover', x_targ_seq, ypos_targ_seq,
+            self.x_targ_seq, self.ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
+                flight_sequence('hover', self.x_targ_seq, self.ypos_targ_seq,
                                 self.zpos_targ_seq, self.theta_targ_seq)
 
-            x_targ_seq, ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
-                flight_sequence('right_spot', x_targ_seq, ypos_targ_seq,
+            self.x_targ_seq, self.ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
+                flight_sequence('right_spot', self.x_targ_seq, self.ypos_targ_seq,
                                 self.zpos_targ_seq, self.theta_targ_seq)
 
-            x_targ_seq, ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
-                flight_sequence('left_spot', x_targ_seq, ypos_targ_seq,
+            self.x_targ_seq, self.ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
+                flight_sequence('left_spot', self.x_targ_seq, self.ypos_targ_seq,
                                 self.zpos_targ_seq, self.theta_targ_seq)
 
             flt_mode = PROGRAM_SEQ_FM
@@ -487,10 +485,10 @@ def main():
 
             command = commands[key - ord('1')]
 
-            (x_targ_seq, ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq) = (
+            (self.x_targ_seq, self.ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq) = (
                     flight_sequence(command,
-                                    x_targ_seq,
-                                    ypos_targ_seq,
+                                    self.x_targ_seq,
+                                    self.ypos_targ_seq,
                                     self.zpos_targ_seq,
                                     self.theta_targ_seq))
 

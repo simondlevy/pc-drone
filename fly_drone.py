@@ -171,6 +171,11 @@ class FlyDrone:
         self.PITCH_MID = pids.PITCH_MID
         self.YAW_MID = pids.YAW_MID
 
+        self.x_target = 300
+        self.ypos_target = 200
+        self.zpos_target = 65
+        self.theta_target = 0  # 45.0/180.0*np.pi
+
 
 def main():
 
@@ -198,13 +203,8 @@ def main():
 
     # speeds = ''
 
-    x_target = 300
-    ypos_target = 200
-    self.zpos_target = 65
-    self.theta_target = 0  # 45.0/180.0*np.pi
-
-    x_targ_seq = [x_target]
-    ypos_targ_seq = [ypos_target]
+    x_targ_seq = [self.x_target]
+    ypos_targ_seq = [self.ypos_target]
     self.zpos_targ_seq = [self.zpos_target]
     self.theta_targ_seq = [self.theta_target]
 
@@ -267,7 +267,7 @@ def main():
                                  pids.Kdz * e_d2z) +
                                 self.THROTTLE_MID)
                     e_dx_old = e_dx
-                    e_dx = self.xypos[0]-x_target
+                    e_dx = self.xypos[0]-self.x_target
                     e_ix += e_dx
                     e_ix = clamp(e_ix, -200000, 200000)
                     e_d2x = e_dx - e_dx_old
@@ -278,7 +278,7 @@ def main():
                             pids.Kdx * e_d2x)
 
                     e_dy_old = e_dy
-                    e_dy = self.xypos[1] - ypos_target
+                    e_dy = self.xypos[1] - self.ypos_target
                     e_iy += e_dy
                     e_iy = clamp(e_iy, -200000, 200000)
                     e_d2y = e_dy-e_dy_old
@@ -354,7 +354,7 @@ def main():
         flighttoc = timeit.default_timer()
 
         key = state.display(
-                command, flighttoc, flighttic, x_target, ypos_target)
+                command, flighttoc, flighttic, self.x_target, self.ypos_target)
 
         # toc2 = timeit.default_timer()
         # print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
@@ -380,8 +380,8 @@ def main():
                                               self.zspeed, self.throttle, self.roll,
                                               self.pitch, self.yaw])))
             if len(x_targ_seq) > 1:
-                x_target = x_targ_seq.pop(0)
-                ypos_target = ypos_targ_seq.pop(0)
+                self.x_target = x_targ_seq.pop(0)
+                self.ypos_target = ypos_targ_seq.pop(0)
                 self.zpos_target = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
                 print('seq len %i' % len(x_targ_seq))
@@ -449,8 +449,8 @@ def main():
                                dir(pids) if not item.startswith('__')]
             controldata = [eval('pids.'+item) for item in controlvarnames]
 
-            x_targ_seq = [x_target]
-            ypos_targ_seq = [ypos_target]
+            x_targ_seq = [self.x_target]
+            ypos_targ_seq = [self.ypos_target]
             self.zpos_targ_seq = [self.zpos_target]
             self.theta_targ_seq = [self.theta_target]
 

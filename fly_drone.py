@@ -93,7 +93,7 @@ class FlyDrone:
 
         self.snapnum = 100
 
-    def start(self):
+    def running(self):
 
         rval = self.state.ready()
 
@@ -508,7 +508,7 @@ def main():
 
     flydrone = FlyDrone(state, comms, timestamp)
 
-    flydrone.start()
+    flydrone.running()
 
     # close the connection
     comms.close()

@@ -119,7 +119,7 @@ class FlyDrone:
 
             try:
 
-                self._update()
+                self._get_demands()
 
             except Exception:
                 # print(e)
@@ -310,7 +310,7 @@ class FlyDrone:
 
         return running
 
-    def _update(self):
+    def _get_demands(self):
 
         if self.flt_mode != self.LANDING_FM:
             # print('Zpos: %i Xpos: %i Ypos: %i' %
@@ -514,8 +514,10 @@ def main():
         print('Failed to create state estimator: %s' % str(e))
         exit(0)
 
+    # Instantiate FlyDrone
     flydrone = FlyDrone(state, comms, timestamp)
 
+    # Run to error or completion
     if flydrone.begin():
         while flydrone.step():
             pass

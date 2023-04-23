@@ -101,7 +101,7 @@ plt.show()
 fig6=plt.figure(6)
 plt.clf()
 plt.subplot(411)
-#aileron = cp.Kx*(e_dx*cp.Kpx+cp.Kix*e_ix+cp.Kdx*e_d2x)+AILERON_MID  
+#aileron = cp.Kx*(e_dx*cp.Kpx+cp.Kix*e_ix+cp.Kdx*e_d2x)+ROLL_MID  
 plt.plot(t, x, label='X')
 plt.plot(t, y, label='Y')
 plt.plot(t, z, label='Z')

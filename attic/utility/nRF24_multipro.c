@@ -62,9 +62,9 @@
 #define CHANNELS 12 // number of channels in ppm stream, 12 ideally
 enum chan_order{
     THROTTLE,
-    AILERON,
-    ELEVATOR,
-    RUDDER,
+    ROLL,
+    PITCH,
+    YAW,
     AUX1,  // (CH5)  led light, or 3 pos. rate on CX-10, H7, or inverted flight on H101
     AUX2,  // (CH6)  flip control
     AUX3,  // (CH7)  still camera (snapshot)
@@ -217,46 +217,46 @@ void selectProtocol()
     */
     // startup stick commands
     
-    //if(ppm[RUDDER] < PPM_MIN_COMMAND)        // Rudder left
+    //if(ppm[YAW] < PPM_MIN_COMMAND)        // Rudder left
     set_txid(true);                      // Renew Transmitter ID
     
     // protocol selection
     /*
     // Rudder right + Aileron left
-    if(ppm[RUDDER] > PPM_MAX_COMMAND && ppm[AILERON] < PPM_MIN_COMMAND)
+    if(ppm[YAW] > PPM_MAX_COMMAND && ppm[ROLL] < PPM_MIN_COMMAND)
         current_protocol = PROTO_H8_3D; // H8 mini 3D, H20 ...
     
     // Elevator down + Aileron right
-    else if(ppm[ELEVATOR] < PPM_MIN_COMMAND && ppm[AILERON] > PPM_MAX_COMMAND)
+    else if(ppm[PITCH] < PPM_MIN_COMMAND && ppm[ROLL] > PPM_MAX_COMMAND)
         current_protocol = PROTO_YD829; // YD-829, YD-829C, YD-822 ...
     
     // Elevator down + Aileron left
-    else if(ppm[ELEVATOR] < PPM_MIN_COMMAND && ppm[AILERON] < PPM_MIN_COMMAND)
+    else if(ppm[PITCH] < PPM_MIN_COMMAND && ppm[ROLL] < PPM_MIN_COMMAND)
         current_protocol = PROTO_SYMAX5C1; // Syma X5C-1, X11, X11C, X12
     
     // Elevator up + Aileron right
-    else if(ppm[ELEVATOR] > PPM_MAX_COMMAND && ppm[AILERON] > PPM_MAX_COMMAND)
+    else if(ppm[PITCH] > PPM_MAX_COMMAND && ppm[ROLL] > PPM_MAX_COMMAND)
         current_protocol = PROTO_BAYANG;    // EAchine H8(C) mini, BayangToys X6/X7/X9, JJRC JJ850 ...
     
     // Elevator up + Aileron left
-    else if(ppm[ELEVATOR] > PPM_MAX_COMMAND && ppm[AILERON] < PPM_MIN_COMMAND) 
+    else if(ppm[PITCH] > PPM_MAX_COMMAND && ppm[ROLL] < PPM_MIN_COMMAND) 
         current_protocol = PROTO_H7;        // EAchine H7, MT99xx
     
     // Elevator up  
-    else if(ppm[ELEVATOR] > PPM_MAX_COMMAND)
+    else if(ppm[PITCH] > PPM_MAX_COMMAND)
         current_protocol = PROTO_V2X2;       // WLToys V202/252/272, JXD 385/388, JJRC H6C ...
         
     // Elevator down
-    else if(ppm[ELEVATOR] < PPM_MIN_COMMAND) 
+    else if(ppm[PITCH] < PPM_MIN_COMMAND) 
         current_protocol = PROTO_CG023;      // EAchine CG023/CG031/3D X4, (todo :ATTOP YD-836/YD-836C) ...
     
     // Aileron right
-    else if(ppm[AILERON] > PPM_MAX_COMMAND)  
+    else if(ppm[ROLL] > PPM_MAX_COMMAND)  
     */
     current_protocol = PROTO_CX10_BLUE;  // Cheerson CX10(blue pcb, newer red pcb)/CX10-A/CX11/CX12 ... 
     /*
     // Aileron left
-    else if(ppm[AILERON] < PPM_MIN_COMMAND)  
+    else if(ppm[ROLL] < PPM_MIN_COMMAND)  
         current_protocol = PROTO_CX10_GREEN;  // Cheerson CX10(green pcb)... 
     
     // read last used protocol from eeprom

@@ -167,9 +167,9 @@ class FlyDrone:
         # dz_old = 0 # dx_old = 0 # dy_old = 0
 
         self.THROTTLE_MID = pids.THROTTLE_MID
-        self.ELEVATOR_MID = pids.ELEVATOR_MID
-        self.AILERON_MID = pids.AILERON_MID
-        self.RUDDER_MID = pids.RUDDER_MID
+        self.ROLL_MID = pids.ROLL_MID
+        self.PITCH_MID = pids.PITCH_MID
+        self.YAW_MID = pids.YAW_MID
 
 
 def main():
@@ -290,9 +290,9 @@ def main():
 
                     # commands are calculated in camera reference frame
                     self.roll = (xcommand * np.cos(self.theta) + ycommand *
-                               np.sin(self.theta) + self.AILERON_MID)
+                               np.sin(self.theta) + self.ROLL_MID)
                     self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
-                                np.cos(self.theta) + self.ELEVATOR_MID)
+                                np.cos(self.theta) + self.PITCH_MID)
                     e_dt_old = e_dt
                     e_dt = self.theta-self.theta_target
                     # angle error should always be less than 180degrees (pi
@@ -307,7 +307,7 @@ def main():
                     e_d2t = e_dt-e_dt_old
                     self.yaw = pids.Kt * (
                             e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
-                            e_d2t) + RUDDER_MID
+                            e_d2t) + YAW_MID
                     if self.zpos > 0:
                         # print('highalt')
                         self.roll = clamp(self.roll, 1000, 2000)
@@ -406,8 +406,8 @@ def main():
             ii += 1
         elif key == 119:  # w
             self.throttle = self.THROTTLE_MID
-            self.roll = self.AILERON_MID  # turns left
-            self.pitch = self.ELEVATOR_MID
+            self.roll = self.ROLL_MID  # turns left
+            self.pitch = self.PITCH_MID
             e_ix = 0
             e_iy = 0
             e_iz = 0
@@ -429,8 +429,8 @@ def main():
             print('START FLYING')
         elif key == ord('e'):
             self.throttle = self.THROTTLE_MID
-            self.roll = self.AILERON_MID  # turns left
-            self.pitch = self.ELEVATOR_MID
+            self.roll = self.ROLL_MID  # turns left
+            self.pitch = self.PITCH_MID
             e_ix = 0
             e_iy = 0
             e_iz = 0

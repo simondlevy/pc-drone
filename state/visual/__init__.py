@@ -65,7 +65,29 @@ class StateEstimator:
         frame_undistort = self._undistort_crop(
                 self.frame_o, self.map1, self.map2, self.roi)
 
-        state = self._add_blobs(frame_undistort)
+        # frame = cv2.GaussianBlur(frame_undistort, (3, 3), 0)
+        frame = frame_undistort
+
+        # Assume no keypoints found
+        message = 'No keypoints'
+        img_with_keypoints = frame_undistort
+        state = None
+
+        keypoints = get_keypoints(frame, self.params)
+
+        if keypoints is not None:
+
+            if len(keypoints) == 4:
+                (img_with_keypoints, blob_center, max_blob_dist, theta, message) = \
+                        self._handle_good_keypoints(frame, keypoints)
+                state = max_blob_dist, blob_center, theta
+
+            else:
+                message = '%d keypoints' % len(keypoints)
+
+        self._put_text(img_with_keypoints, message, (10, 25))
+
+        self.frame = img_with_keypoints
 
         return state
 
@@ -108,34 +130,6 @@ class StateEstimator:
         self.vc.release()
 
         self.video_out.release()
-
-    def _add_blobs(self, frame_undistort):
-
-        # frame = cv2.GaussianBlur(frame_undistort, (3, 3), 0)
-        frame = frame_undistort
-
-        # Assume no keypoints found
-        message = 'No keypoints'
-        img_with_keypoints = frame_undistort
-        state = None
-
-        keypoints = get_keypoints(frame, self.params)
-
-        if keypoints is not None:
-
-            if len(keypoints) == 4:
-                (img_with_keypoints, blob_center, max_blob_dist, theta, message) = \
-                        self._handle_good_keypoints(frame, keypoints)
-                state = max_blob_dist, blob_center, theta
-
-            else:
-                message = '%d keypoints' % len(keypoints)
-
-        self._put_text(img_with_keypoints, message, (10, 25))
-
-        self.frame = img_with_keypoints
-
-        return state
 
     def _put_text(self, frame, text, pos):
 

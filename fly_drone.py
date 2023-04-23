@@ -142,6 +142,11 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
 
 class FlyDrone:
 
+    # Flight modes
+    NORMAL_FM = 0
+    LANDING_FM = 1
+    PROGRAM_SEQ_FM = 2
+
     def __init__(self, timestamp):
 
         self.timestamp = timestamp
@@ -212,12 +217,7 @@ def main():
 
     self = FlyDrone(timestamp)
 
-    # Flight modes
-    NORMAL_FM = 0
-    LANDING_FM = 1
-    PROGRAM_SEQ_FM = 2
-
-    flt_mode = NORMAL_FM
+    flt_mode = self.NORMAL_FM
 
     recording_data = 0
 
@@ -251,7 +251,7 @@ def main():
 
             try:
 
-                if flt_mode != LANDING_FM:
+                if flt_mode != self.LANDING_FM:
                     # print('Zpos: %i Xpos: %i Ypos: %i' %
                     #       (self.zpos, self.xypos[0], self.xypos[1]))
                     e_dz_old = e_dz
@@ -383,8 +383,8 @@ def main():
                 self.zpos_target = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
                 print('seq len %i' % len(self.x_targ_seq))
-            elif flt_mode == PROGRAM_SEQ_FM:
-                flt_mode = LANDING_FM
+            elif flt_mode == self.PROGRAM_SEQ_FM:
+                flt_mode = self.LANDING_FM
 
         elif recording_data:
             np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(self.flightnum) +
@@ -423,7 +423,7 @@ def main():
             controlvarnames = [item for item in
                                dir(pids) if not item.startswith('__')]
             controldata = [eval('pids.'+item) for item in controlvarnames]
-            flt_mode = NORMAL_FM
+            flt_mode = self.NORMAL_FM
             print('START FLYING')
         elif key == ord('e'):
             self.throttle = self.THROTTLE_MID
@@ -464,14 +464,14 @@ def main():
                 flight_sequence('left_spot', self.x_targ_seq, self.ypos_targ_seq,
                                 self.zpos_targ_seq, self.theta_targ_seq)
 
-            flt_mode = PROGRAM_SEQ_FM
+            flt_mode = self.PROGRAM_SEQ_FM
 
             print('START FLYING')
 
         elif key == 115:  # s
             # throttle = 1000
             # flying = False
-            flt_mode = LANDING_FM
+            flt_mode = self.LANDING_FM
 
         # r - reset the serial port so Arduino will bind to another CX-10
         elif key == 114:

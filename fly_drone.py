@@ -121,73 +121,6 @@ class FlyDrone:
 
                 self._update()
 
-                if self.flt_mode != self.LANDING_FM:
-                    # print('Zpos: %i Xpos: %i Ypos: %i' %
-                    #       (self.zpos, self.xypos[0], self.xypos[1]))
-                    e_dz_old = e_dz
-                    e_dz = self.zpos-self.zpos_target
-                    e_iz += e_dz
-                    e_iz = self._clamp(e_iz, -10000, 10000)
-                    e_d2z = e_dz-e_dz_old
-                    self.throttle = (pids.Kz *
-                                (e_dz * pids.Kpz +
-                                 pids.Kiz * e_iz +
-                                 pids.Kdz * e_d2z) +
-                                self.THROTTLE_MID)
-                    e_dx_old = e_dx
-                    e_dx = self.xypos[0]-self.x_target
-                    e_ix += e_dx
-                    e_ix = self._clamp(e_ix, -200000, 200000)
-                    e_d2x = e_dx - e_dx_old
-
-                    xcommand = pids.Kx * (
-                            e_dx * pids.Kpx +
-                            pids.Kix * e_ix +
-                            pids.Kdx * e_d2x)
-
-                    e_dy_old = e_dy
-                    e_dy = self.xypos[1] - self.ypos_target
-                    e_iy += e_dy
-                    e_iy = self._clamp(e_iy, -200000, 200000)
-                    e_d2y = e_dy-e_dy_old
-
-                    ycommand = (pids.Ky *
-                                (e_dy * pids.Kpy +
-                                 pids.Kiy * e_iy +
-                                 pids.Kdy * e_d2y))
-
-                    # commands are calculated in camera reference frame
-                    self.roll = (xcommand * np.cos(self.theta) + ycommand *
-                               np.sin(self.theta) + self.ROLL_MID)
-                    self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
-                                np.cos(self.theta) + self.PITCH_MID)
-                    e_dt_old = e_dt
-                    e_dt = self.theta-self.theta_target
-                    # angle error should always be less than 180degrees (pi
-                    # radians)
-                    if (e_dt > np.pi):
-                        e_dt -= 2*np.pi
-                    elif (e_dt < (-np.pi)):
-                        e_dt += 2*np.pi
-
-                    e_it += e_dt
-                    e_it = self._clamp(e_it, -200000, 200000)
-                    e_d2t = e_dt-e_dt_old
-                    self.yaw = pids.Kt * (
-                            e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
-                            e_d2t) + YAW_MID
-                    if self.zpos > 0:
-                        # print('highalt')
-                        self.roll = self._clamp(self.roll, 1000, 2000)
-                        self.pitch = self._clamp(self.pitch, 1000, 2000)
-                    else:
-                        # print('lowalt')
-                        self.roll = self._clamp(self.roll, 1400, 1600)
-                        self.pitch = self._clamp(self.pitch, 1400, 1600)
-                    self.no_position_cnt = 0
-                else:  # landing mode
-                    self.throttle = self.throttle-20
-
             except Exception:
                 # print(e)
                 self.no_position_cnt += 1
@@ -379,7 +312,72 @@ class FlyDrone:
 
     def _update(self):
 
-        pass
+        if self.flt_mode != self.LANDING_FM:
+            # print('Zpos: %i Xpos: %i Ypos: %i' %
+            #       (self.zpos, self.xypos[0], self.xypos[1]))
+            e_dz_old = e_dz
+            e_dz = self.zpos-self.zpos_target
+            e_iz += e_dz
+            e_iz = self._clamp(e_iz, -10000, 10000)
+            e_d2z = e_dz-e_dz_old
+            self.throttle = (pids.Kz *
+                        (e_dz * pids.Kpz +
+                         pids.Kiz * e_iz +
+                         pids.Kdz * e_d2z) +
+                        self.THROTTLE_MID)
+            e_dx_old = e_dx
+            e_dx = self.xypos[0]-self.x_target
+            e_ix += e_dx
+            e_ix = self._clamp(e_ix, -200000, 200000)
+            e_d2x = e_dx - e_dx_old
+
+            xcommand = pids.Kx * (
+                    e_dx * pids.Kpx +
+                    pids.Kix * e_ix +
+                    pids.Kdx * e_d2x)
+
+            e_dy_old = e_dy
+            e_dy = self.xypos[1] - self.ypos_target
+            e_iy += e_dy
+            e_iy = self._clamp(e_iy, -200000, 200000)
+            e_d2y = e_dy-e_dy_old
+
+            ycommand = (pids.Ky *
+                        (e_dy * pids.Kpy +
+                         pids.Kiy * e_iy +
+                         pids.Kdy * e_d2y))
+
+            # commands are calculated in camera reference frame
+            self.roll = (xcommand * np.cos(self.theta) + ycommand *
+                       np.sin(self.theta) + self.ROLL_MID)
+            self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
+                        np.cos(self.theta) + self.PITCH_MID)
+            e_dt_old = e_dt
+            e_dt = self.theta-self.theta_target
+            # angle error should always be less than 180degrees (pi
+            # radians)
+            if (e_dt > np.pi):
+                e_dt -= 2*np.pi
+            elif (e_dt < (-np.pi)):
+                e_dt += 2*np.pi
+
+            e_it += e_dt
+            e_it = self._clamp(e_it, -200000, 200000)
+            e_d2t = e_dt-e_dt_old
+            self.yaw = pids.Kt * (
+                    e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
+                    e_d2t) + YAW_MID
+            if self.zpos > 0:
+                # print('highalt')
+                self.roll = self._clamp(self.roll, 1000, 2000)
+                self.pitch = self._clamp(self.pitch, 1000, 2000)
+            else:
+                # print('lowalt')
+                self.roll = self._clamp(self.roll, 1400, 1600)
+                self.pitch = self._clamp(self.pitch, 1400, 1600)
+            self.no_position_cnt = 0
+        else:  # landing mode
+            self.throttle = self.throttle-20
 
     def _clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)

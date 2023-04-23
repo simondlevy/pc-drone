@@ -13,7 +13,6 @@ import pickle
 import os
 import timeit
 from datetime import datetime
-import traceback
 
 # Uncomment one of these
 from state.visual import StateEstimator
@@ -128,6 +127,7 @@ class FlyDrone:
 
         key = self.estimator.display(
                 command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
+
         if self.flying:
 
             self.estimator.record()
@@ -176,9 +176,9 @@ class FlyDrone:
             self.throttle = self.THROTTLE_MID
             self.roll = self.ROLL_MID  # turns left
             self.pitch = self.PITCH_MID
-            e_ix = 0
-            e_iy = 0
-            e_iz = 0
+            self.e_ix = 0
+            self.e_iy = 0
+            self.e_iz = 0
             self.yaw = 1500  # self.yaw, rotates the drone
             self.flying = True
             self.recording_data = 1
@@ -199,9 +199,9 @@ class FlyDrone:
             self.throttle = self.THROTTLE_MID
             self.roll = self.ROLL_MID  # turns left
             self.pitch = self.PITCH_MID
-            e_ix = 0
-            e_iy = 0
-            e_iz = 0
+            self.e_ix = 0
+            self.e_iy = 0
+            self.e_iz = 0
             self.yaw = 1500  # self.yaw, rotates the drone
             self.flying = True
             self.recording_data = 1
@@ -262,8 +262,6 @@ class FlyDrone:
     def _get_demands(self):
 
         if self.flt_mode != self.LANDING_FM:
-            # print('Zpos: %i Xpos: %i Ypos: %i' %
-            #       (self.zpos, self.xypos[0], self.xypos[1]))
             self.e_dz_old = self.e_dz
             print(self.zpos, self.zpos_target)
             self.e_dz = self.zpos - self.zpos_target
@@ -289,7 +287,7 @@ class FlyDrone:
             e_dy = self.xypos[1] - self.ypos_target
             self.e_iy += e_dy
             self.e_iy = self._clamp(self.e_iy, -200000, 200000)
-            e_d2y = e_dy - self.e_dy_old
+            self.e_d2y = self.e_dy - self.e_dy_old
 
             ycommand = (pids.Ky *
                         (e_dy * pids.Kpy +
@@ -301,18 +299,18 @@ class FlyDrone:
                        np.sin(self.theta) + self.ROLL_MID)
             self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
                         np.cos(self.theta) + self.PITCH_MID)
-            e_dt_old = self.e_dt
-            e_dt = self.theta-self.theta_target
+            self.e_dt_old = self.e_dt
+            self.e_dt = self.theta-self.theta_target
             # angle error should always be less than 180degrees (pi
             # radians)
-            if (e_dt > np.pi):
-                e_dt -= 2*np.pi
-            elif (e_dt < (-np.pi)):
-                e_dt += 2*np.pi
+            if (self.e_dt > np.pi):
+                self.e_dt -= 2*np.pi
+            elif (self.e_dt < (-np.pi)):
+                self.e_dt += 2*np.pi
 
-            self.e_it += e_dt
+            self.e_it += self.e_dt
             self.e_it = self._clamp(self.e_it, -200000, 200000)
-            e_d2t = e_dt-e_dt_old
+            self.e_d2t = self.e_dt - self.e_dt_old
             self.yaw = pids.Kt * (
                     self.e_dt * pids.Kpt + pids.Kit * self.e_it + pids.Kdt *
                     self.e_d2t) + self.YAW_MID
@@ -457,29 +455,30 @@ def main():
 
     # Try to create state estimator; exit on failure
     try:
-        state = StateEstimator(LOG_DIR, timestamp)
+        estimator = StateEstimator(LOG_DIR, timestamp)
+
     except Exception as e:
         print('Failed to create state estimator: %s' % str(e))
         exit(0)
 
     # Instantiate FlyDrone
-    flydrone = FlyDrone(state, comms, timestamp)
+    flydrone = FlyDrone(estimator, comms, timestamp)
 
-
-    # Run to error or completion
+    # If ready, run to error or completion
     if flydrone.begin():
         while flydrone.step():
             pass
 
     # close the connection
     comms.close()
+
     # re-open the serial port which will w for Arduino Uno to do a reset
     # this forces the quadcopter to power off motors.  Will need to power
     # cycle the drone to reconnect
     comms = Comms()
     comms.close()
-    # close it again so it can be reopened the next time it is run.
-    state.close()
+
+    estimator.close()
 
 
 main()

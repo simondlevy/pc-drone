@@ -51,7 +51,7 @@ class StateEstimator:
         self.frame_o = None
         self.key = None
 
-    def ready(self):
+    def isReady(self):
 
         retval = False
 
@@ -60,7 +60,7 @@ class StateEstimator:
 
         return retval
 
-    def update(self):
+    def getState(self):
 
         frame_undistort = self._undistort_crop(
                 self.frame_o, self.map1, self.map2, self.roi)
@@ -220,6 +220,8 @@ class StateEstimator:
                     int(keypoints[middlepoint].pt[0]),
                     int(keypoints[middlepoint].pt[1]),
                     int(np.degrees(theta))))
+
+        print(message)
 
         max_blob_dist = max_dist_val
         blob_center = keypoints[middlepoint].pt

@@ -89,11 +89,11 @@ class FlyDrone:
 
     def begin(self):
 
-        return self.estimator.ready()
+        return self.estimator.isReady()
 
     def step(self):
 
-        state = self.estimator.update()
+        state = self.estimator.getState()
 
         if self.flying:
 
@@ -106,7 +106,7 @@ class FlyDrone:
 
             # got state, use it to get demands
             else:
-                self.xypos, self.zpos, self.theta = state
+                self.zpos, self.xypos, self.theta = state
                 self._get_demands()
 
         # Serial comms - write to Arduino
@@ -150,7 +150,7 @@ class FlyDrone:
                 self.ypos_target = self.ypos_targ_seq.pop(0)
                 self.zpos_target = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
-                print('seq len %i' % len(self.x_targ_seq))
+                # print('seq len %i' % len(self.x_targ_seq))
             elif self.flt_mode == self.PROGRAM_SEQ_FM:
                 self.flt_mode = self.LANDING_FM
 
@@ -194,7 +194,7 @@ class FlyDrone:
                                dir(pids) if not item.startswith('__')]
             self.controldata = [eval('pids.'+item) for item in self.controlvarnames]
             self.flt_mode = self.NORMAL_FM
-            print('START FLYING')
+            # print('START FLYING')
         elif key == ord('e'):
             self.throttle = self.THROTTLE_MID
             self.roll = self.ROLL_MID  # turns left
@@ -233,7 +233,7 @@ class FlyDrone:
 
             self.flt_mode = self.PROGRAM_SEQ_FM
 
-            print('START FLYING')
+            # print('START FLYING')
 
         elif key == 115:  # s
             self.flt_mode = self.LANDING_FM

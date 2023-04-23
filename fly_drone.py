@@ -250,7 +250,10 @@ class FlyDrone:
 
             command = commands[key - ord('1')]
 
-            (self.x_targ_seq, self.ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq) = (
+            (self.x_targ_seq,
+             self.ypos_targ_seq,
+             self.zpos_targ_seq,
+             self.theta_targ_seq) = (
                     self._flight_sequence(command,
                                     self.x_targ_seq,
                                     self.ypos_targ_seq,

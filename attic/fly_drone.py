@@ -13,7 +13,6 @@ import pickle
 import os
 import timeit
 from datetime import datetime
-import traceback
 
 # Uncomment one of these
 from state.visual import StateEstimator
@@ -26,6 +25,8 @@ from comms.arduino import Comms
 import pids
 
 LOG_DIR = './logs'
+
+
 
 
 class FlyDrone:
@@ -59,6 +60,7 @@ class FlyDrone:
         self.e_dz, self.e_dx, self.e_dy, self.e_dt = 0, 0, 0, 0
         self.e_iz, self.e_ix, self.e_iy, self.e_it = 0, 0, 0, 0
         self.e_d2z, self.e_d2x, self.e_d2y, self.e_d2t = 0, 0, 0, 0
+        # dz_old = 0 # dx_old = 0 # dy_old = 0
 
         self.THROTTLE_MID = pids.THROTTLE_MID
         self.ROLL_MID = pids.ROLL_MID
@@ -70,10 +72,13 @@ class FlyDrone:
         self.zpos_target = 65
         self.theta_target = 0  # 45.0/180.0*np.pi
 
+        # speeds = ''
         self.x_targ_seq = [self.x_target]
         self.ypos_targ_seq = [self.ypos_target]
         self.zpos_targ_seq = [self.zpos_target]
         self.theta_targ_seq = [self.theta_target]
+        # tic = timeit.default_timer()
+        # toc = 0
         self.flighttic = timeit.default_timer()
         self.flighttoc = timeit.default_timer()
         self.flightnum = 0
@@ -94,23 +99,35 @@ class FlyDrone:
 
     def step(self):
 
-        state = self.state.update()
+        # toc_old = toc
+        # toc = timeit.default_timer()
+        # prints out time since the last frame was read
+        # print('deltaT: %0.4f  fps: %0.1f' %
+        #       (toc - toc_old, 1/(toc-toc_old)))
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_undistort: %0.4f' % (toc2 - toc))
+
+        self.xypos, self.zpos, self.theta = self.state.update()
+
+        # toc2 = timeit.default_timer()
+
+        # print('deltaT_execute_blob_detect: %0.4f' % (toc2 - toc))
+
+        print(self.flying)
 
         if self.flying:
 
-            print(state)
+            try:
 
-            # State estimator failed; cut the throttle!
-            if state is None:
+                self._get_demands()
+
+            except Exception:
+                # print(e)
                 self.no_position_cnt += 1
+                # print('STOPPED. no position or error. ')
                 if self.no_position_cnt > 15:
                     self.throttle = 1000
                     self.flying = False
-
-            # got state, use it to get demands
-            else:
-                self.xypos, self.zpos, self.theta = state
-                self._get_demands()
 
         # Serial comms - write to Arduino
         self.throttle = self._clamp(self.throttle, 1000, 2000)
@@ -126,10 +143,26 @@ class FlyDrone:
             # (better to do .read() in the long run for this reason
             data = self.comms.readline()
 
+        # Monitor keyboard
+        # speeds = 'dz:  %+5.2f dx:  %+5.2f  dy: %+5.2f' % (dz, dx, dy)
+        # targets = ('tsz: %+5.2f tsx: %+5.2f tsy: %+5.2f' %
+        #            (zspeed, xspeed, yspeed))
+        # gains = ('Kpz: %+5.2f Kiz: %+5.2f Kdz: %+5.2f' %
+        #          (pids.Kpz, pids.Kiz, pids.Kdz))
+        # errors_z = ('e_dz: %+5.2f e_iz: %+5.2f e_d2z: %+5.2f' %
+        #             (e_dz, e_iz, e_d2z))
+
         self.flighttoc = timeit.default_timer()
 
         key = self.state.display(
                 command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
+
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_imshow: %0.4f' % (toc2 - toc))
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_waitkey: %0.4f' % (toc2 - toc))
+        # key = ord('0')
+
         if self.flying:
 
             self.state.record()
@@ -212,6 +245,9 @@ class FlyDrone:
             self.flighttoc = 0
             self.flightnum += 1
 
+            # reload(pids)  # ???
+            # this lists out all the variables in module pids
+            # and records their values.
             self.controlvarnames = [item for item in
                                dir(pids) if not item.startswith('__')]
             self.controldata = [eval('pids.'+item) for item in self.controlvarnames]
@@ -238,6 +274,8 @@ class FlyDrone:
             print('START FLYING')
 
         elif key == 115:  # s
+            # throttle = 1000
+            # flying = False
             self.flt_mode = self.LANDING_FM
 
         # r - reset the serial port so Arduino will bind to another CX-10
@@ -258,52 +296,62 @@ class FlyDrone:
                                     self.ypos_targ_seq,
                                     self.zpos_targ_seq,
                                     self.theta_targ_seq))
+
+        # print out the time needed to execute everything except the image
+        # reload
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_other: %0.4f' % (toc2 - toc))
+
         # read next state data
-        return self.state.acquire()
+        running = self.state.acquire()
+
+        # toc2 = timeit.default_timer()
+        # print('deltaT_execute_nextframe: %0.4f' % (toc2 - toc))
+
+        return running
 
     def _get_demands(self):
 
         if self.flt_mode != self.LANDING_FM:
             # print('Zpos: %i Xpos: %i Ypos: %i' %
             #       (self.zpos, self.xypos[0], self.xypos[1]))
-            self.e_dz_old = self.e_dz
-            print(self.zpos, self.zpos_target)
-            self.e_dz = self.zpos - self.zpos_target
-            self.e_iz += self.e_dz
-            self.e_iz = self._clamp(self.e_iz, -10000, 10000)
-            e_d2z = self.e_dz-self.e_dz_old
+            e_dz_old = e_dz
+            e_dz = self.zpos-self.zpos_target
+            e_iz += e_dz
+            e_iz = self._clamp(e_iz, -10000, 10000)
+            e_d2z = e_dz-e_dz_old
             self.throttle = (pids.Kz *
-                        (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
+                        (e_dz * pids.Kpz + pids.Kiz * e_iz +
                          pids.Kdz * e_d2z) +
                         self.THROTTLE_MID)
-            e_dx_old = self.e_dx
+            e_dx_old = e_dx
             e_dx = self.xypos[0]-self.x_target
-            self.e_ix += e_dx
-            self.e_ix = self._clamp(self.e_ix, -200000, 200000)
+            e_ix += e_dx
+            e_ix = self._clamp(e_ix, -200000, 200000)
             e_d2x = e_dx - e_dx_old
 
             xcommand = pids.Kx * (
-                    self.e_dx * pids.Kpx +
-                    pids.Kix * self.e_ix +
+                    e_dx * pids.Kpx +
+                    pids.Kix * e_ix +
                     pids.Kdx * e_d2x)
 
-            self.e_dy_old = self.e_dy
+            e_dy_old = e_dy
             e_dy = self.xypos[1] - self.ypos_target
-            self.e_iy += e_dy
-            self.e_iy = self._clamp(self.e_iy, -200000, 200000)
-            e_d2y = e_dy - self.e_dy_old
+            e_iy += e_dy
+            e_iy = self._clamp(e_iy, -200000, 200000)
+            e_d2y = e_dy-e_dy_old
 
             ycommand = (pids.Ky *
                         (e_dy * pids.Kpy +
-                         pids.Kiy * self.e_iy +
-                         pids.Kdy * self.e_d2y))
+                         pids.Kiy * e_iy +
+                         pids.Kdy * e_d2y))
 
             # commands are calculated in camera reference frame
             self.roll = (xcommand * np.cos(self.theta) + ycommand *
                        np.sin(self.theta) + self.ROLL_MID)
             self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
                         np.cos(self.theta) + self.PITCH_MID)
-            e_dt_old = self.e_dt
+            e_dt_old = e_dt
             e_dt = self.theta-self.theta_target
             # angle error should always be less than 180degrees (pi
             # radians)
@@ -312,12 +360,12 @@ class FlyDrone:
             elif (e_dt < (-np.pi)):
                 e_dt += 2*np.pi
 
-            self.e_it += e_dt
-            self.e_it = self._clamp(self.e_it, -200000, 200000)
+            e_it += e_dt
+            e_it = self._clamp(e_it, -200000, 200000)
             e_d2t = e_dt-e_dt_old
             self.yaw = pids.Kt * (
-                    self.e_dt * pids.Kpt + pids.Kit * self.e_it + pids.Kdt *
-                    self.e_d2t) + self.YAW_MID
+                    e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
+                    e_d2t) + YAW_MID
             if self.zpos > 0:
                 # print('highalt')
                 self.roll = self._clamp(self.roll, 1000, 2000)
@@ -442,6 +490,7 @@ class FlyDrone:
         return list(xseq), list(yseq), list(zseq), list(tseq)
 
 
+
 def main():
 
     # Create logging directory if needed
@@ -466,7 +515,6 @@ def main():
 
     # Instantiate FlyDrone
     flydrone = FlyDrone(state, comms, timestamp)
-
 
     # Run to error or completion
     if flydrone.begin():

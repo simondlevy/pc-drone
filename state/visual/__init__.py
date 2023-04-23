@@ -58,13 +58,6 @@ class StateEstimator:
         if self.vc.isOpened():  # try to get the first frame
             retval, self.frame_o = self.vc.read()
 
-            # frame_undistort=self._undistort_crop(np.rot90(self.frame_o, 2))
-            # frame_undistort =
-            #     undistort_crop(self.frame_o, self.map1, self.map2, self.roi)
-            # self.frame, zpos, xypos, theta =
-            #     self._add_blobs(frame_undistort, params)
-            # frame, zpos, xypos=add_blobs(self.frame_o)
-
         return retval
 
     def update(self):
@@ -72,10 +65,9 @@ class StateEstimator:
         frame_undistort = self._undistort_crop(
                 self.frame_o, self.map1, self.map2, self.roi)
 
-        self.frame, zpos, xypos, theta = \
-            self._add_blobs(frame_undistort, self.params)
+        self.frame, state = self._add_blobs(frame_undistort, self.params)
 
-        return xypos, zpos, theta
+        return state
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
 
@@ -125,28 +117,23 @@ class StateEstimator:
         # Assume no keypoints found
         message = 'No keypoints'
         img_with_keypoints = crop_frame
-        max_blob_dist = None
-        blob_center = None
-        theta = None
+        result = None
 
         keypoints = get_keypoints(frame, params)
 
         if keypoints is not None:
 
             if len(keypoints) == 4:
-                (img_with_keypoints,
-                 blob_center,
-                 max_blob_dist,
-                 theta, message) = \
+                (img_with_keypoints, blob_center, max_blob_dist, theta, message) = \
                         self._handle_good_keypoints(frame, keypoints)
+                result = max_blob_dist, blob_center, theta
 
             else:
                 message = '%d keypoints' % len(keypoints)
 
         self._put_text(img_with_keypoints, message, (10, 25))
 
-        return (img_with_keypoints,
-                max_blob_dist, blob_center, theta)  # , keypoint_in_orders
+        return img_with_keypoints,result
 
     def _put_text(self, frame, text, pos):
 

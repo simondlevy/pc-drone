@@ -65,7 +65,7 @@ class StateEstimator:
         frame_undistort = self._undistort_crop(
                 self.frame_o, self.map1, self.map2, self.roi)
 
-        self.frame, state = self._add_blobs(frame_undistort)
+        state = self._add_blobs(frame_undistort)
 
         return state
 
@@ -133,7 +133,9 @@ class StateEstimator:
 
         self._put_text(img_with_keypoints, message, (10, 25))
 
-        return img_with_keypoints,result
+        self.frame = img_with_keypoints
+
+        return result
 
     def _put_text(self, frame, text, pos):
 

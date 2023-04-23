@@ -140,6 +140,18 @@ def flight_sequence(seqname, xseq_list, yseq_list, zseq_list, tseq_list):
     return list(xseq), list(yseq), list(zseq), list(tseq)
 
 
+class FlyDrone:
+
+    def __init__(self, timestamp):
+
+        self.timestamp = timestamp
+
+        self.throttle = 1000
+        self.roll = 1500  # moves left/right
+        self.pitch = 1500  # moves front back
+        self.yaw = 1500  # self.yaw, rotates the drone
+
+
 def main():
 
     # Create logging directory if needed
@@ -162,10 +174,7 @@ def main():
         print('Failed to create state estimator: %s' % str(e))
         exit(0)
 
-    throttle = 1000
-    aileron = 1500  # moves left/right
-    elevator = 1500  # moves front back
-    rudder = 1500  # yaw, rotates the drone
+    self = FlyDrone(timestamp)
 
     zpos = 50
     xypos = (350, 250)
@@ -252,7 +261,7 @@ def main():
                     e_iz += e_dz
                     e_iz = clamp(e_iz, -10000, 10000)
                     e_d2z = e_dz-e_dz_old
-                    throttle = (pids.Kz *
+                    self.throttle = (pids.Kz *
                                 (e_dz * pids.Kpz +
                                  pids.Kiz * e_iz +
                                  pids.Kdz * e_d2z) +
@@ -280,9 +289,9 @@ def main():
                                  pids.Kdy * e_d2y))
 
                     # commands are calculated in camera reference frame
-                    aileron = (xcommand * np.cos(theta) + ycommand *
+                    self.roll = (xcommand * np.cos(theta) + ycommand *
                                np.sin(theta) + AILERON_MID)
-                    elevator = (-xcommand * np.sin(theta) + ycommand *
+                    self.pitch = (-xcommand * np.sin(theta) + ycommand *
                                 np.cos(theta) + ELEVATOR_MID)
                     e_dt_old = e_dt
                     e_dt = theta-theta_target
@@ -296,33 +305,33 @@ def main():
                     e_it += e_dt
                     e_it = clamp(e_it, -200000, 200000)
                     e_d2t = e_dt-e_dt_old
-                    rudder = pids.Kt * (
+                    self.yaw = pids.Kt * (
                             e_dt * pids.Kpt + pids.Kit * e_it + pids.Kdt *
                             e_d2t) + RUDDER_MID
                     if zpos > 0:
                         # print('highalt')
-                        aileron = clamp(aileron, 1000, 2000)
-                        elevator = clamp(elevator, 1000, 2000)
+                        self.roll = clamp(self.roll, 1000, 2000)
+                        self.pitch = clamp(self.pitch, 1000, 2000)
                     else:
                         # print('lowalt')
-                        aileron = clamp(aileron, 1400, 1600)
-                        elevator = clamp(elevator, 1400, 1600)
+                        self.roll = clamp(self.roll, 1400, 1600)
+                        self.pitch = clamp(self.pitch, 1400, 1600)
                     no_position_cnt = 0
                 else:  # landing mode
-                    throttle = throttle-20
+                    self.throttle = self.throttle-20
 
             except Exception:
                 # print(e)
                 no_position_cnt += 1
                 # print('STOPPED. no position or error. ')
                 if no_position_cnt > 15:
-                    throttle = 1000
+                    self.throttle = 1000
                     flying = False
 
         # Serial comms - write to Arduino
-        throttle = clamp(throttle, 1000, 2000)
-        rudder = clamp(rudder, 1000, 2000)
-        command = '%i,%i,%i,%i' % (throttle, aileron, elevator, rudder)
+        self.throttle = clamp(self.throttle, 1000, 2000)
+        self.yaw = clamp(self.yaw, 1000, 2000)
+        command = '%i,%i,%i,%i' % (self.throttle, self.roll, self.pitch, self.yaw)
         # print('[PC]: '+command)
         comms.write((command+'\n').encode())
 
@@ -368,8 +377,8 @@ def main():
                                               e_dx, e_ix, e_d2x, e_dy,
                                               e_iy, e_d2y, e_dz, e_iz,
                                               e_d2z, xspeed, yspeed,
-                                              zspeed, throttle, aileron,
-                                              elevator, rudder])))
+                                              zspeed, self.throttle, self.roll,
+                                              self.pitch, self.yaw])))
             if len(x_targ_seq) > 1:
                 x_target = x_targ_seq.pop(0)
                 ypos_target = ypos_targ_seq.pop(0)
@@ -380,11 +389,11 @@ def main():
                 flt_mode = LANDING_FM
 
         elif recording_data:
-            np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
+            np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(flightnum) +
                     '_' + 'flightdata.npy', flightdata)
-            np.save(LOG_DIR + '/' + timestamp + '_flt' + str(flightnum) +
+            np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(flightnum) +
                     '_' + 'controldata.npy', controldata)
-            with open(LOG_DIR + '/' + timestamp + '_flt' +
+            with open(LOG_DIR + '/' + self.timestamp + '_flt' +
                       str(flightnum) + '_' + 'controlvarnames.npy',
                       'wb') as f:
                 pickle.dump(controlvarnames, f)
@@ -396,13 +405,13 @@ def main():
             state.snapshot(ii)
             ii += 1
         elif key == 119:  # w
-            throttle = THROTTLE_MID
-            aileron = AILERON_MID  # turns left
-            elevator = ELEVATOR_MID
+            self.throttle = THROTTLE_MID
+            self.roll = AILERON_MID  # turns left
+            self.pitch = ELEVATOR_MID
             e_ix = 0
             e_iy = 0
             e_iz = 0
-            rudder = 1500  # yaw, rotates the drone
+            self.yaw = 1500  # self.yaw, rotates the drone
             flying = True
             recording_data = 1
             flightdata = np.zeros(23)
@@ -419,13 +428,13 @@ def main():
             flt_mode = NORMAL_FM
             print('START FLYING')
         elif key == ord('e'):
-            throttle = THROTTLE_MID
-            aileron = AILERON_MID  # turns left
-            elevator = ELEVATOR_MID
+            self.throttle = THROTTLE_MID
+            self.roll = AILERON_MID  # turns left
+            self.pitch = ELEVATOR_MID
             e_ix = 0
             e_iy = 0
             e_iz = 0
-            rudder = 1500  # yaw, rotates the drone
+            self.yaw = 1500  # self.yaw, rotates the drone
             flying = True
             recording_data = 1
             flightdata = np.zeros(23)

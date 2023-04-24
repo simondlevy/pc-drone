@@ -81,10 +81,6 @@ class Interface(MulticopterServer):
 
         pass
 
-    def getCommandResponse(self):
-
-        return ''
-
     def reset(self):
 
         pass

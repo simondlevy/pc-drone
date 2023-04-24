@@ -13,9 +13,9 @@ class Interface:
 
     def __init__(self, log_dir, timestamp):
         '''
-        Creates an Interface object supporting state estimation and vehicle commands
+        Creates an Interface object supporting state estimation and vehicle
+        commands
         '''
- 
         self.arduino = Arduino(verbose=True)
 
     def acquireState(self):
@@ -50,7 +50,6 @@ class Interface:
         '''
         return 0
 
-
     def getState(self):
         '''
         Returns current vehicle state: (zpos, xypos, theta)
@@ -79,12 +78,6 @@ class Interface:
         '''
         self.arduino.write(command)
 
-    def getCommandResponse(self):
-        '''
-        Gets the controller's response to the most recent command.
-        '''
-        return self.arduino.readline()
-
     def reset(self):
         '''
         Resets the interface; e.g., restarts Arduino
@@ -97,9 +90,9 @@ class Interface:
         Closes the interface at the end of the run
         '''
 
-        # re-open and then close the serial port which will w for Arduino Uno to do
-        # a reset this forces the quadcopter to power off motors.  Will need to
-        # power cycle the drone to reconnect
+        # re-open and then close the serial port which will w for Arduino Uno
+        # to do a reset this forces the quadcopter to power off motors.  Will
+        # need to power cycle the drone to reconnect
         self.reset()
         self.arduino.close()
 
@@ -111,4 +104,3 @@ class Interface:
         index index of current iteration
         '''
         pass
- 

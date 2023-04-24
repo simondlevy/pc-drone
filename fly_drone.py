@@ -17,7 +17,8 @@ from datetime import datetime
 import pids
 
 # You can change this for your project
-from interfaces.original import Interface
+# from interfaces.original import Interface
+from interfaces.multisim import Interface
 
 LOG_DIR = './logs'
 
@@ -25,11 +26,17 @@ LOG_DIR = './logs'
 class FlyDrone:
 
     # Flight modes
-    NORMAL_FM = 0
-    LANDING_FM = 1
-    PROGRAM_SEQ_FM = 2
+    _NORMAL_FM = 0
+    _LANDING_FM = 1
+    _PROGRAM_SEQ_FM = 2
 
     def __init__(self, interface, timestamp):
+        '''
+        Creates our FlyDrone object.
+        Parameters:
+            interface  the state estimator / actual interface
+            timestamp  time stamp for data logging
+        '''
 
         self.interface = interface
         self.timestamp = timestamp
@@ -71,7 +78,7 @@ class FlyDrone:
         self.flighttoc = timeit.default_timer()
         self.flightnum = 0
 
-        self.flt_mode = self.NORMAL_FM
+        self.flt_mode = self._NORMAL_FM
 
         self.recording_data = 0
 
@@ -82,11 +89,18 @@ class FlyDrone:
         self.snapnum = 100
 
     def begin(self):
+        '''
+        Returns True if interface devices started successfully, False otherwise
+        '''
 
         return self.interface.isReady()
 
     def step(self):
-
+        '''
+        Runs one step of the interface (acquire data, send commands).
+        Returns True if step was successful, False otherwise.
+        '''
+ 
         state = self.interface.getState()
 
         if self.flying:
@@ -145,8 +159,8 @@ class FlyDrone:
                 self.zpos_target = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
                 # print('seq len %i' % len(self.x_targ_seq))
-            elif self.flt_mode == self.PROGRAM_SEQ_FM:
-                self.flt_mode = self.LANDING_FM
+            elif self.flt_mode == self._PROGRAM_SEQ_FM:
+                self.flt_mode = self._LANDING_FM
 
         elif self.recording_data:
             np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(self.flightnum) +
@@ -187,7 +201,7 @@ class FlyDrone:
             self.controlvarnames = [item for item in
                                dir(pids) if not item.startswith('__')]
             self.controldata = [eval('pids.'+item) for item in self.controlvarnames]
-            self.flt_mode = self.NORMAL_FM
+            self.flt_mode = self._NORMAL_FM
             # print('START FLYING')
         elif key == ord('e'):
             self.throttle = self.THROTTLE_MID
@@ -225,12 +239,12 @@ class FlyDrone:
                 self._flight_sequence('left_spot', self.x_targ_seq, self.ypos_targ_seq,
                                 self.zpos_targ_seq, self.theta_targ_seq)
 
-            self.flt_mode = self.PROGRAM_SEQ_FM
+            self.flt_mode = self._PROGRAM_SEQ_FM
 
             # print('START FLYING')
 
         elif key == 115:  # s
-            self.flt_mode = self.LANDING_FM
+            self.flt_mode = self._LANDING_FM
 
         # r - reset the serial port so Arduino will bind to another CX-10
         elif key == 114:
@@ -257,7 +271,7 @@ class FlyDrone:
 
     def _get_demands(self):
 
-        if self.flt_mode != self.LANDING_FM:
+        if self.flt_mode != self._LANDING_FM:
             self.e_dz_old = self.e_dz
             print(self.zpos, self.zpos_target)
             self.e_dz = self.zpos - self.zpos_target
@@ -321,6 +335,8 @@ class FlyDrone:
             self.no_position_cnt = 0
         else:  # landing mode
             self.throttle = self.throttle-20
+
+    # Helper methods ---------------------------------------------------------
 
     def _clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)

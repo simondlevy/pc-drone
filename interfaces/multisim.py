@@ -21,7 +21,7 @@ class Interface:
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
 
-        pass
+        return 0
 
     def getState(self):
 

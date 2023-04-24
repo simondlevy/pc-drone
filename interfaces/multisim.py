@@ -25,11 +25,21 @@ class Interface(MulticopterServer):
 
         self.kb = KBHit()
 
-        self.command = (0, 0, 0, 0)   # throttle, roll, pitch, yaw
+        # throttle, roll, pitch, yaw
+        self.command = (0, 0, 0, 0)   
+
+        # (zpos, xypos, theta)
+        self.state = None
 
     # MulticopterServer methods ----------------------------------------------
 
     def getMotors(self, t, state, _):
+
+        # Convert MultiSim state into PC-Drone state
+        zpos = -state[MulticopterServer.STATE_Z]
+        xypos = 0, 0
+        theta = 0
+        self.state = zpos, xypos, theta
 
         cthr, crol, cpit, cyaw = self.command
 
@@ -79,7 +89,8 @@ class Interface(MulticopterServer):
         '''
         Returns current vehicle state: (zpos, xypos, theta)
         '''
-        return 50, (0, 0), 0
+        print(self.state)
+        return self.state
 
     def isReady(self):
 

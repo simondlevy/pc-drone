@@ -131,10 +131,17 @@ class Interface:
         if keypoints is not None:
 
             if len(keypoints) == 4:
-                (state, newimg, message) = self._get_state_from_keypoints(
+
+                (state, newimg) = self._get_state_from_keypoints(
                         frame, keypoints)
+
+                self.message = ('zpos=%d  xypos=%d,%d  theta=%d' %
+                           (int(state[0]),
+                            int(state[1][1]),
+                            int(state[1][0]),
+                            int(np.degrees(state[2]))))
+
                 self.message_age = 0
-                self.message = message
 
             else:
                 self.message_age += 1
@@ -301,10 +308,4 @@ class Interface:
                 (255, 255, 255),
                 cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-        message = ('dist=%d  center=%d,%d theta=%d' %
-                   (int(max_dist_val),
-                    int(blob_center[0]),
-                    int(blob_center[1]),
-                    int(np.degrees(theta))))
-
-        return (max_dist_val, blob_center, theta), img_with_keypoints, message
+        return (max_dist_val, blob_center, theta), img_with_keypoints

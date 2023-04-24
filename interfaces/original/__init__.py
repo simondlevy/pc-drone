@@ -59,6 +59,9 @@ class Interface:
 
         self.arduino = Arduino(verbose=True)
 
+        self.message = None
+        self.message_age = 0
+
     def acquireState(self):
         '''
         Acquires current state, returning True on success, False on failure
@@ -119,7 +122,7 @@ class Interface:
         frame = frame_undistort
 
         # Assume no keypoints found
-        message = 'No keypoints'
+        message = None
         newimg = frame_undistort
         state = None
 
@@ -131,11 +134,11 @@ class Interface:
                 (newimg, blob_center, max_blob_dist, theta, message) = \
                         self._handle_good_keypoints(frame, keypoints)
                 state = max_blob_dist, blob_center, theta
+                self.message_age = 0
+                self.message = message
 
-            else:
-                message = '%d keypoints' % len(keypoints)
-
-        self._put_text(newimg, message, (10, 25))
+        if self.message is not None:
+            self._put_text(newimg, self.message, (10, 25))
 
         self.frame = newimg
 
@@ -297,8 +300,6 @@ class Interface:
                     int(keypoints[middlepoint].pt[0]),
                     int(keypoints[middlepoint].pt[1]),
                     int(np.degrees(theta))))
-
-        print(message)
 
         max_blob_dist = max_dist_val
         blob_center = keypoints[middlepoint].pt

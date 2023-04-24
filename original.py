@@ -14,7 +14,8 @@ class Interface:
     def __init__(self, log_dir, timestamp):
 
         self.estimator = StateEstimator(log_dir, timestamp)
-        self.arduino = Arduino()
+
+        self.arduino = Arduino(verbose=True)
 
     def acquireState(self):
 

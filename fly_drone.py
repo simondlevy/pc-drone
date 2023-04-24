@@ -14,8 +14,6 @@ import os
 import timeit
 from datetime import datetime
 
-from state.visual import StateEstimator
-from arduino import Arduino
 import pids
 
 # You can change this for your project

@@ -69,9 +69,12 @@ class Interface:
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
         '''
-        Displays current status.  
-       '''
-        self._put_text(self.frame, 'Command: ' + command, (10, 50))
+        Displays current status.
+        '''
+        self._put_text(self.frame,
+                       ('thr=%d rol=%d pit=%d yaw=%d: ' %
+                           (command[0], command[1], command[2], command[3]))
+                       (10, 50))
 
         self._put_text(self.frame, 'Time: %5.3f' %
                        (flighttoc - flighttic), (10, 75))
@@ -101,7 +104,6 @@ class Interface:
         6        - rotate 90 left
         7        - rotate 90 right
         '''
- 
         return cv2.waitKey(self.wait_time)
         # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
 
@@ -161,16 +163,21 @@ class Interface:
     def sendCommand(self, command):
         '''
         Sends a command to the controller.
-        Command is a tuple (throttle, roll, pitch, yaw), with each value in the
-        interval [1000,2000]
+        Command is a four-tuple (throttle, roll, pitch, yaw).
+        Each value must be in the interval [1000,2000].
         '''
-        self.arduino.write(command)
+        cmdstr = ('%i,%i,%i,%i' %
+                  (command[0], command[1], command[2], command[3]))
 
-    def getCommandResponse(self):
-        '''
-        Gets the controller's response to the most recent command.
-        '''
-        return self.arduino.readline()
+        # print('[PC]: '+command)
+        self.arduino.write(((cmdstr + '\n').encode()))
+
+        # Serial comms - read back from Arduino
+        while True:
+            data = self.arduino.readline()
+            if data is None:
+                break
+            print('[AU]: ' + data.rstrip('\n'))  # strip out the new lines
 
     def reset(self):
         '''

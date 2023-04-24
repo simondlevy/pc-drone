@@ -121,17 +121,8 @@ class DroneFlyer:
         # Serial comms - write to Arduino
         self.throttle = self._clamp(self.throttle, 1000, 2000)
         self.yaw = self._clamp(self.yaw, 1000, 2000)
-        command = ('%i,%i,%i,%i' %
-                   (self.throttle, self.roll, self.pitch, self.yaw))
-        # print('[PC]: '+command)
-        self.interface.sendCommand((command+'\n').encode())
-
-        # Serial comms - read back from Arduino
-        data = self.interface.getCommandResponse()
-        while data:
-            print('[AU]: '+data.rstrip('\n'))  # strip out the new lines
-            # (better to do .read() in the long run for this reason
-            data = self.interface.getCommandResponse()
+        command = (self.throttle, self.roll, self.pitch, self.yaw)
+        self.interface.sendCommand(command)
 
         self.flighttoc = timeit.default_timer()
 

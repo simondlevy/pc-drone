@@ -122,7 +122,6 @@ class Interface:
         frame = frame_undistort
 
         # Assume no keypoints found
-        message = None
         newimg = frame_undistort
         state = None
 
@@ -132,14 +131,14 @@ class Interface:
 
             if len(keypoints) == 4:
 
-                (state, newimg) = self._get_state_from_keypoints(
+                (state, newimg) = self._get_state_and_image_from_keypoints(
                         frame, keypoints)
 
                 self.message = ('zpos=%d  xypos=%d,%d  theta=%d' %
-                           (int(state[0]),
-                            int(state[1][1]),
-                            int(state[1][0]),
-                            int(np.degrees(state[2]))))
+                                (int(state[0]),
+                                 int(state[1][1]),
+                                 int(state[1][0]),
+                                 int(np.degrees(state[2]))))
 
                 self.message_age = 0
 
@@ -238,7 +237,7 @@ class Interface:
         crop_frame = dst[y:y+h, x:x+w]
         return crop_frame
 
-    def _get_state_from_keypoints(self, frame, keypoints):
+    def _get_state_and_image_from_keypoints(self, frame, keypoints):
 
         pts = np.array([keypoints[i].pt for i in range(4)])
         # x,y=zip(*pts)

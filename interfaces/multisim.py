@@ -1,12 +1,19 @@
 '''
 pc-drone using MultiSim
 
+Additional libraries required:
+
+    https://github.com/simondlevy/MulticopterSim/tree/master/FlightControllers/python
+
+    https://github.com/simondlevy/kbhit
+
 Copyright (c) 2023 Simon D. Levy
 
 MIT License
 '''
 import numpy as np
 
+from kbhit import KBHit
 from multicopter_server import MulticopterServer
 
 
@@ -15,6 +22,8 @@ class Interface(MulticopterServer):
     def __init__(self, log_dir, timestamp):
 
         MulticopterServer.__init__(self)
+
+        self.kb = KBHit()
 
     # MulticopterServer methods ----------------------------------------------
 
@@ -52,7 +61,7 @@ class Interface(MulticopterServer):
         6        - rotate 90 left
         7        - rotate 90 right
         '''
-        return 0
+        return ord(self.kb.getch()) if self.kb.kbhit() else 0
 
     def getState(self):
 
@@ -82,7 +91,8 @@ class Interface(MulticopterServer):
 
     def close(self):
 
-        pass
+        print('done')
+        self.kb.set_normal_term()
 
     def takeSnapshot(self, index):
 

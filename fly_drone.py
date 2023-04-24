@@ -17,7 +17,7 @@ from datetime import datetime
 import pids
 
 # You can change this for your project
-from original import Interface
+from interfaces.original import Interface
 
 LOG_DIR = './logs'
 

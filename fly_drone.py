@@ -14,13 +14,12 @@ import os
 import timeit
 from datetime import datetime
 
-# Uncomment one of these
 from state.visual import StateEstimator
-# from state.simulator import StateEstimator
-
 from arduino import Arduino
-
 import pids
+
+# You can change this for your project
+from original import Interface
 
 LOG_DIR = './logs'
 
@@ -32,10 +31,9 @@ class FlyDrone:
     LANDING_FM = 1
     PROGRAM_SEQ_FM = 2
 
-    def __init__(self, state, comms, timestamp):
+    def __init__(self, interface, timestamp):
 
-        self.estimator = state
-        self.comms = comms
+        self.interface = interface
         self.timestamp = timestamp
 
         self.throttle = 1000
@@ -87,11 +85,11 @@ class FlyDrone:
 
     def begin(self):
 
-        return self.estimator.isReady()
+        return self.interface.isReady()
 
     def step(self):
 
-        state = self.estimator.getState()
+        state = self.interface.getState()
 
         if self.flying:
 
@@ -112,23 +110,23 @@ class FlyDrone:
         self.yaw = self._clamp(self.yaw, 1000, 2000)
         command = '%i,%i,%i,%i' % (self.throttle, self.roll, self.pitch, self.yaw)
         # print('[PC]: '+command)
-        self.comms.write((command+'\n').encode())
+        self.interface.sendCommand((command+'\n').encode())
 
         # Serial comms - read back from Arduino
-        data = self.comms.readline()
+        data = self.interface.getCommandResponse()
         while data:
             print('[AU]: '+data.rstrip('\n'))  # strip out the new lines
             # (better to do .read() in the long run for this reason
-            data = self.comms.readline()
+            data = self.interface.getCommandResponse()
 
         self.flighttoc = timeit.default_timer()
 
-        key = self.estimator.display(
+        key = self.interface.display(
                 command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
 
         if self.flying:
 
-            self.estimator.record()
+            self.interface.record()
 
             if self.xypos is None:
                 self.xypos = np.zeros(2)
@@ -167,7 +165,7 @@ class FlyDrone:
             return False
 
         elif key == 32:  # space - take a snapshot and save it
-            self.estimator.snapshot(self.snapnum)
+            self.interface.takeSnapshot(self.snapnum)
             self.snapnum += 1
 
         elif key == 119:  # w
@@ -238,8 +236,7 @@ class FlyDrone:
 
         # r - reset the serial port so Arduino will bind to another CX-10
         elif key == 114:
-            self.comms.close()
-            self.comms = Arduino()
+            self.interface.resetComms()
 
         elif key >= ord('1') and key <= ord('7'):
 
@@ -258,7 +255,7 @@ class FlyDrone:
                                     self.zpos_targ_seq,
                                     self.theta_targ_seq))
         # read next state data
-        return self.estimator.acquire()
+        return self.interface.acquireState()
 
     def _get_demands(self):
 
@@ -447,39 +444,24 @@ def main():
 
     timestamp = '{:%Y_%m_%d_%H_%M}'.format(datetime.now())
 
-    # Try to open comms; exit on failure
-    try:
-        comms = Arduino(verbose=True)
-    except Exception as e:
-        print('Failed to open comms: %s' % str(e))
-        exit(0)
-
-    # Try to create state estimator; exit on failure
-    try:
-        estimator = StateEstimator(LOG_DIR, timestamp)
-
-    except Exception as e:
-        print('Failed to create state estimator: %s' % str(e))
-        exit(0)
+    # Create interface
+    interface = Interface(LOG_DIR, timestamp)
 
     # Instantiate FlyDrone
-    flydrone = FlyDrone(estimator, comms, timestamp)
+    flydrone = FlyDrone(interface, timestamp)
 
     # If ready, run to error or completion
     if flydrone.begin():
         while flydrone.step():
             pass
 
-    # close the connection
-    comms.close()
+    # re-open and then close the serial port which will w for Arduino Uno to do
+    # a reset this forces the quadcopter to power off motors.  Will need to
+    # power cycle the drone to reconnect
+    interface.resetComms()
+    interface.closeComms()
 
-    # re-open the serial port which will w for Arduino Uno to do a reset
-    # this forces the quadcopter to power off motors.  Will need to power
-    # cycle the drone to reconnect
-    comms = Arduino()
-    comms.close()
-
-    estimator.close()
+    interface.closeComms()
 
 
 main()

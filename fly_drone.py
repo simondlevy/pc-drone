@@ -18,8 +18,8 @@ import pids
 
 # Un-comment one of these for your project
 from interfaces.original import Interface
-#from interfaces.multisim import Interface
-#from interfaces.mocap import Interface
+# from interfaces.multisim import Interface
+# from interfaces.mocap import Interface
 
 LOG_DIR = './logs'
 
@@ -121,7 +121,8 @@ class DroneFlyer:
         # Serial comms - write to Arduino
         self.throttle = self._clamp(self.throttle, 1000, 2000)
         self.yaw = self._clamp(self.yaw, 1000, 2000)
-        command = '%i,%i,%i,%i' % (self.throttle, self.roll, self.pitch, self.yaw)
+        command = ('%i,%i,%i,%i' %
+                   (self.throttle, self.roll, self.pitch, self.yaw))
         # print('[PC]: '+command)
         self.interface.sendCommand((command+'\n').encode())
 
@@ -135,7 +136,11 @@ class DroneFlyer:
         self.flighttoc = timeit.default_timer()
 
         self.interface.display(
-                command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
+                command,
+                self.flighttoc,
+                self.flighttic,
+                self.x_target,
+                self.ypos_target)
 
         key = self.interface.getKeyboardInput()
 
@@ -148,14 +153,31 @@ class DroneFlyer:
                 self.zpos = 0
 
             self.flightdata = np.vstack((self.flightdata,
-                                    np.array([self.flighttoc - self.flighttic,
-                                              self.xypos[0], self.xypos[1],
-                                              self.zpos, self.dx, self.dy, self.dz,
-                                              self.e_dx, self.e_ix, self.e_d2x, self.e_dy,
-                                              self.e_iy, self.e_d2y, self.e_dz, self.e_iz,
-                                              self.e_d2z, self.xspeed, self.yspeed,
-                                              self.zspeed, self.throttle, self.roll,
-                                              self.pitch, self.yaw])))
+                                         np.array([
+                                                   (self.flighttoc -
+                                                    self.flighttic),
+                                                   self.xypos[0],
+                                                   self.xypos[1],
+                                                   self.zpos,
+                                                   self.dx,
+                                                   self.dy,
+                                                   self.dz,
+                                                   self.e_dx,
+                                                   self.e_ix,
+                                                   self.e_d2x,
+                                                   self.e_dy,
+                                                   self.e_iy,
+                                                   self.e_d2y,
+                                                   self.e_dz,
+                                                   self.e_iz,
+                                                   self.e_d2z,
+                                                   self.xspeed,
+                                                   self.yspeed,
+                                                   self.zspeed,
+                                                   self.throttle,
+                                                   self.roll,
+                                                   self.pitch,
+                                                   self.yaw])))
             if len(self.x_targ_seq) > 1:
                 self.x_target = self.x_targ_seq.pop(0)
                 self.ypos_target = self.ypos_targ_seq.pop(0)
@@ -166,9 +188,11 @@ class DroneFlyer:
                 self.flt_mode = self._LANDING_FM
 
         elif self.recording_data:
-            np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(self.flightnum) +
+            np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
+                    str(self.flightnum) +
                     '_' + 'self.flightdata.npy', self.flightdata)
-            np.save(LOG_DIR + '/' + self.timestamp + '_flt' + str(self.flightnum) +
+            np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
+                    str(self.flightnum) +
                     '_' + 'self.controldata.npy', self.controldata)
             with open(LOG_DIR + '/' + self.timestamp + '_flt' +
                       str(self.flightnum) + '_' + 'self.controlvarnames.npy',
@@ -202,8 +226,9 @@ class DroneFlyer:
             # this lists out all the variables in module pids
             # and records their values.
             self.controlvarnames = [item for item in
-                               dir(pids) if not item.startswith('__')]
-            self.controldata = [eval('pids.'+item) for item in self.controlvarnames]
+                                    dir(pids) if not item.startswith('__')]
+            self.controldata = [eval('pids.'+item)
+                                for item in self.controlvarnames]
             self.flt_mode = self._NORMAL_FM
             # print('START FLYING')
 
@@ -223,25 +248,32 @@ class DroneFlyer:
             self.flightnum += 1
 
             self.controlvarnames = [item for item in
-                               dir(pids) if not item.startswith('__')]
-            self.controldata = [eval('pids.'+item) for item in self.controlvarnames]
+                                    dir(pids) if not item.startswith('__')]
+            self.controldata = [eval('pids.'+item)
+                                for item in self.controlvarnames]
 
             self.x_targ_seq = [self.x_target]
             self.ypos_targ_seq = [self.ypos_target]
             self.zpos_targ_seq = [self.zpos_target]
             self.theta_targ_seq = [self.theta_target]
 
-            self.x_targ_seq, self.ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
-                self._flight_sequence('hover', self.x_targ_seq, self.ypos_targ_seq,
-                                self.zpos_targ_seq, self.theta_targ_seq)
+            (self.x_targ_seq, self.ypos_targ_seq,
+             self.zpos_targ_seq, self.theta_targ_seq) = \
+                self._flight_sequence('hover', self.x_targ_seq,
+                                      self.ypos_targ_seq, self.zpos_targ_seq,
+                                      self.theta_targ_seq)
 
-            self.x_targ_seq, self.ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
-                self._flight_sequence('right_spot', self.x_targ_seq, self.ypos_targ_seq,
-                                self.zpos_targ_seq, self.theta_targ_seq)
+            (self.x_targ_seq, self.ypos_targ_seq,
+             self.zpos_targ_seq, self.theta_targ_seq) = \
+                self._flight_sequence('right_spot', self.x_targ_seq,
+                                      self.ypos_targ_seq, self.zpos_targ_seq,
+                                      self.theta_targ_seq)
 
-            self.x_targ_seq, self.ypos_targ_seq, self.zpos_targ_seq, self.theta_targ_seq = \
-                self._flight_sequence('left_spot', self.x_targ_seq, self.ypos_targ_seq,
-                                self.zpos_targ_seq, self.theta_targ_seq)
+            (self.x_targ_seq, self.ypos_targ_seq,
+             self.zpos_targ_seq, self.theta_targ_seq) = \
+                self._flight_sequence('left_spot', self.x_targ_seq,
+                                      self.ypos_targ_seq, self.zpos_targ_seq,
+                                      self.theta_targ_seq)
 
             self.flt_mode = self._PROGRAM_SEQ_FM
 
@@ -266,10 +298,10 @@ class DroneFlyer:
              self.zpos_targ_seq,
              self.theta_targ_seq) = (
                     self._flight_sequence(command,
-                                    self.x_targ_seq,
-                                    self.ypos_targ_seq,
-                                    self.zpos_targ_seq,
-                                    self.theta_targ_seq))
+                                          self.x_targ_seq,
+                                          self.ypos_targ_seq,
+                                          self.zpos_targ_seq,
+                                          self.theta_targ_seq))
         # read next state data
         return self.interface.acquireState()
 
@@ -283,9 +315,9 @@ class DroneFlyer:
             self.e_iz = self._clamp(self.e_iz, -10000, 10000)
             e_d2z = self.e_dz-self.e_dz_old
             self.throttle = (pids.Kz *
-                        (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
-                         pids.Kdz * e_d2z) +
-                        self.THROTTLE_MID)
+                             (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
+                              pids.Kdz * e_d2z) +
+                             self.THROTTLE_MID)
             e_dx_old = self.e_dx
             e_dx = self.xypos[0]-self.x_target
             self.e_ix += e_dx
@@ -310,9 +342,9 @@ class DroneFlyer:
 
             # commands are calculated in camera reference frame
             self.roll = (xcommand * np.cos(self.theta) + ycommand *
-                       np.sin(self.theta) + self.ROLL_MID)
+                         np.sin(self.theta) + self.ROLL_MID)
             self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
-                        np.cos(self.theta) + self.PITCH_MID)
+                          np.cos(self.theta) + self.PITCH_MID)
             self.e_dt_old = self.e_dt
             self.e_dt = self.theta-self.theta_target
             # angle error should always be less than 180degrees (pi
@@ -345,12 +377,13 @@ class DroneFlyer:
     def _clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)
 
-    def _flight_sequence(self, seqname, xseq_list, yseq_list, zseq_list, tseq_list):
+    def _flight_sequence(
+            self, seqname, xseq_list, yseq_list, zseq_list, tseq_list):
         # This function takes sequence lists and returns sequence lists.
         # Internally it uses numpy arrays.
         #
-        # THe sequence lists must have some length so that the starting position
-        # is known. Empty lists are not allowed.
+        # THe sequence lists must have some length so that the starting
+        # position is known. Empty lists are not allowed.
         xseq = np.array(xseq_list)
         yseq = np.array(yseq_list)
         zseq = np.array(zseq_list)
@@ -448,8 +481,8 @@ class DroneFlyer:
             xseq = np.concatenate((xseq, np.ones(xpoints)*xseq[-1]))
             yseq = np.concatenate((yseq, np.ones(xpoints)*yseq[-1]))
             zseq = np.concatenate((zseq, np.ones(xpoints)*zseq[-1]))
-            tseq = np.concatenate(
-                    (tseq, np.linspace(tseq[-1], self.theta_endpoint, xpoints)))
+            tseq = np.concatenate((tseq, np.linspace(tseq[-1],
+                                  self.theta_endpoint, xpoints)))
 
         return list(xseq), list(yseq), list(zseq), list(tseq)
 
@@ -481,5 +514,6 @@ def main():
             exit(0)
 
     interface.close()
+
 
 main()

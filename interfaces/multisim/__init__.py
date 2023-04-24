@@ -28,7 +28,7 @@ class Interface(MulticopterServer):
         self.kb = KBHit()
 
         # throttle, roll, pitch, yaw
-        self.command = (0, 0, 0, 0)   
+        self.command = None
 
         # (zpos, xypos, theta)
         self.state = None
@@ -48,10 +48,10 @@ class Interface(MulticopterServer):
         theta = 0
         self.state = zpos, xypos, theta
 
-        cthr, crol, cpit, cyaw = self.command
-
-        if cthr < 1000:  # ignore startup values
+        if self.command is None:
             return np.array([0, 0, 0, 0])
+
+        cthr, crol, cpit, cyaw = self.command
 
         # Normalize command to [0, 1], [-1,+1], [-1,+1], [-1,+1]
         thr = (cthr - 1000) / 1000

@@ -13,10 +13,13 @@ import itertools
 from interfaces.original.blobs import get_keypoints, init_params
 from arduino import Arduino
 
-class StateEstimator:
+class Interface:
 
     def __init__(self, log_dir, timestamp):
-
+        '''
+        Creates an Interface object supporting state estimation and vehicle commands
+        '''
+ 
         self.params = init_params()
 
         # load calibration data to undistort images
@@ -51,17 +54,54 @@ class StateEstimator:
         self.frame_o = None
         self.key = None
 
-    def isReady(self):
 
-        retval = False
+        self.arduino = Arduino(verbose=True)
 
-        if self.vc.isOpened():  # try to get the first frame
-            retval, self.frame_o = self.vc.read()
+    def acquireState(self):
+        '''
+        Acquires current state, returning True on success, False on failure
+        '''
+        rval, self.frame_o = self.vc.read()
 
-        return retval
+        return rval
+
+    def display(self, command, flighttoc, flighttic, x_target, ypos_target):
+        '''
+        Displays current status.  Returns whatever key was pressed by user:
+        ESC      - quit
+        spacebar - take snapshot
+        w        - take off and hover in place
+        e        - ?
+        s        - land
+        r        - reset
+        1        - take off
+        2        - land
+        3        - fly box pattern
+        4        - fly to left spot
+        5        - fly to right spot
+        6        - rotate 90 left
+        7        - rotate 90 right
+        '''
+        self._put_text(self.frame, 'Command: ' + command, (10, 50))
+
+        self._put_text(self.frame, 'Time: %5.3f' %
+                       (flighttoc - flighttic), (10, 75))
+
+        cv2.rectangle(self.frame, (int(x_target)-5, int(ypos_target)-5),
+                      (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
+                      thickness=1, lineType=8, shift=0)
+
+        # dst=cv2.resize(self.frame, (1280,960), cv2.INTER_NEAREST)
+        cv2.imshow('Hit ESC to exit', self.frame)
+
+        return cv2.waitKey(self.wait_time)
+        # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
+
 
     def getState(self):
-
+        '''
+        Returns current vehicle state: (zpos, xypos, theta)
+        '''
         frame_undistort = self._undistort_crop(
                 self.frame_o, self.map1, self.map2, self.roi)
 
@@ -91,45 +131,71 @@ class StateEstimator:
 
         return state
 
-    def display(self, command, flighttoc, flighttic, x_target, ypos_target):
 
-        self._put_text(self.frame, 'Command: ' + command, (10, 50))
+    def isReady(self):
+        '''
+        Returns True if interface is ready, False otherwise
+        '''
+        retval = False
 
-        self._put_text(self.frame, 'Time: %5.3f' %
-                       (flighttoc - flighttic), (10, 75))
+        if self.vc.isOpened():  # try to get the first frame
+            retval, self.frame_o = self.vc.read()
 
-        cv2.rectangle(self.frame, (int(x_target)-5, int(ypos_target)-5),
-                      (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
-                      thickness=1, lineType=8, shift=0)
+        return retval
 
-        # dst=cv2.resize(self.frame, (1280,960), cv2.INTER_NEAREST)
-        cv2.imshow('Hit ESC to exit', self.frame)
-
-        return cv2.waitKey(self.wait_time)
-        # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
 
     def record(self):
-
+        '''
+        Records one data frame
+        '''
         frame_pad = cv2.copyMakeBorder(self.frame, 91, 0, 75, 00,
                                        cv2.BORDER_CONSTANT,
                                        value=[255, 0, 0])
         self.video_out.write(frame_pad)
 
-    def snapshot(self, ii):
 
-        cv2.imwrite(self.fname+str(ii)+'.jpg', self.frame)
+    def sendCommand(self, command):
+        '''
+        Sends a command to the controller.
+        Command is a tuple (throttle, roll, pitch, yaw), with each value in the
+        interval [1000,2000]
+        '''
+        self.arduino.write(command)
 
-    def acquire(self):
+    def getCommandResponse(self):
+        '''
+        Gets the controller's response to the most recent command.
+        '''
+        return self.arduino.readline()
 
-        rval, self.frame_o = self.vc.read()
+    def reset(self):
+        '''
+        Resets the interface; e.g., restarts Arduino
+        '''
+        self.arduino.close()
+        self.arduino = Arduino()
 
-        return rval
 
     def close(self):
+        '''
+        Closes the interface at the end of the run
+        '''
+
+        # re-open and then close the serial port which will w for Arduino Uno to do
+        # a reset this forces the quadcopter to power off motors.  Will need to
+        # power cycle the drone to reconnect
+        self.reset()
+        self.arduino.close()
 
         self.vc.release()
-
         self.video_out.release()
+
+    def takeSnapshot(self, index):
+        '''
+        Takes a snapshot of the current interface status.
+        index index of current iteration
+        '''
+        cv2.imwrite(self.fname+str(ii)+'.jpg', self.frame)
 
     def _put_text(self, frame, text, pos):
 
@@ -229,99 +295,4 @@ class StateEstimator:
 
         return (img_with_keypoints, blob_center, max_blob_dist, theta, message)
 
-class Interface:
 
-    def __init__(self, log_dir, timestamp):
-        '''
-        Creates an Interface object supporting state estimation and vehicle commands
-        '''
- 
-        self.estimator = StateEstimator(log_dir, timestamp)
-
-        self.arduino = Arduino(verbose=True)
-
-    def acquireState(self):
-        '''
-        Acquires current state, returning True on success, False on failure
-        '''
-        return self.estimator.acquire()
-
-    def display(self, command, flighttoc, flighttic, x_target, ypos_target):
-        '''
-        Displays current status.  Returns whatever key was pressed by user:
-        ESC      - quit
-        spacebar - take snapshot
-        w        - take off and hover in place
-        e        - ?
-        s        - land
-        r        - reset
-        1        - take off
-        2        - land
-        3        - fly box pattern
-        4        - fly to left spot
-        5        - fly to right spot
-        6        - rotate 90 left
-        7        - rotate 90 right
-        '''
-        return self.estimator.display(
-                command, flighttoc, flighttic, x_target, ypos_target)
-
-    def getState(self):
-        '''
-        Returns current vehicle state: (zpos, xypos, theta)
-        '''
-        return self.estimator.getState()
-
-    def isReady(self):
-        '''
-        Returns True if interface is ready, False otherwise
-        '''
-        return self.estimator.isReady()
-
-    def record(self):
-        '''
-        Records one data frame
-        '''
-        self.estimator.record()
-
-    def sendCommand(self, command):
-        '''
-        Sends a command to the controller.
-        Command is a tuple (throttle, roll, pitch, yaw), with each value in the
-        interval [1000,2000]
-        '''
-        self.arduino.write(command)
-
-    def getCommandResponse(self):
-        '''
-        Gets the controller's response to the most recent command.
-        '''
-        return self.arduino.readline()
-
-    def reset(self):
-        '''
-        Resets the interface; e.g., restarts Arduino
-        '''
-        self.arduino.close()
-        self.arduino = Arduino()
-
-    def close(self):
-        '''
-        Closes the interface at the end of the run
-        '''
-
-        # re-open and then close the serial port which will w for Arduino Uno to do
-        # a reset this forces the quadcopter to power off motors.  Will need to
-        # power cycle the drone to reconnect
-        self.reset()
-        self.arduino.close()
-
-        self.estimator.close()
-
-    def takeSnapshot(self, index):
-        '''
-        Takes a snapshot of the current interface status.
-        index index of current iteration
-        '''
- 
-        self.estimator.snapshot(index)

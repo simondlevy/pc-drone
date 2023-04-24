@@ -23,7 +23,7 @@ from interfaces.multisim import Interface
 LOG_DIR = './logs'
 
 
-class FlyDrone:
+class DroneFlyer:
 
     # Flight modes
     _NORMAL_FM = 0
@@ -32,7 +32,7 @@ class FlyDrone:
 
     def __init__(self, interface, timestamp):
         '''
-        Creates our FlyDrone object.
+        Creates our DroneFlyer object.
         Parameters:
             interface  the state estimator / actual interface
             timestamp  time stamp for data logging
@@ -461,15 +461,15 @@ def main():
     # Create interface
     interface = Interface(LOG_DIR, timestamp)
 
-    # Instantiate FlyDrone
-    flydrone = FlyDrone(interface, timestamp)
+    # Instantiate DroneFlyer
+    flyer = DroneFlyer(interface, timestamp)
 
     # If ready, run to error or completion
-    if flydrone.begin():
+    if flyer.begin():
 
         try:
 
-            while flydrone.step():
+            while flyer.step():
                 pass
 
         except KeyboardInterrupt:

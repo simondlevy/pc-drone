@@ -15,8 +15,8 @@ import timeit
 from datetime import datetime
 
 # Un-comment one of these for your project
-# from interfaces.original import Interface, pids
-from interfaces.multisim import Interface, pids
+from interfaces.original import Interface, pids
+# from interfaces.multisim import Interface, pids
 # from interfaces.mocap import Interface, pids
 
 LOG_DIR = './logs'

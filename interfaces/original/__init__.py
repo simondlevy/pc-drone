@@ -131,9 +131,8 @@ class Interface:
         if keypoints is not None:
 
             if len(keypoints) == 4:
-                (newimg, blob_center, max_blob_dist, theta, message) = \
-                        self._get_state_from_keypoints(frame, keypoints)
-                state = max_blob_dist, blob_center, theta
+                (state, newimg, message) = self._get_state_from_keypoints(
+                        frame, keypoints)
                 self.message_age = 0
                 self.message = message
 
@@ -307,6 +306,5 @@ class Interface:
                     int(np.degrees(theta))))
 
         blob_center = keypoints[middlepoint].pt
-        keypoints[middlepoint].pt[1]
 
-        return (img_with_keypoints, blob_center, max_dist_val, theta, message)
+        return (max_dist_val, blob_center, theta), img_with_keypoints, message

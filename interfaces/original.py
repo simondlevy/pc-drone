@@ -6,28 +6,39 @@ Copyright (c) 2023 perrystao, Simon D. Levy
 MIT License
 '''
 
-from state.visual import StateEstimator
+from estimators.visual import StateEstimator
 from arduino import Arduino
 
 
 class Interface:
 
     def __init__(self, log_dir, timestamp):
-
+        '''
+        Creates an Interface object supporting state estimation and vehicle commands
+        '''
+ 
         self.estimator = StateEstimator(log_dir, timestamp)
 
         self.arduino = Arduino(verbose=True)
 
     def acquireState(self):
-
+        '''
+        Acquires current state, returning True on success, False on failure
+        '''
         return self.estimator.acquire()
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
-
+        '''
+        Displays current status
+        '''
+ 
         return self.estimator.display(
                 command, flighttoc, flighttic, x_target, ypos_target)
 
     def getState(self):
+        '''
+        Returns current state: 
+        '''
 
         return self.estimator.getState()
 

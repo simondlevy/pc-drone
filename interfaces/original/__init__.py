@@ -13,17 +13,21 @@ import itertools
 from interfaces.original.blobs import get_keypoints, init_params
 from arduino import Arduino
 
+
 class Interface:
+
+    CAL_FILE = 'interfaces/original/camera_cal_data_2016_03_25_15_23.npz'
+    SNAP_FILE = 'drone_track_640_480_USBFHD01M'
 
     def __init__(self, log_dir, timestamp):
         '''
-        Creates an Interface object supporting state estimation and vehicle commands
+        Creates an Interface object supporting state estimation and vehicle
+        commands
         '''
- 
         self.params = init_params()
 
         # load calibration data to undistort images
-        calfile = np.load('interfaces/original/camera_cal_data_2016_03_25_15_23.npz')
+        calfile = np.load(self.CAL_FILE)
         newcameramtx = calfile['newcameramtx']
         self.roi = calfile['roi']
         mtx = calfile['mtx']
@@ -36,7 +40,6 @@ class Interface:
 
         self.vc = cv2.VideoCapture(0)
 
-        self.fname = 'drone_track_640_480_USBFHD01M'
         width = 640
         height = 480
         fps = 30
@@ -53,7 +56,6 @@ class Interface:
 
         self.frame_o = None
         self.key = None
-
 
         self.arduino = Arduino(verbose=True)
 
@@ -97,7 +99,6 @@ class Interface:
         return cv2.waitKey(self.wait_time)
         # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
 
-
     def getState(self):
         '''
         Returns current vehicle state: (zpos, xypos, theta)
@@ -110,7 +111,7 @@ class Interface:
 
         # Assume no keypoints found
         message = 'No keypoints'
-        img_with_keypoints = frame_undistort
+        newimg = frame_undistort
         state = None
 
         keypoints = get_keypoints(frame, self.params)
@@ -118,19 +119,18 @@ class Interface:
         if keypoints is not None:
 
             if len(keypoints) == 4:
-                (img_with_keypoints, blob_center, max_blob_dist, theta, message) = \
+                (newimg, blob_center, max_blob_dist, theta, message) = \
                         self._handle_good_keypoints(frame, keypoints)
                 state = max_blob_dist, blob_center, theta
 
             else:
                 message = '%d keypoints' % len(keypoints)
 
-        self._put_text(img_with_keypoints, message, (10, 25))
+        self._put_text(newimg, message, (10, 25))
 
-        self.frame = img_with_keypoints
+        self.frame = newimg
 
         return state
-
 
     def isReady(self):
         '''
@@ -143,7 +143,6 @@ class Interface:
 
         return retval
 
-
     def record(self):
         '''
         Records one data frame
@@ -152,7 +151,6 @@ class Interface:
                                        cv2.BORDER_CONSTANT,
                                        value=[255, 0, 0])
         self.video_out.write(frame_pad)
-
 
     def sendCommand(self, command):
         '''
@@ -175,15 +173,14 @@ class Interface:
         self.arduino.close()
         self.arduino = Arduino()
 
-
     def close(self):
         '''
         Closes the interface at the end of the run
         '''
 
-        # re-open and then close the serial port which will w for Arduino Uno to do
-        # a reset this forces the quadcopter to power off motors.  Will need to
-        # power cycle the drone to reconnect
+        # re-open and then close the serial port which will w for Arduino Uno
+        # to do a reset this forces the quadcopter to power off motors.  Will
+        # need to power cycle the drone to reconnect
         self.reset()
         self.arduino.close()
 
@@ -195,7 +192,7 @@ class Interface:
         Takes a snapshot of the current interface status.
         index index of current iteration
         '''
-        cv2.imwrite(self.fname+str(ii)+'.jpg', self.frame)
+        cv2.imwrite(self.SNAP_FILE+str(index)+'.jpg', self.frame)
 
     def _put_text(self, frame, text, pos):
 
@@ -294,5 +291,3 @@ class Interface:
         keypoints[middlepoint].pt[1]
 
         return (img_with_keypoints, blob_center, max_blob_dist, theta, message)
-
-

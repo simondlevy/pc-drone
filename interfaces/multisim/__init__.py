@@ -48,15 +48,27 @@ class Interface(MulticopterServer):
         theta = 0
         self.state = zpos, xypos, theta
 
+        # Wait until fly_drone script is ready
         if self.command is None:
             return np.array([0, 0, 0, 0])
 
         cthr, crol, cpit, cyaw = self.command
 
-        # Normalize command to [0, 1], [-1,+1], [-1,+1], [-1,+1]
+        # Normalize throttle command to [0, 1]
         thr = (cthr - 1000) / 1000
 
-        return np.array([thr]*4)
+        # Normalize pitch, roll, and yaw commands to [0, 1], [-1,+1], [-1,+1], [-1,+1]
+        rol = (crol - 1500) / 500
+        pit = (cpit - 1500) / 500
+        yaw = (cyaw - 1500) / 500
+
+        # XXX Mix commands to get motor values
+        m1 = thr
+        m2 = thr
+        m3 = thr
+        m4 = thr
+
+        return np.array([m1, m2, m3, m4])
 
     # PC-Drone Interface methods ---------------------------------------------
 

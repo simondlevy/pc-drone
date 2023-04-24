@@ -11,7 +11,9 @@ Copyright (c) 2023 Simon D. Levy
 
 MIT License
 '''
+
 import numpy as np
+from time import time
 
 from kbhit import KBHit
 from multicopter_server import MulticopterServer
@@ -31,12 +33,17 @@ class Interface(MulticopterServer):
         # (zpos, xypos, theta)
         self.state = None
 
+        self.previousUpdateTime = time()
+
     # MulticopterServer methods ----------------------------------------------
 
     def getMotors(self, t, state, _):
 
+        # Check quit by stopping simulation
+        self.previousUpdateTime = time()
+
         # Convert MultiSim state into PC-Drone state
-        zpos = -state[MulticopterServer.STATE_Z] / 10
+        zpos = 50 -state[MulticopterServer.STATE_Z] / 10
         xypos = 0, 0
         theta = 0
         self.state = zpos, xypos, theta
@@ -55,7 +62,8 @@ class Interface(MulticopterServer):
 
     def acquireState(self):
 
-        return True
+        # Quit after a lack up updates from simulator
+        return time() - self.previousUpdateTime < 1.0
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
         '''
@@ -89,7 +97,7 @@ class Interface(MulticopterServer):
         '''
         Returns current vehicle state: (zpos, xypos, theta)
         '''
-        print(self.state)
+        # print(self.state)
         return self.state
 
     def isReady(self):
@@ -112,7 +120,6 @@ class Interface(MulticopterServer):
 
     def close(self):
 
-        print('done')
         self.kb.set_normal_term()
 
     def takeSnapshot(self, index):

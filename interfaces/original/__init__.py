@@ -132,7 +132,7 @@ class Interface:
 
             if len(keypoints) == 4:
                 (newimg, blob_center, max_blob_dist, theta, message) = \
-                        self._handle_good_keypoints(frame, keypoints)
+                        self._get_state_from_keypoints(frame, keypoints)
                 state = max_blob_dist, blob_center, theta
                 self.message_age = 0
                 self.message = message
@@ -232,7 +232,7 @@ class Interface:
         crop_frame = dst[y:y+h, x:x+w]
         return crop_frame
 
-    def _handle_good_keypoints(self, frame, keypoints):
+    def _get_state_from_keypoints(self, frame, keypoints):
 
         pts = np.array([keypoints[i].pt for i in range(4)])
         # x,y=zip(*pts)

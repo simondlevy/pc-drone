@@ -43,7 +43,7 @@ class Interface(MulticopterServer):
         self.previousUpdateTime = time()
 
         # Convert MultiSim state into PC-Drone state
-        zpos = 50 -state[MulticopterServer.STATE_Z] / 10
+        zpos = (50 - state[MulticopterServer.STATE_Z]) * 1.15
         xypos = 0, 0
         theta = 0
         self.state = zpos, xypos, theta
@@ -67,6 +67,8 @@ class Interface(MulticopterServer):
         m2 = thr
         m3 = thr
         m4 = thr
+
+        print('cthr=%d zpos=%03d m1=%3.3f' % (int(cthr), int(zpos), m1))
 
         return np.array([m1, m2, m3, m4])
 

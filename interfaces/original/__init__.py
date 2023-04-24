@@ -253,8 +253,6 @@ class Interface:
         idx = np.argmax(dcalc)
         max_dist_val = np.max(dcalc)
 
-        # print(max_dist_val)
-
         sidepts = ([0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3])[idx]
 
         # the frontpoint is the remaining one.
@@ -308,8 +306,7 @@ class Interface:
                     int(keypoints[middlepoint].pt[1]),
                     int(np.degrees(theta))))
 
-        max_blob_dist = max_dist_val
         blob_center = keypoints[middlepoint].pt
         keypoints[middlepoint].pt[1]
 
-        return (img_with_keypoints, blob_center, max_blob_dist, theta, message)
+        return (img_with_keypoints, blob_center, max_dist_val, theta, message)

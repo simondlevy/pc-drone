@@ -9,6 +9,7 @@ MIT License
 from state.visual import StateEstimator
 from arduino import Arduino
 
+
 class Interface:
 
     def __init__(self, log_dir, timestamp):
@@ -23,7 +24,8 @@ class Interface:
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
 
-        return self.estimator.display(command, flighttoc, flighttic, x_target, ypos_target)
+        return self.estimator.display(
+                command, flighttoc, flighttic, x_target, ypos_target)
 
     def getState(self):
 

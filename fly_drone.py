@@ -18,9 +18,7 @@ from datetime import datetime
 from state.visual import StateEstimator
 # from state.simulator import StateEstimator
 
-# Uncomment one of these
-# from comms.mock import Comms
-from comms.arduino import Comms
+from arduino import Arduino
 
 import pids
 
@@ -241,7 +239,7 @@ class FlyDrone:
         # r - reset the serial port so Arduino will bind to another CX-10
         elif key == 114:
             self.comms.close()
-            self.comms = Comms()
+            self.comms = Arduino()
 
         elif key >= ord('1') and key <= ord('7'):
 
@@ -451,7 +449,7 @@ def main():
 
     # Try to open comms; exit on failure
     try:
-        comms = Comms()
+        comms = Arduino(verbose=True)
     except Exception as e:
         print('Failed to open comms: %s' % str(e))
         exit(0)
@@ -478,7 +476,7 @@ def main():
     # re-open the serial port which will w for Arduino Uno to do a reset
     # this forces the quadcopter to power off motors.  Will need to power
     # cycle the drone to reconnect
-    comms = Comms()
+    comms = Arduino()
     comms.close()
 
     estimator.close()

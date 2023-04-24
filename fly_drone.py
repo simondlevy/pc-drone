@@ -114,7 +114,7 @@ class DroneFlyer:
             # got state, use it to get demands
             else:
                 self.zpos, self.xypos, self.theta = state
-                self._get_demands()
+                self._run_pid_controller()
 
         # Serial comms - write to Arduino
         self.throttle = self._clamp(self.throttle, 1000, 2000)
@@ -294,7 +294,7 @@ class DroneFlyer:
         # read next state data
         return self.interface.acquireState()
 
-    def _get_demands(self):
+    def _run_pid_controller(self):
 
         if self.flt_mode != self._LANDING_FM:
             self.e_dz_old = self.e_dz

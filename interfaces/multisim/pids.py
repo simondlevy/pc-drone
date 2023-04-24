@@ -1,5 +1,5 @@
 '''
-PID control constants for origian PC-Drone
+PID control constants MultiSim version of PC-Drone
 
 Copyright (c) 2023 perrystao, Simon D. Levy
 

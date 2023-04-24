@@ -466,16 +466,16 @@ def main():
 
     # If ready, run to error or completion
     if flydrone.begin():
-        while flydrone.step():
-            pass
 
-    # re-open and then close the serial port which will w for Arduino Uno to do
-    # a reset this forces the quadcopter to power off motors.  Will need to
-    # power cycle the drone to reconnect
-    interface.resetComms()
-    interface.closeComms()
+        try:
 
-    interface.closeComms()
+            while flydrone.step():
+                pass
 
+        except KeyboardInterrupt:
+            interface.close()
+            exit(0)
+
+    interface.close()
 
 main()

@@ -17,7 +17,7 @@ class Interface:
 
     def acquireState(self):
 
-        pass
+        return True
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
 
@@ -47,7 +47,7 @@ class Interface:
 
         pass
 
-    def closeComms(self):
+    def close(self):
 
         pass
 

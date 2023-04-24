@@ -52,9 +52,15 @@ class Interface:
         self.arduino.close()
         self.arduino = Arduino()
 
-    def closeComms(self):
+    def close(self):
 
+        # re-open and then close the serial port which will w for Arduino Uno to do
+        # a reset this forces the quadcopter to power off motors.  Will need to
+        # power cycle the drone to reconnect
+        self.resetComms()
         self.arduino.close()
+
+        self.estimator.close()
 
     def takeSnapshot(self, index):
 

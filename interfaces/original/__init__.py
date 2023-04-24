@@ -71,10 +71,11 @@ class Interface:
         '''
         Displays current status.
         '''
-        self._put_text(self.frame,
-                       ('thr=%d rol=%d pit=%d yaw=%d: ' %
-                           (command[0], command[1], command[2], command[3]))
-                       (10, 50))
+
+        cmdstr = 'thr=%d rol=%d pit=%d yaw=%d' % (
+                command[0], command[1], command[2], command[3])
+
+        self._put_text(self.frame, cmdstr, (10, 50))
 
         self._put_text(self.frame, 'Time: %5.3f' %
                        (flighttoc - flighttic), (10, 75))

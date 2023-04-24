@@ -30,7 +30,7 @@ class Arduino:
 
     def readline(self):
 
-        return '' if self.port is None else self.port.readline()
+        return None if self.port is None else self.port.readline()
 
     def close(self):
 

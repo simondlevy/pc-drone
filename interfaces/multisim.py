@@ -41,7 +41,9 @@ class Interface(MulticopterServer):
         '''
         Displays current status
         '''
-        pass
+        print('thr=%d rol=%d pit=%d yaw=%d' % (
+                command[0], command[1], command[2], command[3]))
+
 
     def getKeyboardInput(self):
         '''

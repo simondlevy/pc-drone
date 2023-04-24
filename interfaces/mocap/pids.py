@@ -1,3 +1,11 @@
+'''
+PID control constants for origian PC-Drone
+
+Copyright (c) 2023 perrystao, Simon D. Levy
+
+MIT License
+'''
+
 Kpx = 1
 Kix = .03
 Kdx = 10

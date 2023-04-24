@@ -141,9 +141,12 @@ class Interface:
                 self.message_age += 1
 
         if self.message is not None:
+
+            # Fade out stale state messages over time
             level = (255 - self.message_age)
-            self._put_text(newimg, self.message, (10, 25),
-                           color=(level, level, level))
+            if level > 128:
+                self._put_text(newimg, self.message, (10, 25),
+                               color=(level, level, level))
 
         self.frame = newimg
 

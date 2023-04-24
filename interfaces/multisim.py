@@ -25,11 +25,21 @@ class Interface(MulticopterServer):
 
         self.kb = KBHit()
 
+        self.command = (0, 0, 0, 0)   # throttle, roll, pitch, yaw
+
     # MulticopterServer methods ----------------------------------------------
 
-    def getMotors(self, t, state, stickDemands):
+    def getMotors(self, t, state, _):
 
-        return np.array([0.6, 0.6, 0.6, 0.6])
+        cthr, crol, cpit, cyaw = self.command
+
+        if cthr < 1000:  # ignore startup values
+            return np.array([0, 0, 0, 0])
+
+        # Normalize command to [0, 1], [-1,+1], [-1,+1], [-1,+1]
+        thr = (cthr - 1000) / 1000
+
+        return np.array([thr]*4)
 
     # PC-Drone Interface methods ---------------------------------------------
 
@@ -41,9 +51,9 @@ class Interface(MulticopterServer):
         '''
         Displays current status
         '''
+        return
         print('thr=%d rol=%d pit=%d yaw=%d' % (
                 command[0], command[1], command[2], command[3]))
-
 
     def getKeyboardInput(self):
         '''
@@ -66,8 +76,10 @@ class Interface(MulticopterServer):
         return ord(self.kb.getch()) if self.kb.kbhit() else 0
 
     def getState(self):
-
-        return None
+        '''
+        Returns current vehicle state: (zpos, xypos, theta)
+        '''
+        return 50, (0, 0), 0
 
     def isReady(self):
 
@@ -81,7 +93,7 @@ class Interface(MulticopterServer):
 
     def sendCommand(self, command):
 
-        pass
+        self.command = command
 
     def reset(self):
 

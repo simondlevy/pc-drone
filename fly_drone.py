@@ -300,7 +300,7 @@ class DroneFlyer:
 
         if self.flt_mode != self._LANDING_FM:
             self.e_dz_old = self.e_dz
-            print(self.zpos, self.zpos_target)
+            # print(self.zpos, self.zpos_target)
             self.e_dz = self.zpos - self.zpos_target
             self.e_iz += self.e_dz
             self.e_iz = self._clamp(self.e_iz, -10000, 10000)

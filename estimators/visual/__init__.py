@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 import itertools
 
-from state.visual.blobs import get_keypoints, init_params
+from estimators.visual.blobs import get_keypoints, init_params
 
 
 class StateEstimator:
@@ -20,7 +20,7 @@ class StateEstimator:
         self.params = init_params()
 
         # load calibration data to undistort images
-        calfile = np.load('state/visual/camera_cal_data_2016_03_25_15_23.npz')
+        calfile = np.load('estimators/visual/camera_cal_data_2016_03_25_15_23.npz')
         newcameramtx = calfile['newcameramtx']
         self.roi = calfile['roi']
         mtx = calfile['mtx']

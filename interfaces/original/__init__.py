@@ -6,7 +6,7 @@ Copyright (c) 2023 perrystao, Simon D. Levy
 MIT License
 '''
 
-from estimators.visual import StateEstimator
+from interfaces.original.visual import StateEstimator
 from arduino import Arduino
 
 

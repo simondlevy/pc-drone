@@ -134,8 +134,10 @@ class DroneFlyer:
 
         self.flighttoc = timeit.default_timer()
 
-        key = self.interface.display(
+        self.interface.display(
                 command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
+
+        key = self.interface.getCommand()
 
         if self.flying:
 

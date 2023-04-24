@@ -69,7 +69,23 @@ class Interface:
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
         '''
-        Displays current status.  Returns whatever key was pressed by user:
+        Displays current status.  
+       '''
+        self._put_text(self.frame, 'Command: ' + command, (10, 50))
+
+        self._put_text(self.frame, 'Time: %5.3f' %
+                       (flighttoc - flighttic), (10, 75))
+
+        cv2.rectangle(self.frame, (int(x_target)-5, int(ypos_target)-5),
+                      (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
+                      thickness=1, lineType=8, shift=0)
+
+        # dst=cv2.resize(self.frame, (1280,960), cv2.INTER_NEAREST)
+        cv2.imshow('Hit ESC to exit', self.frame)
+
+    def getCommand(self):
+        '''
+        Returns whatever key was pressed by user:
         ESC      - quit
         spacebar - take snapshot
         w        - take off and hover in place
@@ -84,18 +100,7 @@ class Interface:
         6        - rotate 90 left
         7        - rotate 90 right
         '''
-        self._put_text(self.frame, 'Command: ' + command, (10, 50))
-
-        self._put_text(self.frame, 'Time: %5.3f' %
-                       (flighttoc - flighttic), (10, 75))
-
-        cv2.rectangle(self.frame, (int(x_target)-5, int(ypos_target)-5),
-                      (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
-                      thickness=1, lineType=8, shift=0)
-
-        # dst=cv2.resize(self.frame, (1280,960), cv2.INTER_NEAREST)
-        cv2.imshow('Hit ESC to exit', self.frame)
-
+ 
         return cv2.waitKey(self.wait_time)
         # dst=cv2.resize(frame, (1280,960), cv2.INTER_NEAREST)
 

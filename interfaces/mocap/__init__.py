@@ -18,7 +18,7 @@ class Interface:
         '''
         self.arduino = Arduino(verbose=True)
 
-    def acquireState(self):
+    def acquiredState(self):
         '''
         Acquires current state, returning True on success, False on failure
         '''

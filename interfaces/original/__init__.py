@@ -62,7 +62,7 @@ class Interface:
         self.message = None
         self.message_age = 0
 
-    def acquireState(self):
+    def acquiredState(self):
         '''
         Acquires current state, returning True on success, False on failure
         '''

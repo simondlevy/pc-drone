@@ -60,7 +60,7 @@ class Interface(MulticopterServer):
 
     # PC-Drone Interface methods ---------------------------------------------
 
-    def acquireState(self):
+    def acquiredState(self):
 
         # Quit after a lack up updates from simulator
         return time() - self.previousUpdateTime < 1.0

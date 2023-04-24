@@ -292,7 +292,7 @@ class DroneFlyer:
                                           self.zpos_targ_seq,
                                           self.theta_targ_seq))
         # read next state data
-        return self.interface.acquireState()
+        return self.interface.acquiredState()
 
     def _run_pid_controller(self):
 

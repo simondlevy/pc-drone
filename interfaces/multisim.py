@@ -36,7 +36,7 @@ class Interface(MulticopterServer):
     def getMotors(self, t, state, _):
 
         # Convert MultiSim state into PC-Drone state
-        zpos = -state[MulticopterServer.STATE_Z]
+        zpos = -state[MulticopterServer.STATE_Z] / 10
         xypos = 0, 0
         theta = 0
         self.state = zpos, xypos, theta

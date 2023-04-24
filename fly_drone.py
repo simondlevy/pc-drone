@@ -62,9 +62,9 @@ class DroneFlyer:
         self.e_d2z, self.e_d2x, self.e_d2y, self.e_d2t = 0, 0, 0, 0
 
         self.THROTTLE_MID = pids.THROTTLE_MID
-        self.ROLL_MID = pids.ROLL_MID
-        self.PITCH_MID = pids.PITCH_MID
-        self.YAW_MID = pids.YAW_MID
+        self.ROLL_MID = 1500
+        self.PITCH_MID = 1500
+        self.YAW_MID = 1500
 
         self.x_target = 300
         self.ypos_target = 200

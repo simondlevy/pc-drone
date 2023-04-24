@@ -29,7 +29,29 @@ class Interface(MulticopterServer):
         return True
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
+        '''
+        Displays current status
+        '''
+        pass
 
+    def getKeyboardInput(self):
+        '''
+        Returns ASCII code of key pressed by user:
+
+        ESC      - quit
+        spacebar - take snapshot
+        w        - take off and hover in place
+        e        - ?
+        s        - land
+        r        - reset
+        1        - take off
+        2        - land
+        3        - fly box pattern
+        4        - fly to left spot
+        5        - fly to right spot
+        6        - rotate 90 left
+        7        - rotate 90 right
+        '''
         return 0
 
     def getState(self):

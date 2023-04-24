@@ -26,7 +26,14 @@ class Interface:
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
         '''
-        Displays current status.  Returns whatever key was pressed by user:
+        Displays current status
+        '''
+        pass
+
+    def getKeyboardInput(self):
+        '''
+        Returns ASCII code of key pressed by user:
+
         ESC      - quit
         spacebar - take snapshot
         w        - take off and hover in place
@@ -41,8 +48,8 @@ class Interface:
         6        - rotate 90 left
         7        - rotate 90 right
         '''
- 
-        return None
+        return 0
+
 
     def getState(self):
         '''

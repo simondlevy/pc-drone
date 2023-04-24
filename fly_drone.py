@@ -16,7 +16,7 @@ from datetime import datetime
 
 import pids
 
-# Un-comment one of these three for your project
+# Un-comment one of these for your project
 from interfaces.original import Interface
 #from interfaces.multisim import Interface
 #from interfaces.mocap import Interface
@@ -137,7 +137,7 @@ class DroneFlyer:
         self.interface.display(
                 command, self.flighttoc, self.flighttic, self.x_target, self.ypos_target)
 
-        key = self.interface.getCommand()
+        key = self.interface.getKeyboardInput()
 
         if self.flying:
 

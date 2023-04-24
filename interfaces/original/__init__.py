@@ -83,9 +83,10 @@ class Interface:
         # dst=cv2.resize(self.frame, (1280,960), cv2.INTER_NEAREST)
         cv2.imshow('Hit ESC to exit', self.frame)
 
-    def getCommand(self):
+    def getKeyboardInput(self):
         '''
-        Returns whatever key was pressed by user:
+        Returns ASCII code of key pressed by user:
+
         ESC      - quit
         spacebar - take snapshot
         w        - take off and hover in place

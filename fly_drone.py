@@ -464,7 +464,7 @@ def main():
     # Instantiate DroneFlyer
     flyer = DroneFlyer(interface, timestamp)
 
-    # If ready, run to error or completion
+    # If ready, run to error or completion or CTRL-C
     if flyer.begin():
 
         try:

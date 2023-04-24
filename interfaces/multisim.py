@@ -5,15 +5,24 @@ Copyright (c) 2023 Simon D. Levy
 
 MIT License
 '''
+import numpy as np
 
 from multicopter_server import MulticopterServer
 
 
-class Interface:
+class Interface(MulticopterServer):
 
     def __init__(self, log_dir, timestamp):
 
-        pass
+        MulticopterServer.__init__(self)
+
+    # MulticopterServer methods ----------------------------------------------
+
+    def getMotors(self, t, state, stickDemands):
+
+        return np.array([0.6, 0.6, 0.6, 0.6])
+
+    # PC-Drone Interface methods ---------------------------------------------
 
     def acquireState(self):
 
@@ -28,6 +37,8 @@ class Interface:
         return None
 
     def isReady(self):
+
+        self.start()
 
         return True
 

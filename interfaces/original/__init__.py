@@ -137,8 +137,13 @@ class Interface:
                 self.message_age = 0
                 self.message = message
 
+            else:
+                self.message_age += 1
+
         if self.message is not None:
-            self._put_text(newimg, self.message, (10, 25))
+            level = (255 - self.message_age)
+            self._put_text(newimg, self.message, (10, 25),
+                           color=(level, level, level))
 
         self.frame = newimg
 
@@ -211,11 +216,10 @@ class Interface:
         '''
         cv2.imwrite(self.SNAP_FILE+str(index)+'.jpg', self.frame)
 
-    def _put_text(self, frame, text, pos):
+    def _put_text(self, frame, text, pos, color=(255, 255, 255)):
 
         cv2.putText(frame, text, pos,
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.8, (255, 255, 255), 2, cv2.LINE_AA)
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2, cv2.LINE_AA)
 
     def _undistort_crop(self, orig_img, map1, map2, roi):
         # cv2.remap(src, map1, map2,

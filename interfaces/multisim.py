@@ -54,7 +54,7 @@ class Interface(MulticopterServer):
 
         return ''
 
-    def resetComms(self):
+    def reset(self):
 
         pass
 

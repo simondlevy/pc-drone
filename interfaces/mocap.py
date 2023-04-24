@@ -1,12 +1,11 @@
 '''
-Original configuration (Arduino + OpenCV) for pc-drone
+PC-Drone with OptiTrack motion-capture state estimator
 
-Copyright (c) 2023 perrystao, Simon D. Levy
+Copyright (c) 2023 Simon D. Levy
 
 MIT License
 '''
 
-from estimators.visual import StateEstimator
 from arduino import Arduino
 
 
@@ -17,15 +16,13 @@ class Interface:
         Creates an Interface object supporting state estimation and vehicle commands
         '''
  
-        self.estimator = StateEstimator(log_dir, timestamp)
-
         self.arduino = Arduino(verbose=True)
 
     def acquireState(self):
         '''
         Acquires current state, returning True on success, False on failure
         '''
-        return self.estimator.acquire()
+        return True
 
     def display(self, command, flighttoc, flighttic, x_target, ypos_target):
         '''
@@ -44,26 +41,28 @@ class Interface:
         6        - rotate 90 left
         7        - rotate 90 right
         '''
-        return self.estimator.display(
-                command, flighttoc, flighttic, x_target, ypos_target)
+ 
+        return None
 
     def getState(self):
         '''
         Returns current vehicle state: (zpos, xypos, theta)
         '''
-        return self.estimator.getState()
+
+        return None
 
     def isReady(self):
         '''
         Returns True if interface is ready, False otherwise
         '''
-        return self.estimator.isReady()
+
+        return True
 
     def record(self):
         '''
         Records one data frame
         '''
-        self.estimator.record()
+        pass
 
     def sendCommand(self, command):
         '''
@@ -104,5 +103,5 @@ class Interface:
         Takes a snapshot of the current interface status.
         index index of current iteration
         '''
+        pass
  
-        self.estimator.snapshot(index)

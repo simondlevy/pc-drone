@@ -203,6 +203,7 @@ class DroneFlyer:
             self.controldata = [eval('pids.'+item) for item in self.controlvarnames]
             self.flt_mode = self._NORMAL_FM
             # print('START FLYING')
+
         elif key == ord('e'):
             self.throttle = self.THROTTLE_MID
             self.roll = self.ROLL_MID  # turns left
@@ -248,7 +249,7 @@ class DroneFlyer:
 
         # r - reset the serial port so Arduino will bind to another CX-10
         elif key == 114:
-            self.interface.resetComms()
+            self.interface.reset()
 
         elif key >= ord('1') and key <= ord('7'):
 

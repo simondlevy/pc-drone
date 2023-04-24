@@ -16,9 +16,10 @@ from datetime import datetime
 
 import pids
 
-# You can change this for your project
+# Un-comment one of these three for your project
 from interfaces.original import Interface
 #from interfaces.multisim import Interface
+#from interfaces.mocap import Interface
 
 LOG_DIR = './logs'
 

@@ -15,8 +15,8 @@ import timeit
 from datetime import datetime
 
 # Un-comment one of these for your project
-from interfaces.original import Interface, pids
-# from interfaces.multisim import Interface, pids
+# from interfaces.original import Interface, pids
+from interfaces.multisim import Interface, pids
 # from interfaces.mocap import Interface, pids
 
 LOG_DIR = './logs'
@@ -79,7 +79,7 @@ class DroneFlyer:
 
         self.flt_mode = self._NORMAL_FM
 
-        self.recording_data = 0
+        self.recording_data = False
 
         self.controlvarnames = None
         self.controldata = None
@@ -91,7 +91,6 @@ class DroneFlyer:
         '''
         Returns True if interface devices started successfully, False otherwise
         '''
-
         return self.interface.isReady()
 
     def step(self):
@@ -104,19 +103,22 @@ class DroneFlyer:
 
         if self.flying:
 
-            # State estimator failed; cut the throttle!
+            # state estimator failed; cut the throttle!
             if state is None:
                 self.no_position_cnt += 1
                 if self.no_position_cnt > 15:
                     self.throttle = 1000
                     self.flying = False
 
-            # got state, use it to get demands
+            # state estimator working; use state to get demands
             else:
                 self.zpos, self.xypos, self.theta = state
-                self._run_pid_controller()
+                if self.flt_mode == self._LANDING_FM:
+                    self.throttle -= 20
+                else:
+                    self._run_pid_controller()
 
-        # Serial comms - write to Arduino
+        # serial comms - write to Arduino
         self.throttle = self._clamp(self.throttle, 1000, 2000)
         self.yaw = self._clamp(self.yaw, 1000, 2000)
         command = (self.throttle, self.roll, self.pitch, self.yaw)
@@ -141,32 +143,8 @@ class DroneFlyer:
                 self.xypos = np.zeros(2)
                 self.zpos = 0
 
-            self.flightdata = np.vstack((self.flightdata,
-                                         np.array([
-                                                   (self.flighttoc -
-                                                    self.flighttic),
-                                                   self.xypos[0],
-                                                   self.xypos[1],
-                                                   self.zpos,
-                                                   self.dx,
-                                                   self.dy,
-                                                   self.dz,
-                                                   self.e_dx,
-                                                   self.e_ix,
-                                                   self.e_d2x,
-                                                   self.e_dy,
-                                                   self.e_iy,
-                                                   self.e_d2y,
-                                                   self.e_dz,
-                                                   self.e_iz,
-                                                   self.e_d2z,
-                                                   self.xspeed,
-                                                   self.yspeed,
-                                                   self.zspeed,
-                                                   self.throttle,
-                                                   self.roll,
-                                                   self.pitch,
-                                                   self.yaw])))
+            self._build_flight_data()
+
             if len(self.x_targ_seq) > 1:
                 self.x_target = self.x_targ_seq.pop(0)
                 self.ypos_target = self.ypos_targ_seq.pop(0)
@@ -177,17 +155,8 @@ class DroneFlyer:
                 self.flt_mode = self._LANDING_FM
 
         elif self.recording_data:
-            np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
-                    str(self.flightnum) +
-                    '_' + 'self.flightdata.npy', self.flightdata)
-            np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
-                    str(self.flightnum) +
-                    '_' + 'self.controldata.npy', self.controldata)
-            with open(LOG_DIR + '/' + self.timestamp + '_flt' +
-                      str(self.flightnum) + '_' + 'self.controlvarnames.npy',
-                      'wb') as f:
-                pickle.dump(self.controlvarnames, f)
-            self.recording_data = 0
+            self._save_data()
+            self.recording_data = False
 
         if key == 27:  # exit on ESC
             return False
@@ -196,175 +165,117 @@ class DroneFlyer:
             self.interface.takeSnapshot(self.snapnum)
             self.snapnum += 1
 
-        elif key == 119:  # w
-            self.throttle = self.THROTTLE_MID
-            self.roll = self.ROLL_MID  # turns left
-            self.pitch = self.PITCH_MID
-            self.e_ix = 0
-            self.e_iy = 0
-            self.e_iz = 0
-            self.yaw = 1500  # self.yaw, rotates the drone
-            self.flying = True
-            self.recording_data = 1
-            self.flightdata = np.zeros(23)
-            self.flighttic = timeit.default_timer()
-            self.flighttoc = 0
-            self.flightnum += 1
-
-            # reload(pids)  # ???
-            # this lists out all the variables in module pids
-            # and records their values.
-            self.controlvarnames = [item for item in
-                                    dir(pids) if not item.startswith('__')]
-            self.controldata = [eval('pids.'+item)
-                                for item in self.controlvarnames]
+        elif key == ord('w'):  # takeoff
+            self._take_off()
             self.flt_mode = self._NORMAL_FM
             # print('START FLYING')
 
-        elif key == ord('e'):
-            self.throttle = self.THROTTLE_MID
-            self.roll = self.ROLL_MID  # turns left
-            self.pitch = self.PITCH_MID
-            self.e_ix = 0
-            self.e_iy = 0
-            self.e_iz = 0
-            self.yaw = 1500  # self.yaw, rotates the drone
-            self.flying = True
-            self.recording_data = 1
-            self.flightdata = np.zeros(23)
-            self.flighttic = timeit.default_timer()
-            self.flighttoc = 0
-            self.flightnum += 1
-
-            self.controlvarnames = [item for item in
-                                    dir(pids) if not item.startswith('__')]
-            self.controldata = [eval('pids.'+item)
-                                for item in self.controlvarnames]
-
-            self.x_targ_seq = [self.x_target]
-            self.ypos_targ_seq = [self.ypos_target]
-            self.zpos_targ_seq = [self.zpos_target]
-            self.theta_targ_seq = [self.theta_target]
-
-            (self.x_targ_seq, self.ypos_targ_seq,
-             self.zpos_targ_seq, self.theta_targ_seq) = \
-                self._flight_sequence('hover', self.x_targ_seq,
-                                      self.ypos_targ_seq, self.zpos_targ_seq,
-                                      self.theta_targ_seq)
-
-            (self.x_targ_seq, self.ypos_targ_seq,
-             self.zpos_targ_seq, self.theta_targ_seq) = \
-                self._flight_sequence('right_spot', self.x_targ_seq,
-                                      self.ypos_targ_seq, self.zpos_targ_seq,
-                                      self.theta_targ_seq)
-
-            (self.x_targ_seq, self.ypos_targ_seq,
-             self.zpos_targ_seq, self.theta_targ_seq) = \
-                self._flight_sequence('left_spot', self.x_targ_seq,
-                                      self.ypos_targ_seq, self.zpos_targ_seq,
-                                      self.theta_targ_seq)
-
+        elif key == ord('e'):  # takeoff and follow flight sequence
+            self._take_off()
+            self._build_flight_sequence() 
             self.flt_mode = self._PROGRAM_SEQ_FM
 
-            # print('START FLYING')
-
-        elif key == 115:  # s
+        elif key == ord('s'):  # land
             self.flt_mode = self._LANDING_FM
 
         # r - reset the serial port so Arduino will bind to another CX-10
-        elif key == 114:
+        elif key == ord('r'):
             self.interface.reset()
 
+        # number keys 1 - 7: fly patterns
         elif key >= ord('1') and key <= ord('7'):
+            self._fly_patterns(key)
 
-            commands = ('takeoff', 'land', 'box', 'left_spot',
-                        'right_spot', 'rotate90_left', 'rotate90_right')
-
-            command = commands[key - ord('1')]
-
-            (self.x_targ_seq,
-             self.ypos_targ_seq,
-             self.zpos_targ_seq,
-             self.theta_targ_seq) = (
-                    self._flight_sequence(command,
-                                          self.x_targ_seq,
-                                          self.ypos_targ_seq,
-                                          self.zpos_targ_seq,
-                                          self.theta_targ_seq))
         # read next state data
         return self.interface.acquiredState()
 
     def _run_pid_controller(self):
 
-        if self.flt_mode != self._LANDING_FM:
-            self.e_dz_old = self.e_dz
-            # print(self.zpos, self.zpos_target)
-            self.e_dz = self.zpos - self.zpos_target
-            self.e_iz += self.e_dz
-            self.e_iz = self._clamp(self.e_iz, -10000, 10000)
-            e_d2z = self.e_dz-self.e_dz_old
-            self.throttle = (pids.Kz *
-                             (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
-                              pids.Kdz * e_d2z) +
-                             self.THROTTLE_MID)
-            e_dx_old = self.e_dx
-            e_dx = self.xypos[0]-self.x_target
-            self.e_ix += e_dx
-            self.e_ix = self._clamp(self.e_ix, -200000, 200000)
-            e_d2x = e_dx - e_dx_old
+        self.e_dz_old = self.e_dz
+        # print(self.zpos, self.zpos_target)
+        self.e_dz = self.zpos - self.zpos_target
+        self.e_iz += self.e_dz
+        self.e_iz = self._clamp(self.e_iz, -10000, 10000)
+        e_d2z = self.e_dz-self.e_dz_old
+        self.throttle = (pids.Kz *
+                         (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
+                          pids.Kdz * e_d2z) +
+                         self.THROTTLE_MID)
+        e_dx_old = self.e_dx
+        e_dx = self.xypos[0]-self.x_target
+        self.e_ix += e_dx
+        self.e_ix = self._clamp(self.e_ix, -200000, 200000)
+        e_d2x = e_dx - e_dx_old
 
-            xcommand = pids.Kx * (
-                    self.e_dx * pids.Kpx +
-                    pids.Kix * self.e_ix +
-                    pids.Kdx * e_d2x)
+        xcommand = pids.Kx * (
+                self.e_dx * pids.Kpx +
+                pids.Kix * self.e_ix +
+                pids.Kdx * e_d2x)
 
-            self.e_dy_old = self.e_dy
-            e_dy = self.xypos[1] - self.ypos_target
-            self.e_iy += e_dy
-            self.e_iy = self._clamp(self.e_iy, -200000, 200000)
-            self.e_d2y = self.e_dy - self.e_dy_old
+        self.e_dy_old = self.e_dy
+        e_dy = self.xypos[1] - self.ypos_target
+        self.e_iy += e_dy
+        self.e_iy = self._clamp(self.e_iy, -200000, 200000)
+        self.e_d2y = self.e_dy - self.e_dy_old
 
-            ycommand = (pids.Ky *
-                        (e_dy * pids.Kpy +
-                         pids.Kiy * self.e_iy +
-                         pids.Kdy * self.e_d2y))
+        ycommand = (pids.Ky *
+                    (e_dy * pids.Kpy +
+                     pids.Kiy * self.e_iy +
+                     pids.Kdy * self.e_d2y))
 
-            # commands are calculated in camera reference frame
-            self.roll = (xcommand * np.cos(self.theta) + ycommand *
-                         np.sin(self.theta) + self.ROLL_MID)
-            self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
-                          np.cos(self.theta) + self.PITCH_MID)
-            self.e_dt_old = self.e_dt
-            self.e_dt = self.theta-self.theta_target
-            # angle error should always be less than 180degrees (pi
-            # radians)
-            if (self.e_dt > np.pi):
-                self.e_dt -= 2*np.pi
-            elif (self.e_dt < (-np.pi)):
-                self.e_dt += 2*np.pi
+        # commands are calculated in camera reference frame
+        self.roll = (xcommand * np.cos(self.theta) + ycommand *
+                     np.sin(self.theta) + self.ROLL_MID)
+        self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
+                      np.cos(self.theta) + self.PITCH_MID)
+        self.e_dt_old = self.e_dt
+        self.e_dt = self.theta-self.theta_target
+        # angle error should always be less than 180degrees (pi
+        # radians)
+        if (self.e_dt > np.pi):
+            self.e_dt -= 2*np.pi
+        elif (self.e_dt < (-np.pi)):
+            self.e_dt += 2*np.pi
 
-            self.e_it += self.e_dt
-            self.e_it = self._clamp(self.e_it, -200000, 200000)
-            self.e_d2t = self.e_dt - self.e_dt_old
-            self.yaw = pids.Kt * (
-                    self.e_dt * pids.Kpt + pids.Kit * self.e_it + pids.Kdt *
-                    self.e_d2t) + self.YAW_MID
-            if self.zpos > 0:
-                # print('highalt')
-                self.roll = self._clamp(self.roll, 1000, 2000)
-                self.pitch = self._clamp(self.pitch, 1000, 2000)
-            else:
-                # print('lowalt')
-                self.roll = self._clamp(self.roll, 1400, 1600)
-                self.pitch = self._clamp(self.pitch, 1400, 1600)
-            self.no_position_cnt = 0
-        else:  # landing mode
-            self.throttle = self.throttle-20
+        self.e_it += self.e_dt
+        self.e_it = self._clamp(self.e_it, -200000, 200000)
+        self.e_d2t = self.e_dt - self.e_dt_old
+        self.yaw = pids.Kt * (
+                self.e_dt * pids.Kpt + pids.Kit * self.e_it + pids.Kdt *
+                self.e_d2t) + self.YAW_MID
+        if self.zpos > 0:
+            # print('highalt')
+            self.roll = self._clamp(self.roll, 1000, 2000)
+            self.pitch = self._clamp(self.pitch, 1000, 2000)
+        else:
+            # print('lowalt')
+            self.roll = self._clamp(self.roll, 1400, 1600)
+            self.pitch = self._clamp(self.pitch, 1400, 1600)
+        self.no_position_cnt = 0
 
-    # Helper methods ---------------------------------------------------------
+    def _take_off(self):
 
-    def _clamp(self, n, minn, maxn):
-        return max(min(maxn, n), minn)
+        self.throttle = self.THROTTLE_MID
+        self.roll = self.ROLL_MID  # turns left
+        self.pitch = self.PITCH_MID
+        self.e_ix = 0
+        self.e_iy = 0
+        self.e_iz = 0
+        self.yaw = 1500  # self.yaw, rotates the drone
+        self.flying = True
+        self.recording_data = True
+        self.flightdata = np.zeros(23)
+        self.flighttic = timeit.default_timer()
+        self.flighttoc = 0
+        self.flightnum += 1
+
+        # reload(pids)  # ???
+        # this lists out all the variables in module pids
+        # and records their values.
+        self.controlvarnames = [item for item in
+                                dir(pids) if not item.startswith('__')]
+        self.controldata = [eval('pids.'+item)
+                            for item in self.controlvarnames]
 
     def _flight_sequence(
             self, seqname, xseq_list, yseq_list, zseq_list, tseq_list):
@@ -474,6 +385,79 @@ class DroneFlyer:
                                   self.theta_endpoint, xpoints)))
 
         return list(xseq), list(yseq), list(zseq), list(tseq)
+
+    def _build_flight_data(self):
+
+        self.flightdata = (
+                np.vstack(
+                    (self.flightdata,
+                     np.array(
+                         [(self.flighttoc - self.flighttic),
+                          self.xypos[0], self.xypos[1], self.zpos,
+                          self.dx, self.dy, self.dz,
+                          self.e_dx, self.e_ix, self.e_d2x, self.e_dy,
+                          self.e_iy, self.e_d2y, self.e_dz, self.e_iz,
+                          self.e_d2z,
+                          self.xspeed, self.yspeed, self.zspeed,
+                          self.throttle, self.roll, self.pitch, self.yaw]))))
+
+    def _save_data(self):
+
+        np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
+                str(self.flightnum) +
+                '_' + 'self.flightdata.npy', self.flightdata)
+        np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
+                str(self.flightnum) +
+                '_' + 'self.controldata.npy', self.controldata)
+        with open(LOG_DIR + '/' + self.timestamp + '_flt' +
+                  str(self.flightnum) + '_' + 'self.controlvarnames.npy',
+                  'wb') as f:
+            pickle.dump(self.controlvarnames, f)
+
+    def _build_flight_sequence(self):
+
+        self.x_targ_seq = [self.x_target]
+        self.ypos_targ_seq = [self.ypos_target]
+        self.zpos_targ_seq = [self.zpos_target]
+        self.theta_targ_seq = [self.theta_target]
+
+        (self.x_targ_seq, self.ypos_targ_seq,
+         self.zpos_targ_seq, self.theta_targ_seq) = \
+            self._flight_sequence('hover', self.x_targ_seq,
+                                  self.ypos_targ_seq, self.zpos_targ_seq,
+                                  self.theta_targ_seq)
+
+        (self.x_targ_seq, self.ypos_targ_seq,
+         self.zpos_targ_seq, self.theta_targ_seq) = \
+            self._flight_sequence('right_spot', self.x_targ_seq,
+                                  self.ypos_targ_seq, self.zpos_targ_seq,
+                                  self.theta_targ_seq)
+
+        (self.x_targ_seq, self.ypos_targ_seq,
+         self.zpos_targ_seq, self.theta_targ_seq) = \
+            self._flight_sequence('left_spot', self.x_targ_seq,
+                                  self.ypos_targ_seq, self.zpos_targ_seq,
+                                  self.theta_targ_seq)
+
+    def _fly_patterns(self, key):
+
+        commands = ('takeoff', 'land', 'box', 'left_spot',
+                    'right_spot', 'rotate90_left', 'rotate90_right')
+
+        command = commands[key - ord('1')]
+
+        (self.x_targ_seq,
+         self.ypos_targ_seq,
+         self.zpos_targ_seq,
+         self.theta_targ_seq) = (
+                self._flight_sequence(command,
+                                      self.x_targ_seq,
+                                      self.ypos_targ_seq,
+                                      self.zpos_targ_seq,
+                                      self.theta_targ_seq))
+
+    def _clamp(self, n, minn, maxn):
+        return max(min(maxn, n), minn)
 
 
 def main():

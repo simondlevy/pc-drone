@@ -79,7 +79,7 @@ class DroneFlyer:
 
         self.flt_mode = self._NORMAL_FM
 
-        self.recording_data = 0
+        self.recording_data = False
 
         self.controlvarnames = None
         self.controldata = None
@@ -155,17 +155,8 @@ class DroneFlyer:
                 self.flt_mode = self._LANDING_FM
 
         elif self.recording_data:
-            np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
-                    str(self.flightnum) +
-                    '_' + 'self.flightdata.npy', self.flightdata)
-            np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
-                    str(self.flightnum) +
-                    '_' + 'self.controldata.npy', self.controldata)
-            with open(LOG_DIR + '/' + self.timestamp + '_flt' +
-                      str(self.flightnum) + '_' + 'self.controlvarnames.npy',
-                      'wb') as f:
-                pickle.dump(self.controlvarnames, f)
-            self.recording_data = 0
+            self._save_data()
+            self.recording_data = False
 
         if key == 27:  # exit on ESC
             return False
@@ -324,7 +315,7 @@ class DroneFlyer:
         self.e_iz = 0
         self.yaw = 1500  # self.yaw, rotates the drone
         self.flying = True
-        self.recording_data = 1
+        self.recording_data = True
         self.flightdata = np.zeros(23)
         self.flighttic = timeit.default_timer()
         self.flighttoc = 0
@@ -458,6 +449,19 @@ class DroneFlyer:
                           self.e_d2z,
                           self.xspeed, self.yspeed, self.zspeed,
                           self.throttle, self.roll, self.pitch, self.yaw]))))
+
+    def _save_data(self):
+
+        np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
+                str(self.flightnum) +
+                '_' + 'self.flightdata.npy', self.flightdata)
+        np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
+                str(self.flightnum) +
+                '_' + 'self.controldata.npy', self.controldata)
+        with open(LOG_DIR + '/' + self.timestamp + '_flt' +
+                  str(self.flightnum) + '_' + 'self.controlvarnames.npy',
+                  'wb') as f:
+            pickle.dump(self.controlvarnames, f)
 
     def _clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)

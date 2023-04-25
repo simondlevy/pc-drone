@@ -114,7 +114,10 @@ class DroneFlyer:
             # got state, use it to get demands
             else:
                 self.zpos, self.xypos, self.theta = state
-                self._run_pid_controller()
+                if self.flt_mode == self._LANDING_FM:
+                    self.throttle -= 20
+                else:
+                    self._run_pid_controller()
 
         # Serial comms - write to Arduino
         self.throttle = self._clamp(self.throttle, 1000, 2000)
@@ -274,70 +277,67 @@ class DroneFlyer:
 
     def _run_pid_controller(self):
 
-        if self.flt_mode != self._LANDING_FM:
-            self.e_dz_old = self.e_dz
-            # print(self.zpos, self.zpos_target)
-            self.e_dz = self.zpos - self.zpos_target
-            self.e_iz += self.e_dz
-            self.e_iz = self._clamp(self.e_iz, -10000, 10000)
-            e_d2z = self.e_dz-self.e_dz_old
-            self.throttle = (pids.Kz *
-                             (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
-                              pids.Kdz * e_d2z) +
-                             self.THROTTLE_MID)
-            e_dx_old = self.e_dx
-            e_dx = self.xypos[0]-self.x_target
-            self.e_ix += e_dx
-            self.e_ix = self._clamp(self.e_ix, -200000, 200000)
-            e_d2x = e_dx - e_dx_old
+        self.e_dz_old = self.e_dz
+        # print(self.zpos, self.zpos_target)
+        self.e_dz = self.zpos - self.zpos_target
+        self.e_iz += self.e_dz
+        self.e_iz = self._clamp(self.e_iz, -10000, 10000)
+        e_d2z = self.e_dz-self.e_dz_old
+        self.throttle = (pids.Kz *
+                         (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
+                          pids.Kdz * e_d2z) +
+                         self.THROTTLE_MID)
+        e_dx_old = self.e_dx
+        e_dx = self.xypos[0]-self.x_target
+        self.e_ix += e_dx
+        self.e_ix = self._clamp(self.e_ix, -200000, 200000)
+        e_d2x = e_dx - e_dx_old
 
-            xcommand = pids.Kx * (
-                    self.e_dx * pids.Kpx +
-                    pids.Kix * self.e_ix +
-                    pids.Kdx * e_d2x)
+        xcommand = pids.Kx * (
+                self.e_dx * pids.Kpx +
+                pids.Kix * self.e_ix +
+                pids.Kdx * e_d2x)
 
-            self.e_dy_old = self.e_dy
-            e_dy = self.xypos[1] - self.ypos_target
-            self.e_iy += e_dy
-            self.e_iy = self._clamp(self.e_iy, -200000, 200000)
-            self.e_d2y = self.e_dy - self.e_dy_old
+        self.e_dy_old = self.e_dy
+        e_dy = self.xypos[1] - self.ypos_target
+        self.e_iy += e_dy
+        self.e_iy = self._clamp(self.e_iy, -200000, 200000)
+        self.e_d2y = self.e_dy - self.e_dy_old
 
-            ycommand = (pids.Ky *
-                        (e_dy * pids.Kpy +
-                         pids.Kiy * self.e_iy +
-                         pids.Kdy * self.e_d2y))
+        ycommand = (pids.Ky *
+                    (e_dy * pids.Kpy +
+                     pids.Kiy * self.e_iy +
+                     pids.Kdy * self.e_d2y))
 
-            # commands are calculated in camera reference frame
-            self.roll = (xcommand * np.cos(self.theta) + ycommand *
-                         np.sin(self.theta) + self.ROLL_MID)
-            self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
-                          np.cos(self.theta) + self.PITCH_MID)
-            self.e_dt_old = self.e_dt
-            self.e_dt = self.theta-self.theta_target
-            # angle error should always be less than 180degrees (pi
-            # radians)
-            if (self.e_dt > np.pi):
-                self.e_dt -= 2*np.pi
-            elif (self.e_dt < (-np.pi)):
-                self.e_dt += 2*np.pi
+        # commands are calculated in camera reference frame
+        self.roll = (xcommand * np.cos(self.theta) + ycommand *
+                     np.sin(self.theta) + self.ROLL_MID)
+        self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
+                      np.cos(self.theta) + self.PITCH_MID)
+        self.e_dt_old = self.e_dt
+        self.e_dt = self.theta-self.theta_target
+        # angle error should always be less than 180degrees (pi
+        # radians)
+        if (self.e_dt > np.pi):
+            self.e_dt -= 2*np.pi
+        elif (self.e_dt < (-np.pi)):
+            self.e_dt += 2*np.pi
 
-            self.e_it += self.e_dt
-            self.e_it = self._clamp(self.e_it, -200000, 200000)
-            self.e_d2t = self.e_dt - self.e_dt_old
-            self.yaw = pids.Kt * (
-                    self.e_dt * pids.Kpt + pids.Kit * self.e_it + pids.Kdt *
-                    self.e_d2t) + self.YAW_MID
-            if self.zpos > 0:
-                # print('highalt')
-                self.roll = self._clamp(self.roll, 1000, 2000)
-                self.pitch = self._clamp(self.pitch, 1000, 2000)
-            else:
-                # print('lowalt')
-                self.roll = self._clamp(self.roll, 1400, 1600)
-                self.pitch = self._clamp(self.pitch, 1400, 1600)
-            self.no_position_cnt = 0
-        else:  # landing mode
-            self.throttle = self.throttle-20
+        self.e_it += self.e_dt
+        self.e_it = self._clamp(self.e_it, -200000, 200000)
+        self.e_d2t = self.e_dt - self.e_dt_old
+        self.yaw = pids.Kt * (
+                self.e_dt * pids.Kpt + pids.Kit * self.e_it + pids.Kdt *
+                self.e_d2t) + self.YAW_MID
+        if self.zpos > 0:
+            # print('highalt')
+            self.roll = self._clamp(self.roll, 1000, 2000)
+            self.pitch = self._clamp(self.pitch, 1000, 2000)
+        else:
+            # print('lowalt')
+            self.roll = self._clamp(self.roll, 1400, 1600)
+            self.pitch = self._clamp(self.pitch, 1400, 1600)
+        self.no_position_cnt = 0
 
     def _take_off(self):
 

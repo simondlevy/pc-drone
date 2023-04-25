@@ -15,8 +15,8 @@ import timeit
 from datetime import datetime
 
 # Un-comment one of these for your project
-from interfaces.original import Interface, pids
-# from interfaces.multisim import Interface, pids
+# from interfaces.original import Interface, pids
+from interfaces.multisim import Interface, pids
 # from interfaces.mocap import Interface, pids
 
 LOG_DIR = './logs'
@@ -197,19 +197,8 @@ class DroneFlyer:
             self.snapnum += 1
 
         elif key == 119:  # w
-            self.throttle = self.THROTTLE_MID
-            self.roll = self.ROLL_MID  # turns left
-            self.pitch = self.PITCH_MID
-            self.e_ix = 0
-            self.e_iy = 0
-            self.e_iz = 0
-            self.yaw = 1500  # self.yaw, rotates the drone
-            self.flying = True
-            self.recording_data = 1
-            self.flightdata = np.zeros(23)
-            self.flighttic = timeit.default_timer()
-            self.flighttoc = 0
-            self.flightnum += 1
+
+            self._take_off()
 
             # reload(pids)  # ???
             # this lists out all the variables in module pids
@@ -222,19 +211,8 @@ class DroneFlyer:
             # print('START FLYING')
 
         elif key == ord('e'):
-            self.throttle = self.THROTTLE_MID
-            self.roll = self.ROLL_MID  # turns left
-            self.pitch = self.PITCH_MID
-            self.e_ix = 0
-            self.e_iy = 0
-            self.e_iz = 0
-            self.yaw = 1500  # self.yaw, rotates the drone
-            self.flying = True
-            self.recording_data = 1
-            self.flightdata = np.zeros(23)
-            self.flighttic = timeit.default_timer()
-            self.flighttoc = 0
-            self.flightnum += 1
+
+            self._take_off()
 
             self.controlvarnames = [item for item in
                                     dir(pids) if not item.startswith('__')]
@@ -361,7 +339,27 @@ class DroneFlyer:
         else:  # landing mode
             self.throttle = self.throttle-20
 
-    # Helper methods ---------------------------------------------------------
+    def _take_off(self):
+
+        self.throttle = self.THROTTLE_MID
+        self.roll = self.ROLL_MID  # turns left
+        self.pitch = self.PITCH_MID
+        self.e_ix = 0
+        self.e_iy = 0
+        self.e_iz = 0
+        self.yaw = 1500  # self.yaw, rotates the drone
+        self.flying = True
+        self.recording_data = 1
+        self.flightdata = np.zeros(23)
+        self.flighttic = timeit.default_timer()
+        self.flighttoc = 0
+        self.flightnum += 1
+
+        self.controlvarnames = [item for item in
+                                dir(pids) if not item.startswith('__')]
+        self.controldata = [eval('pids.'+item)
+                            for item in self.controlvarnames]
+
 
     def _clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)

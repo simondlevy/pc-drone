@@ -103,14 +103,14 @@ class DroneFlyer:
 
         if self.flying:
 
-            # State estimator failed; cut the throttle!
+            # state estimator failed; cut the throttle!
             if state is None:
                 self.no_position_cnt += 1
                 if self.no_position_cnt > 15:
                     self.throttle = 1000
                     self.flying = False
 
-            # got state, use it to get demands
+            # state estimator working; use state to get demands
             else:
                 self.zpos, self.xypos, self.theta = state
                 if self.flt_mode == self._LANDING_FM:
@@ -118,7 +118,7 @@ class DroneFlyer:
                 else:
                     self._run_pid_controller()
 
-        # Serial comms - write to Arduino
+        # serial comms - write to Arduino
         self.throttle = self._clamp(self.throttle, 1000, 2000)
         self.yaw = self._clamp(self.yaw, 1000, 2000)
         command = (self.throttle, self.roll, self.pitch, self.yaw)
@@ -143,32 +143,8 @@ class DroneFlyer:
                 self.xypos = np.zeros(2)
                 self.zpos = 0
 
-            self.flightdata = np.vstack((self.flightdata,
-                                         np.array([
-                                                   (self.flighttoc -
-                                                    self.flighttic),
-                                                   self.xypos[0],
-                                                   self.xypos[1],
-                                                   self.zpos,
-                                                   self.dx,
-                                                   self.dy,
-                                                   self.dz,
-                                                   self.e_dx,
-                                                   self.e_ix,
-                                                   self.e_d2x,
-                                                   self.e_dy,
-                                                   self.e_iy,
-                                                   self.e_d2y,
-                                                   self.e_dz,
-                                                   self.e_iz,
-                                                   self.e_d2z,
-                                                   self.xspeed,
-                                                   self.yspeed,
-                                                   self.zspeed,
-                                                   self.throttle,
-                                                   self.roll,
-                                                   self.pitch,
-                                                   self.yaw])))
+            self._build_flight_data()
+
             if len(self.x_targ_seq) > 1:
                 self.x_target = self.x_targ_seq.pop(0)
                 self.ypos_target = self.ypos_targ_seq.pop(0)
@@ -467,6 +443,21 @@ class DroneFlyer:
                                   self.theta_endpoint, xpoints)))
 
         return list(xseq), list(yseq), list(zseq), list(tseq)
+
+    def _build_flight_data(self):
+
+        self.flightdata = (
+                np.vstack(
+                    (self.flightdata,
+                     np.array(
+                         [(self.flighttoc - self.flighttic),
+                          self.xypos[0], self.xypos[1], self.zpos,
+                          self.dx, self.dy, self.dz,
+                          self.e_dx, self.e_ix, self.e_d2x, self.e_dy,
+                          self.e_iy, self.e_d2y, self.e_dz, self.e_iz,
+                          self.e_d2z,
+                          self.xspeed, self.yspeed, self.zspeed,
+                          self.throttle, self.roll, self.pitch, self.yaw]))))
 
     def _clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)

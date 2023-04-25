@@ -91,7 +91,6 @@ class DroneFlyer:
         '''
         Returns True if interface devices started successfully, False otherwise
         '''
-
         return self.interface.isReady()
 
     def step(self):
@@ -360,10 +359,6 @@ class DroneFlyer:
         self.controldata = [eval('pids.'+item)
                             for item in self.controlvarnames]
 
-
-    def _clamp(self, n, minn, maxn):
-        return max(min(maxn, n), minn)
-
     def _flight_sequence(
             self, seqname, xseq_list, yseq_list, zseq_list, tseq_list):
         # This function takes sequence lists and returns sequence lists.
@@ -472,6 +467,9 @@ class DroneFlyer:
                                   self.theta_endpoint, xpoints)))
 
         return list(xseq), list(yseq), list(zseq), list(tseq)
+
+    def _clamp(self, n, minn, maxn):
+        return max(min(maxn, n), minn)
 
 
 def main():

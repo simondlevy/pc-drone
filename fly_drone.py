@@ -165,79 +165,27 @@ class DroneFlyer:
             self.interface.takeSnapshot(self.snapnum)
             self.snapnum += 1
 
-        elif key == 119:  # w
-
+        elif key == ord('w'):  # takeoff
             self._take_off()
-
-            # reload(pids)  # ???
-            # this lists out all the variables in module pids
-            # and records their values.
-            self.controlvarnames = [item for item in
-                                    dir(pids) if not item.startswith('__')]
-            self.controldata = [eval('pids.'+item)
-                                for item in self.controlvarnames]
             self.flt_mode = self._NORMAL_FM
             # print('START FLYING')
 
-        elif key == ord('e'):
-
+        elif key == ord('e'):  # takeoff and follow flight sequence
             self._take_off()
-
-            self.controlvarnames = [item for item in
-                                    dir(pids) if not item.startswith('__')]
-            self.controldata = [eval('pids.'+item)
-                                for item in self.controlvarnames]
-
-            self.x_targ_seq = [self.x_target]
-            self.ypos_targ_seq = [self.ypos_target]
-            self.zpos_targ_seq = [self.zpos_target]
-            self.theta_targ_seq = [self.theta_target]
-
-            (self.x_targ_seq, self.ypos_targ_seq,
-             self.zpos_targ_seq, self.theta_targ_seq) = \
-                self._flight_sequence('hover', self.x_targ_seq,
-                                      self.ypos_targ_seq, self.zpos_targ_seq,
-                                      self.theta_targ_seq)
-
-            (self.x_targ_seq, self.ypos_targ_seq,
-             self.zpos_targ_seq, self.theta_targ_seq) = \
-                self._flight_sequence('right_spot', self.x_targ_seq,
-                                      self.ypos_targ_seq, self.zpos_targ_seq,
-                                      self.theta_targ_seq)
-
-            (self.x_targ_seq, self.ypos_targ_seq,
-             self.zpos_targ_seq, self.theta_targ_seq) = \
-                self._flight_sequence('left_spot', self.x_targ_seq,
-                                      self.ypos_targ_seq, self.zpos_targ_seq,
-                                      self.theta_targ_seq)
-
+            self._build_flight_sequence() 
             self.flt_mode = self._PROGRAM_SEQ_FM
 
-            # print('START FLYING')
-
-        elif key == 115:  # s
+        elif key == ord('s'):  # land
             self.flt_mode = self._LANDING_FM
 
         # r - reset the serial port so Arduino will bind to another CX-10
-        elif key == 114:
+        elif key == ord('r'):
             self.interface.reset()
 
+        # number keys 1 - 7: fly patterns
         elif key >= ord('1') and key <= ord('7'):
+            self._fly_patterns(key)
 
-            commands = ('takeoff', 'land', 'box', 'left_spot',
-                        'right_spot', 'rotate90_left', 'rotate90_right')
-
-            command = commands[key - ord('1')]
-
-            (self.x_targ_seq,
-             self.ypos_targ_seq,
-             self.zpos_targ_seq,
-             self.theta_targ_seq) = (
-                    self._flight_sequence(command,
-                                          self.x_targ_seq,
-                                          self.ypos_targ_seq,
-                                          self.zpos_targ_seq,
-                                          self.theta_targ_seq))
         # read next state data
         return self.interface.acquiredState()
 
@@ -321,6 +269,9 @@ class DroneFlyer:
         self.flighttoc = 0
         self.flightnum += 1
 
+        # reload(pids)  # ???
+        # this lists out all the variables in module pids
+        # and records their values.
         self.controlvarnames = [item for item in
                                 dir(pids) if not item.startswith('__')]
         self.controldata = [eval('pids.'+item)
@@ -462,6 +413,48 @@ class DroneFlyer:
                   str(self.flightnum) + '_' + 'self.controlvarnames.npy',
                   'wb') as f:
             pickle.dump(self.controlvarnames, f)
+
+    def _build_flight_sequence(self):
+
+        self.x_targ_seq = [self.x_target]
+        self.ypos_targ_seq = [self.ypos_target]
+        self.zpos_targ_seq = [self.zpos_target]
+        self.theta_targ_seq = [self.theta_target]
+
+        (self.x_targ_seq, self.ypos_targ_seq,
+         self.zpos_targ_seq, self.theta_targ_seq) = \
+            self._flight_sequence('hover', self.x_targ_seq,
+                                  self.ypos_targ_seq, self.zpos_targ_seq,
+                                  self.theta_targ_seq)
+
+        (self.x_targ_seq, self.ypos_targ_seq,
+         self.zpos_targ_seq, self.theta_targ_seq) = \
+            self._flight_sequence('right_spot', self.x_targ_seq,
+                                  self.ypos_targ_seq, self.zpos_targ_seq,
+                                  self.theta_targ_seq)
+
+        (self.x_targ_seq, self.ypos_targ_seq,
+         self.zpos_targ_seq, self.theta_targ_seq) = \
+            self._flight_sequence('left_spot', self.x_targ_seq,
+                                  self.ypos_targ_seq, self.zpos_targ_seq,
+                                  self.theta_targ_seq)
+
+    def _fly_patterns(self, key):
+
+        commands = ('takeoff', 'land', 'box', 'left_spot',
+                    'right_spot', 'rotate90_left', 'rotate90_right')
+
+        command = commands[key - ord('1')]
+
+        (self.x_targ_seq,
+         self.ypos_targ_seq,
+         self.zpos_targ_seq,
+         self.theta_targ_seq) = (
+                self._flight_sequence(command,
+                                      self.x_targ_seq,
+                                      self.ypos_targ_seq,
+                                      self.zpos_targ_seq,
+                                      self.theta_targ_seq))
 
     def _clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)

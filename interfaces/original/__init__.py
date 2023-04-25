@@ -97,7 +97,7 @@ class Interface:
         ESC      - quit
         spacebar - take snapshot
         w        - take off and hover in place
-        e        - ?
+        e        - take off and follow a flight sequence
         s        - land
         r        - reset
         1        - take off

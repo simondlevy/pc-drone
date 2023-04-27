@@ -68,7 +68,7 @@ class Interface(MulticopterServer):
         m3 = thr
         m4 = thr
 
-        print('t=%f thr=%d z=%03d m1=%3.3f' % (t, int(cthr), int(zpos), m1))
+        # print('t=%f thr=%d z=%03d m1=%3.3f' % (t, int(cthr), int(zpos), m1))
 
         return np.array([m1, m2, m3, m4])
 

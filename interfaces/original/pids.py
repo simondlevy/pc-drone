@@ -26,19 +26,5 @@ Kit = 1
 Kdt = 10
 Kt = 2
 
-#############################
-# Position Gains
-Ksz = .1
-Ksx = .01
-Ksy = .01
-Kst = .01
-
-# Velocity Filter gains
-#Fx = 0.5
-#Fy = 0.5
-#Fz = 0.5
-#Ft = 0.5
-
-#############################
-
+# min=1000, max=2000
 THROTTLE_MID = 1350

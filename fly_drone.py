@@ -15,9 +15,9 @@ import timeit
 from datetime import datetime
 
 # Un-comment one of these for your project
-# from interfaces.original import Interface, pids
-from interfaces.multisim import Interface, pids
-# from interfaces.mocap import Interface, pids
+# from interfaces.original import Interface, params
+from interfaces.multisim import Interface, params
+# from interfaces.mocap import Interface, params
 
 LOG_DIR = './logs'
 
@@ -193,39 +193,39 @@ class DroneFlyer:
 
         self.e_dz = self.zpos - self.zpos_target
         self.e_iz += self.e_dz
-        self.e_iz = self._clamp(self.e_iz, -pids.Kzwindup, pids.Kzwindup)
+        self.e_iz = self._clamp(self.e_iz, -params.Kzwindup, params.Kzwindup)
 
         print(self.zpos, self.zpos_target, self.e_iz)
 
         e_d2z = self.e_dz-self.e_dz_old
 
-        self.throttle = (pids.THROTTLE_MID
-                         -pids.Kz *
-                         (pids.Kpz * self.e_dz +
-                          pids.Kiz * self.e_iz +
-                          pids.Kdz * e_d2z))
+        self.throttle = (params.THROTTLE_MID -
+                         params.Kz *
+                         (params.Kpz * self.e_dz +
+                          params.Kiz * self.e_iz +
+                          params.Kdz * e_d2z))
 
         e_dx_old = self.e_dx
         e_dx = self.xypos[0]-self.x_target
         self.e_ix += e_dx
-        self.e_ix = self._clamp(self.e_ix, -pids.Kxwindup, pids.Kxwindup)
+        self.e_ix = self._clamp(self.e_ix, -params.Kxwindup, params.Kxwindup)
         e_d2x = e_dx - e_dx_old
 
-        xcommand = -pids.Kx * (
-                self.e_dx * pids.Kpx +
-                pids.Kix * self.e_ix +
-                pids.Kdx * e_d2x)
+        xcommand = -params.Kx * (
+                self.e_dx * params.Kpx +
+                params.Kix * self.e_ix +
+                params.Kdx * e_d2x)
 
         self.e_dy_old = self.e_dy
         e_dy = self.xypos[1] - self.ypos_target
         self.e_iy += e_dy
-        self.e_iy = self._clamp(self.e_iy, -pids.Kywindup, pids.Kywindup)
+        self.e_iy = self._clamp(self.e_iy, -params.Kywindup, params.Kywindup)
         self.e_d2y = self.e_dy - self.e_dy_old
 
-        ycommand = (-pids.Ky *
-                    (e_dy * pids.Kpy +
-                     pids.Kiy * self.e_iy +
-                     pids.Kdy * self.e_d2y))
+        ycommand = (-params.Ky *
+                    (e_dy * params.Kpy +
+                     params.Kiy * self.e_iy +
+                     params.Kdy * self.e_d2y))
 
         # commands are calculated in camera reference frame
         self.roll = (xcommand * np.cos(self.theta) + ycommand *
@@ -244,8 +244,8 @@ class DroneFlyer:
         self.e_it += self.e_dt
         self.e_it = self._clamp(self.e_it, -200000, 200000)
         self.e_d2t = self.e_dt - self.e_dt_old
-        self.yaw = pids.Kt * (
-                self.e_dt * pids.Kpt + pids.Kit * self.e_it + pids.Kdt *
+        self.yaw = params.Kt * (
+                self.e_dt * params.Kpt + params.Kit * self.e_it + params.Kdt *
                 self.e_d2t) + self.YAW_MID
         if self.zpos > 0:
             # print('highalt')
@@ -259,7 +259,7 @@ class DroneFlyer:
 
     def _take_off(self):
 
-        self.throttle = pids.THROTTLE_MID
+        self.throttle = params.THROTTLE_MID
         self.roll = self.ROLL_MID  # turns left
         self.pitch = self.PITCH_MID
         self.e_ix = 0
@@ -273,12 +273,12 @@ class DroneFlyer:
         self.flighttoc = 0
         self.flightnum += 1
 
-        # reload(pids)  # ???
-        # this lists out all the variables in module pids
+        # reload(params)  # ???
+        # this lists out all the variables in module params
         # and records their values.
         self.controlvarnames = [item for item in
-                                dir(pids) if not item.startswith('__')]
-        self.controldata = [eval('pids.'+item)
+                                dir(params) if not item.startswith('__')]
+        self.controldata = [eval('params.'+item)
                             for item in self.controlvarnames]
 
     def _flight_sequence(

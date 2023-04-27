@@ -1,5 +1,5 @@
 '''
-PID control constants MultiSim version of PC-Drone
+PID control constants and other parameters
 
 Copyright (c) 2023 perrystao, Simon D. Levy
 
@@ -18,9 +18,9 @@ Kdy = Kdx
 Ky = Kx
 Kywindup = Kxwindup
 
-Kpz = 0 # 2
+Kpz = 2
 Kiz = .1
-Kdz = 0 # 20 
+Kdz = 20 
 Kz =  1
 Kzwindup = 10000
 
@@ -30,4 +30,6 @@ Kdt = 10
 Kt = 2
 
 # min=1000, max=2000
-THROTTLE_MID = 1000 # 1350
+THROTTLE_MID = 1500 # 1350
+
+TAKEOFF_ALTITUDE = 15

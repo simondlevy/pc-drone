@@ -9,17 +9,17 @@ MIT License
 Kpx = 1
 Kix = .03
 Kdx = 10
-Kx = -1
+Kx = 1
 
 Kpy = Kpx
 Kiy = Kix
 Kdy = Kdx
-Ky = -1*Kx
+Ky = Kx
 
-Kpz = 2
+Kpz = 0 # 2
 Kiz = .1
-Kdz = 20
-Kz = -1
+Kdz = 0 # 20
+Kz =  1
 
 Kpt = 30
 Kit = 1

@@ -196,7 +196,7 @@ class DroneFlyer:
         self.e_iz += self.e_dz
         self.e_iz = self._clamp(self.e_iz, -10000, 10000)
         e_d2z = self.e_dz-self.e_dz_old
-        self.throttle = (pids.Kz *
+        self.throttle = (-pids.Kz *
                          (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
                           pids.Kdz * e_d2z) +
                          self.THROTTLE_MID)
@@ -206,7 +206,7 @@ class DroneFlyer:
         self.e_ix = self._clamp(self.e_ix, -200000, 200000)
         e_d2x = e_dx - e_dx_old
 
-        xcommand = pids.Kx * (
+        xcommand = -pids.Kx * (
                 self.e_dx * pids.Kpx +
                 pids.Kix * self.e_ix +
                 pids.Kdx * e_d2x)
@@ -217,7 +217,7 @@ class DroneFlyer:
         self.e_iy = self._clamp(self.e_iy, -200000, 200000)
         self.e_d2y = self.e_dy - self.e_dy_old
 
-        ycommand = (pids.Ky *
+        ycommand = (-pids.Ky *
                     (e_dy * pids.Kpy +
                      pids.Kiy * self.e_iy +
                      pids.Kdy * self.e_d2y))

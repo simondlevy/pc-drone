@@ -59,7 +59,6 @@ class DroneFlyer:
         self.e_iz, self.e_ix, self.e_iy, self.e_it = 0, 0, 0, 0
         self.e_d2z, self.e_d2x, self.e_d2y, self.e_d2t = 0, 0, 0, 0
 
-        self.THROTTLE_MID = pids.THROTTLE_MID
         self.ROLL_MID = 1500
         self.PITCH_MID = 1500
         self.YAW_MID = 1500
@@ -191,19 +190,25 @@ class DroneFlyer:
     def _run_pid_controller(self):
 
         self.e_dz_old = self.e_dz
-        print(self.zpos, self.zpos_target)
+
         self.e_dz = self.zpos - self.zpos_target
         self.e_iz += self.e_dz
-        self.e_iz = self._clamp(self.e_iz, -10000, 10000)
+        self.e_iz = self._clamp(self.e_iz, -pids.Kzwindup, pids.Kzwindup)
+
+        print(self.zpos, self.zpos_target, self.e_iz)
+
         e_d2z = self.e_dz-self.e_dz_old
-        self.throttle = (-pids.Kz *
-                         (self.e_dz * pids.Kpz + pids.Kiz * self.e_iz +
-                          pids.Kdz * e_d2z) +
-                         self.THROTTLE_MID)
+
+        self.throttle = (pids.THROTTLE_MID
+                         -pids.Kz *
+                         (pids.Kpz * self.e_dz +
+                          pids.Kiz * self.e_iz +
+                          pids.Kdz * e_d2z))
+
         e_dx_old = self.e_dx
         e_dx = self.xypos[0]-self.x_target
         self.e_ix += e_dx
-        self.e_ix = self._clamp(self.e_ix, -200000, 200000)
+        self.e_ix = self._clamp(self.e_ix, -pids.Kxwindup, pids.Kxwindup)
         e_d2x = e_dx - e_dx_old
 
         xcommand = -pids.Kx * (
@@ -214,7 +219,7 @@ class DroneFlyer:
         self.e_dy_old = self.e_dy
         e_dy = self.xypos[1] - self.ypos_target
         self.e_iy += e_dy
-        self.e_iy = self._clamp(self.e_iy, -200000, 200000)
+        self.e_iy = self._clamp(self.e_iy, -pids.Kywindup, pids.Kywindup)
         self.e_d2y = self.e_dy - self.e_dy_old
 
         ycommand = (-pids.Ky *
@@ -254,7 +259,7 @@ class DroneFlyer:
 
     def _take_off(self):
 
-        self.throttle = self.THROTTLE_MID
+        self.throttle = pids.THROTTLE_MID
         self.roll = self.ROLL_MID  # turns left
         self.pitch = self.PITCH_MID
         self.e_ix = 0

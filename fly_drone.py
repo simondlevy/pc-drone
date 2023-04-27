@@ -45,7 +45,7 @@ class DroneFlyer:
         self.pitch = 1500  # moves front back
         self.yaw = 1500  # self.yaw, rotates the drone
 
-        self.zpos = 50
+        self.zpos = params.Z_START
         self.xypos = (350, 250)
         self.theta = 0
 
@@ -65,12 +65,11 @@ class DroneFlyer:
 
         self.x_target = 300
         self.ypos_target = 200
-        self.zpos_target = 65
         self.theta_target = 0  # 45.0/180.0*np.pi
 
         self.x_targ_seq = [self.x_target]
         self.ypos_targ_seq = [self.ypos_target]
-        self.zpos_targ_seq = [self.zpos_target]
+        self.zpos_targ_seq = [params.Z_TARGET]
         self.theta_targ_seq = [self.theta_target]
         self.flighttic = timeit.default_timer()
         self.flighttoc = timeit.default_timer()
@@ -147,7 +146,7 @@ class DroneFlyer:
             if len(self.x_targ_seq) > 1:
                 self.x_target = self.x_targ_seq.pop(0)
                 self.ypos_target = self.ypos_targ_seq.pop(0)
-                self.zpos_target = self.zpos_targ_seq.pop(0)
+                params.Z_TARGET = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
                 # print('seq len %i' % len(self.x_targ_seq))
             elif self.flt_mode == self._PROGRAM_SEQ_FM:
@@ -191,11 +190,11 @@ class DroneFlyer:
 
         self.e_dz_old = self.e_dz
 
-        self.e_dz = self.zpos - self.zpos_target
+        self.e_dz = self.zpos - params.Z_TARGET
         self.e_iz += self.e_dz
         self.e_iz = self._clamp(self.e_iz, -params.Kzwindup, params.Kzwindup)
 
-        print(self.zpos, self.zpos_target, self.e_iz)
+        print(self.zpos, params.Z_TARGET, self.e_iz)
 
         e_d2z = self.e_dz-self.e_dz_old
 
@@ -422,7 +421,7 @@ class DroneFlyer:
 
         self.x_targ_seq = [self.x_target]
         self.ypos_targ_seq = [self.ypos_target]
-        self.zpos_targ_seq = [self.zpos_target]
+        self.zpos_targ_seq = [params.Z_TARGET]
         self.theta_targ_seq = [self.theta_target]
 
         (self.x_targ_seq, self.ypos_targ_seq,

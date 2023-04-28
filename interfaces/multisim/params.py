@@ -20,9 +20,7 @@ Kywindup = Kxwindup
 
 Kpz = 2
 Kiz = .1
-Kdz = 20 
-Kz =  1
-Kzwindup = 10000
+Kzwindup = 10
 
 Kpt = 30
 Kit = 1

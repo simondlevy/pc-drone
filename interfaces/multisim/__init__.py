@@ -44,31 +44,19 @@ class Interface(MulticopterServer):
 
         # Convert MultiSim state into PC-Drone state
         self.state = (-ms_state[MulticopterServer.STATE_Z],  # NED => ENU
-                      (ms_state[MulticopterServer.STATE_Y],
-                       ms_state[MulticopterServer.STATE_Y] ),
-                      ms_state[MulticopterServer.STATE_THETA])
+                      (0, 0), 0)
 
         # Wait until fly_drone script is ready
         if self.command is None:
             return np.array([0, 0, 0, 0])
 
-        cthr, crol, cpit, cyaw = self.command
-
-        # Normalize throttle command to [0, 1]
-        thr = (cthr - 1000) / 1000
-
-        # Normalize pitch, roll, and yaw commands to [0, 1], [-1,+1], [-1,+1], [-1,+1]
-        rol = (crol - 1500) / 500
-        pit = (cpit - 1500) / 500
-        yaw = (cyaw - 1500) / 500
+        thr, _, _, _ = self.command
 
         # XXX Mix commands to get motor values
         m1 = thr
         m2 = thr
         m3 = thr
         m4 = thr
-
-        # print('thr=%d z=%03d m1=%3.3f' % (int(cthr), int(state[0]), m1))
 
         return np.array([m1, m2, m3, m4])
 

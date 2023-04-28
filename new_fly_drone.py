@@ -41,6 +41,9 @@ class DroneFlyer:
         self.timestamp = timestamp
 
         self.throttle = 1000
+        self.roll = 1500  # moves left/right
+        self.pitch = 1500  # moves front back
+        self.yaw = 1500  # self.yaw, rotates the drone
 
         self.flying = False
 
@@ -76,7 +79,7 @@ class DroneFlyer:
                     self._run_pid_controller(z, dz)
 
         # serial comms - write to Arduino
-        command = (self.throttle, 0, 0, 0)
+        command = (self.throttle, self.roll, self.pitch, self.yaw)
         self.interface.sendCommand(command)
 
         key = self.interface.getKeyboardInput()

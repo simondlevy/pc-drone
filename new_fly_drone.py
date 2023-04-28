@@ -41,6 +41,7 @@ class DroneFlyer:
         self.interface = interface
         self.flying = False
         self.throttle = 0
+        self.tprev = 0
 
     def begin(self):
         '''
@@ -95,6 +96,13 @@ class DroneFlyer:
     def _run_pid_controller(self, alt, vel):
 
         velError = (params.Z_TARGET - alt) - vel
+
+        dt = time() - self.tprev
+
+        if self.tprev > 0:
+            print(dt)
+
+        self.tprev = time()
 
         self.throttle = 0.6
 

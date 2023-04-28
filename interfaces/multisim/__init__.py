@@ -65,13 +65,11 @@ class Interface(MulticopterServer):
         # Constrain throttle to [0,1)
         thr = 0 if thr < 0 else 0.999999 if thr > 1 else thr
 
-        print(thr, rol, pit, yaw)
-
-        # XXX Mix commands to get motor values
-        m1 = thr
-        m2 = thr
-        m3 = thr
-        m4 = thr
+        # Mix commands to get motor values
+        m1 = thr - rol - pit + yaw
+        m2 = thr + rol + pit + yaw
+        m3 = thr + rol - pit - yaw
+        m4 = thr - rol + pit - yaw
 
         return np.array([m1, m2, m3, m4])
 

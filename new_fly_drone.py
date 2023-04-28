@@ -38,9 +38,11 @@ class DroneFlyer:
         '''
 
         self.interface = interface
+        self.timestamp = timestamp
+
+        self.throttle = 1000
+
         self.flying = False
-        self.throttle = 0
-        self.tprev = 0
 
     def begin(self):
         '''
@@ -62,14 +64,14 @@ class DroneFlyer:
             if state is None:
                 self.no_position_cnt += 1
                 if self.no_position_cnt > 15:
-                    self.throttle = 0 
+                    self.throttle = 1000 
                     self.flying = False
 
             # state estimator working; use state to get demands
             else:
                 z, dz, self.xypos, self.theta = state
                 if self.flt_mode == self._LANDING_FM:
-                    self.throttle -= .02  
+                    self.throttle -= 20
                 else:
                     self._run_pid_controller(z, dz)
 
@@ -96,7 +98,7 @@ class DroneFlyer:
 
         velError = (params.Z_TARGET - z) - dz
 
-        self.throttle = params.Kpz * velError
+        self.throttle = 1000 * (1 + (params.Kpz * velError))
 
 
 def main():

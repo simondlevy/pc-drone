@@ -51,7 +51,11 @@ class Interface(MulticopterServer):
         if self.command is None:
             return np.array([0, 0, 0, 0])
 
-        thr, _, _, _ = self.command
+        # Get throttle from fly_drone.py command
+        cthr, _, _, _ = self.command
+
+        # Convert throttle from [1000,2000] to [0,1]
+        thr = (cthr - 1000) / 1000
 
         # Constrain throttle to [0,1)
         thr = 0 if thr < 0 else 0.999999 if thr > 1 else thr

@@ -97,6 +97,8 @@ class DroneFlyer:
     def _run_pid_controller(self, z, dz):
 
         t = time()
+ 
+        velError = 0
 
         if self.tprev > 0:
 
@@ -113,7 +115,7 @@ class DroneFlyer:
 
         self.tprev = t
 
-        self.throttle = 0.6
+        self.throttle = 0.6 #params.Kpz * velError + params.Kiz * self.integralError
 
     def _clamp(self, val, lim):
 

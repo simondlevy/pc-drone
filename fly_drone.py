@@ -98,8 +98,6 @@ class DroneFlyer:
         # vehicle state: (zpos, xypos, theta)
         state = self.interface.getState()
 
-        print(state)
-
         if self.flying:
 
             # state estimator failed; cut the throttle!
@@ -142,14 +140,13 @@ class DroneFlyer:
                 self.xypos = np.zeros(2)
                 zpos = 0
 
-            self._build_flight_data()
+            self._build_flight_data(zpos)
 
             if len(self.x_targ_seq) > 1:
                 self.x_target = self.x_targ_seq.pop(0)
                 self.ypos_target = self.ypos_targ_seq.pop(0)
                 params.Z_TARGET = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
-                # print('seq len %i' % len(self.x_targ_seq))
             elif self.flt_mode == self._PROGRAM_SEQ_FM:
                 self.flt_mode = self._LANDING_FM
 
@@ -189,15 +186,17 @@ class DroneFlyer:
 
     def _run_pid_controller(self, zpos):
 
+        # Store the old velocity error to compute its first derivative below
         self.e_dz_old = self.e_dz
 
+        # Altitude PID control compute velocity error deriviate as difference
+        # between actual altitude and altitude target
         self.e_dz = zpos - params.Z_TARGET
+
         self.e_iz += self.e_dz
         self.e_iz = self._clamp(self.e_iz, -params.Kzwindup, params.Kzwindup)
 
-        print(self.zpos, params.Z_TARGET, self.e_iz)
-
-        e_d2z = self.e_dz-self.e_dz_old
+        e_d2z = self.e_dz - self.e_dz_old
 
         self.throttle = (params.THROTTLE_MID -
                          params.Kz *
@@ -248,11 +247,9 @@ class DroneFlyer:
                 self.e_dt * params.Kpt + params.Kit * self.e_it + params.Kdt *
                 self.e_d2t) + self.YAW_MID
         if zpos > 0:
-            # print('highalt')
             self.roll = self._clamp(self.roll, 1000, 2000)
             self.pitch = self._clamp(self.pitch, 1000, 2000)
         else:
-            # print('lowalt')
             self.roll = self._clamp(self.roll, 1400, 1600)
             self.pitch = self._clamp(self.pitch, 1400, 1600)
         self.no_position_cnt = 0
@@ -390,14 +387,14 @@ class DroneFlyer:
 
         return list(xseq), list(yseq), list(zseq), list(tseq)
 
-    def _build_flight_data(self):
+    def _build_flight_data(self, zpos):
 
         self.flightdata = (
                 np.vstack(
                     (self.flightdata,
                      np.array(
                          [(self.flighttoc - self.flighttic),
-                          self.xypos[0], self.xypos[1], self.zpos,
+                          self.xypos[0], self.xypos[1], zpos,
                           self.dx, self.dy, self.dz,
                           self.e_dx, self.e_ix, self.e_d2x, self.e_dy,
                           self.e_iy, self.e_d2y, self.e_dz, self.e_iz,

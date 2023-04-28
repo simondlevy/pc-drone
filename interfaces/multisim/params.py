@@ -7,7 +7,6 @@ MIT License
 '''
 
 Kpz = 1.0
-Kiz = 0.0
 Kzwindup = 10
 
 Z_TARGET = 15

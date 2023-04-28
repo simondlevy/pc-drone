@@ -13,7 +13,6 @@ import pickle
 import os
 import timeit
 from datetime import datetime
-from time import time
 
 # Un-comment one of these for your project
 # from interfaces.original import Interface, params
@@ -42,7 +41,6 @@ class DroneFlyer:
         self.flying = False
         self.throttle = 0
         self.tprev = 0
-        self.integralError = 0
 
     def begin(self):
         '''
@@ -96,30 +94,9 @@ class DroneFlyer:
     
     def _run_pid_controller(self, z, dz):
 
-        t = time()
- 
-        velError = 0
+        velError = (params.Z_TARGET - z) - dz
 
-        if self.tprev > 0:
-
-            # Compute dzdt setpoint and error
-            velError = (params.Z_TARGET - z) - dz
-
-            # Compute dt
-            dt = t - self.tprev
-
-            # Update error integral and error derivative
-            self.integralError += velError * dt
-            self.integralError = self._clamp(
-                            self.integralError + velError * dt, params.Kzwindup)
-
-        self.tprev = t
-
-        self.throttle = 0.6 #params.Kpz * velError + params.Kiz * self.integralError
-
-    def _clamp(self, val, lim):
-
-        return -lim if val < -lim else (+lim if val > +lim else val)
+        self.throttle = params.Kpz * velError
 
 
 def main():

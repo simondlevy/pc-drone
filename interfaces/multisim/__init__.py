@@ -53,6 +53,9 @@ class Interface(MulticopterServer):
 
         thr, _, _, _ = self.command
 
+        # Constrain throttle to [0,1)
+        thr = 0 if thr < 0 else 0.999999 if thr > 1 else thr
+
         # XXX Mix commands to get motor values
         m1 = thr
         m2 = thr

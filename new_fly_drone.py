@@ -42,6 +42,7 @@ class DroneFlyer:
         self.flying = False
         self.throttle = 0
         self.tprev = 0
+        self.integralError = 0
 
     def begin(self):
         '''
@@ -93,18 +94,31 @@ class DroneFlyer:
         # read next state data
         return self.interface.acquiredState()
     
-    def _run_pid_controller(self, alt, vel):
+    def _run_pid_controller(self, z, dz):
 
-        velError = (params.Z_TARGET - alt) - vel
-
-        dt = time() - self.tprev
+        t = time()
 
         if self.tprev > 0:
-            print(dt)
 
-        self.tprev = time()
+            # Compute dzdt setpoint and error
+            velError = (params.Z_TARGET - z) - dz
+
+            # Compute dt
+            dt = t - self.tprev
+
+            # Update error integral and error derivative
+            self.integralError += velError * dt
+            self.integralError = self._clamp(
+                            self.integralError + velError * dt, params.Kzwindup)
+
+        self.tprev = t
 
         self.throttle = 0.6
+
+    def _clamp(self, val, lim):
+
+        return -lim if val < -lim else (+lim if val > +lim else val)
+
 
 def main():
 

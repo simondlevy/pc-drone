@@ -45,7 +45,6 @@ class DroneFlyer:
         self.pitch = 1500  # moves front back
         self.yaw = 1500  # self.yaw, rotates the drone
 
-        self.zpos = params.Z_START
         self.xypos = (350, 250)
         self.theta = 0
 
@@ -99,6 +98,8 @@ class DroneFlyer:
         # vehicle state: (zpos, xypos, theta)
         state = self.interface.getState()
 
+        print(state)
+
         if self.flying:
 
             # state estimator failed; cut the throttle!
@@ -110,11 +111,11 @@ class DroneFlyer:
 
             # state estimator working; use state to get demands
             else:
-                self.zpos, self.xypos, self.theta = state
+                zpos, self.xypos, self.theta = state
                 if self.flt_mode == self._LANDING_FM:
                     self.throttle -= 20
                 else:
-                    self._run_pid_controller()
+                    self._run_pid_controller(zpos)
 
         # serial comms - write to Arduino
         self.throttle = self._clamp(self.throttle, 1000, 2000)
@@ -139,7 +140,7 @@ class DroneFlyer:
 
             if self.xypos is None:
                 self.xypos = np.zeros(2)
-                self.zpos = 0
+                zpos = 0
 
             self._build_flight_data()
 
@@ -186,11 +187,11 @@ class DroneFlyer:
         # read next state data
         return self.interface.acquiredState()
 
-    def _run_pid_controller(self):
+    def _run_pid_controller(self, zpos):
 
         self.e_dz_old = self.e_dz
 
-        self.e_dz = self.zpos - params.Z_TARGET
+        self.e_dz = zpos - params.Z_TARGET
         self.e_iz += self.e_dz
         self.e_iz = self._clamp(self.e_iz, -params.Kzwindup, params.Kzwindup)
 
@@ -246,7 +247,7 @@ class DroneFlyer:
         self.yaw = params.Kt * (
                 self.e_dt * params.Kpt + params.Kit * self.e_it + params.Kdt *
                 self.e_d2t) + self.YAW_MID
-        if self.zpos > 0:
+        if zpos > 0:
             # print('highalt')
             self.roll = self._clamp(self.roll, 1000, 2000)
             self.pitch = self._clamp(self.pitch, 1000, 2000)

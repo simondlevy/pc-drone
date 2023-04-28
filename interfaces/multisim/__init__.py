@@ -43,7 +43,8 @@ class Interface(MulticopterServer):
         self.previousUpdateTime = time()
 
         # Convert MultiSim state into PC-Drone state
-        self.state = (-ms_state[MulticopterServer.STATE_Z],  # NED => ENU
+        self.state = (-ms_state[MulticopterServer.STATE_Z],   # NED => ENU
+                      -ms_state[MulticopterServer.STATE_DZ],  # NED => ENU
                       (0, 0), 0)
 
         # Wait until fly_drone script is ready

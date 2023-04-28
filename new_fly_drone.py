@@ -13,6 +13,7 @@ import pickle
 import os
 import timeit
 from datetime import datetime
+from time import time
 
 # Un-comment one of these for your project
 # from interfaces.original import Interface, params
@@ -52,7 +53,7 @@ class DroneFlyer:
         Runs one step of the interface (acquire data, send commands).
         Returns True if step was successful, False otherwise.
         '''
-        # vehicle state: (zpos, xypos, theta)
+        # vehicle state: (z, xypos, theta)
         state = self.interface.getState()
 
         if self.flying:
@@ -66,11 +67,11 @@ class DroneFlyer:
 
             # state estimator working; use state to get demands
             else:
-                zpos, self.xypos, self.theta = state
+                z, dz, self.xypos, self.theta = state
                 if self.flt_mode == self._LANDING_FM:
                     self.throttle -= .02  
                 else:
-                    self._run_pid_controller(zpos)
+                    self._run_pid_controller(z, dz)
 
         # serial comms - write to Arduino
         command = (self.throttle, 0, 0, 0)
@@ -90,8 +91,10 @@ class DroneFlyer:
 
         # read next state data
         return self.interface.acquiredState()
+    
+    def _run_pid_controller(self, z, dz):
 
-    def _run_pid_controller(self, zpos):
+        print(z, dz)
 
         self.throttle = 0.6
 

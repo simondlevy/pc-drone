@@ -45,7 +45,44 @@ class DroneFlyer:
         self.pitch = 1500  # moves front back
         self.yaw = 1500  # self.yaw, rotates the drone
 
+        self.xypos = (350, 250)
+        self.theta = 0
+
+        self.command = ''
         self.flying = False
+        self.no_position_cnt = 0
+
+        self.dx, self.dy, self.dz = 0, 0, 0
+        self.xspeed, self.yspeed, self.zspeed = 0, 0, 0
+        self.e_dz, self.e_dx, self.e_dy, self.e_dt = 0, 0, 0, 0
+        self.e_iz, self.e_ix, self.e_iy, self.e_it = 0, 0, 0, 0
+        self.e_d2z, self.e_d2x, self.e_d2y, self.e_d2t = 0, 0, 0, 0
+
+        self.ROLL_MID = 1500
+        self.PITCH_MID = 1500
+        self.YAW_MID = 1500
+
+        self.x_target = 300
+        self.ypos_target = 200
+        self.theta_target = 0  # 45.0/180.0*np.pi
+
+        self.x_targ_seq = [self.x_target]
+        self.ypos_targ_seq = [self.ypos_target]
+        self.zpos_targ_seq = [params.Z_TARGET]
+        self.theta_targ_seq = [self.theta_target]
+        self.flighttic = timeit.default_timer()
+        self.flighttoc = timeit.default_timer()
+        self.flightnum = 0
+
+        self.flt_mode = self._NORMAL_FM
+
+        self.recording_data = False
+
+        self.controlvarnames = None
+        self.controldata = None
+        self.flightdata = None
+
+        self.snapnum = 100
 
     def begin(self):
         '''

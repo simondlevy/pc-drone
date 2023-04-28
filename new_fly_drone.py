@@ -92,9 +92,9 @@ class DroneFlyer:
         # read next state data
         return self.interface.acquiredState()
     
-    def _run_pid_controller(self, z, dz):
+    def _run_pid_controller(self, alt, vel):
 
-        print(z, dz)
+        velError = (params.Z_TARGET - alt) - vel
 
         self.throttle = 0.6
 

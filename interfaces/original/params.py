@@ -29,6 +29,8 @@ Kit = 1
 Kdt = 10
 Kt = 2
 
+Z_TARGET = 65
+
 # min=1000, max=2000
 THROTTLE_MID = 1350
 

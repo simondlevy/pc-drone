@@ -15,6 +15,8 @@ from threading import Thread
 from pygame.locals import JOYBUTTONDOWN, JOYAXISMOTION
 from pygame.locals import MOUSEMOTION, MOUSEBUTTONUP, MOUSEBUTTONDOWN
 
+from arduino import Arduino
+
 os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -80,18 +82,19 @@ class Joystick(object):
         sys.exit(status)
 
 
-def run_thread(program):
+def run_thread(program, arduino):
 
     while not program.done:
-        print(program.sticks)
+        arduino.write(program.sticks)
         time.sleep(.0001)  # yield to main thread
 
 
 if __name__ == "__main__":
 
     program = Joystick()
+    arduino = Arduino()
 
-    thread = Thread(target=run_thread, args=(program,))
+    thread = Thread(target=run_thread, args=(program, arduino))
     thread.start()
 
     program.run()

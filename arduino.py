@@ -23,10 +23,10 @@ class Arduino:
                 print('No device available at %s; running in development mode' % portname)
                 stdout.flush()
 
-    def write(self, command):
+    def write(self, demands):
 
         cmdstr = ('%i,%i,%i,%i' %
-                  (command[0], command[1], command[2], command[3]))
+                  (demands[0], demands[1], demands[2], demands[3]))
 
         if self.port is None:
             print(cmdstr)

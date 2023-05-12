@@ -183,11 +183,7 @@ class Interface:
         Command is a four-tuple (throttle, roll, pitch, yaw).
         Each value must be in the interval [1000,2000].
         '''
-        cmdstr = ('%i,%i,%i,%i' %
-                  (command[0], command[1], command[2], command[3]))
-
-        # print('[PC]: '+command)
-        self.arduino.write(((cmdstr + '\n').encode()))
+        self.arduino.write(command)
 
         # Serial comms - read back from Arduino
         while True:

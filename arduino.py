@@ -25,8 +25,13 @@ class Arduino:
 
     def write(self, command):
 
-        if self.port is not None:
-            self.port.write(command)
+        cmdstr = ('%i,%i,%i,%i' %
+                  (command[0], command[1], command[2], command[3]))
+
+        if self.port is None:
+            print(cmdstr)
+        else:
+            self.port.write(((cmdstr + '\n').encode()))
 
     def readline(self):
 

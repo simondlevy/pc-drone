@@ -82,11 +82,8 @@ class Joystick(object):
 
 def run_thread(program):
 
-    count = 0
-
     while not program.done:
-        print('%06d' % count, program.sticks)
-        count += 1
+        print(program.sticks)
         time.sleep(.0001)  # yield to main thread
 
 

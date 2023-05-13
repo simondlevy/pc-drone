@@ -27,6 +27,11 @@ static void writeThrottle(const uint16_t u)
     dacT.setVoltage(v, false); // false = don't write EEPROM
 }
 
+static uint16_t throttle;
+static uint16_t roll;
+static uint16_t pitch;
+static uint16_t yaw;
+
 void setup(void) 
 {
     // Start serial comms for demand input
@@ -43,21 +48,64 @@ void setup(void)
     dacP.begin(0x60, &Wire1);
     dacY.begin(0x61, &Wire1);
 
-    // Turn on the transmitter
+    // Turn off the transmitter
     pinMode(POWER_PIN, OUTPUT);
+    digitalWrite(POWER_PIN, LOW);
+
+    // Poll for Enter
+    while (true) {
+        Serial.println("Turn on drone; wait for slow blink; then hit Enter to begin...");
+        if (Serial.available()) {
+            break;
+        }
+        delay(1000);
+    }
+
+    // Turn the transmitter on
     digitalWrite(POWER_PIN, HIGH);
+
+    // Wait a couple of seconds
+    delay(2000);
+
+    Serial.println("Here we go!");
+
+    // Throttle up and down to arm
+    writeThrottle(2000);  
+    delay(1000);
+    writeThrottle(1000);  
+
+    // Wait a couple more seconds
+    delay(2000);
+
+    // Throttle up bit to spin the motors
+    writeThrottle(1200);  
+
+    // Run for a few seconds
+    delay(5000);
+
+    // Throttle back down
+    writeThrottle(1000); 
+
+    // Start interaction with neutral stick values
+    throttle = 1000;
+    roll = 1500;
+    pitch = 1500;
+    yaw = 1500;
 }
 
 void loop(void) 
 {
+    return;
+
     while (Serial.available()) {
 
         static bool ready;
         static uint8_t prev_byte;
 
+        // Read current byte from serial connection
         const auto curr_byte = Serial.read();
 
-        // Start reading messages when we get two zero bytes in a row
+        // We're ready to read messages when we get two zero bytes in a row
         if (curr_byte == 0 and prev_byte == 0) {
             ready = true;
         }
@@ -68,7 +116,7 @@ void loop(void)
             static uint8_t buff[8];
 
             buff[index++] = curr_byte;
-    
+
             // When index reaches 10, we have two sentinel bytes and an
             // eight-byte demands message
             if (index == 10) {
@@ -77,16 +125,21 @@ void loop(void)
                 memcpy(demands, &buff[2], 8); // skip sentinel bytes
                 index = 0;
 
-                writeThrottle(demands[0]);
+                throttle = demands[0];
+                roll = demands[1];
+                pitch = demands[2];
+                yaw = demands[3];
 
                 if (DEBUG) {
                     Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
-                            demands[0], demands[1], demands[2], demands[3]);
+                            throttle, roll, pitch, yaw);
                 }
             }
         }
 
         prev_byte = curr_byte;
     }
+
+    writeThrottle(throttle);
 
 }

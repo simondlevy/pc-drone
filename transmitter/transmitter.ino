@@ -119,10 +119,19 @@ void loop(void)
 {
     static uint16_t throttle, roll, pitch, yaw;
     static bool throttle_ready;
+    static uint32_t msec_prev;
 
     while (Serial.available()) {
 
         handleInputByte(Serial.read(), throttle, roll, pitch, yaw);
+
+        msec_prev = millis();
+    }
+
+    // Failsafe: cut throttle on input disconnect
+    if (millis() - msec_prev > 1000) {
+        digitalWrite(LED_BUILTIN, LOW);
+        throttle = 1000;
     }
 
     if (throttle == 1000) {

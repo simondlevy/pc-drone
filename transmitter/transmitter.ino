@@ -47,12 +47,19 @@ void setup(void)
     pinMode(POWER_PIN, OUTPUT);
     digitalWrite(POWER_PIN, LOW);
 
+    // Turn off LED
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
+
     while (!Serial.available()) {
         // poll for input connection
     }
 
     // Turn the transmitter on
     digitalWrite(POWER_PIN, HIGH);
+
+    // Turn LED on
+    digitalWrite(LED_BUILTIN, HIGH);
 
     // Wait a couple of seconds
     delay(2000);

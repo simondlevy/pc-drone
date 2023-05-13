@@ -10,7 +10,7 @@
 #include <Wire.h>
 #include <Adafruit_MCP4725.h>
 
-static const uint8_t POWER_PIN = 0;
+static const uint8_t POWER_PIN = 10;
 
 static Adafruit_MCP4725 dacT;   // throttle
 static Adafruit_MCP4725 dacR;   // roll
@@ -26,8 +26,11 @@ static void writeThrottle(const uint16_t u)
 
 void setup(void) 
 {
-    // Start serial comms
+    // Start serial comms for demand input
     Serial.begin(115200);
+
+    // Start serial comms for debugging
+    Serial1.begin(115200);
 
     dacT.begin(0x60, &Wire);
     dacR.begin(0x61, &Wire);
@@ -36,6 +39,7 @@ void setup(void)
 
     // Turn off the transmitter
     pinMode(POWER_PIN, OUTPUT);
+    /*
     digitalWrite(POWER_PIN, LOW);
 
     // Poll for Enter
@@ -45,11 +49,12 @@ void setup(void)
             break;
         }
         delay(1000);
-    }
+    }*/
 
     // Turn the transmitter on
     digitalWrite(POWER_PIN, HIGH);
 
+    /*
     // Wait a couple of seconds
     delay(2000);
 
@@ -70,8 +75,15 @@ void setup(void)
     delay(5000);
 
     // Throttle back down
-    writeThrottle(1000); }
+    writeThrottle(1000); 
+    */
+}
 
 void loop(void) 
 {
+    /*
+    while (Serial.available()) {
+    }*/
+
+    Serial1.println("hello");
 }

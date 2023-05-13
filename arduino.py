@@ -1,5 +1,5 @@
 '''
-Arduino communications
+Arduino communications for PC-Drone
 
 Copyright (c) 2023 Simon D. Levy
 
@@ -7,7 +7,7 @@ MIT License
 '''
 
 import serial
-from sys import stdout
+import struct
 
 class Arduino:
 
@@ -19,10 +19,8 @@ class Arduino:
 
     def write(self, demands):
 
-        cmdstr = ('%i,%i,%i,%i' %
-                  (demands[0], demands[1], demands[2], demands[3]))
-
-        print(cmdstr, end=' ')
+        print('%i,%i,%i,%i' %
+                  (demands[0], demands[1], demands[2], demands[3]), end= ' ')
 
         if self.port is None:
 
@@ -32,7 +30,12 @@ class Arduino:
                 pass
 
         else:
-            self.port.write(((cmdstr + '\n').encode()))
+
+            # Use zero as a sentinel
+            self.port.write(
+                    struct.pack(
+                        'HHHHH', 0, demands[0], demands[1], demands[2], demands[3]))
+
             print('*', end=' ')
 
         print()

@@ -46,7 +46,7 @@ void loop(void)
 {
     while (Serial.available()) {
 
-        Serial1.print((char)Serial.read());
+        Serial1.printf("0x%02X\n", Serial.read());
     }
 
 }

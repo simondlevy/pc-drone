@@ -25,15 +25,14 @@ static void writeDac(Adafruit_MCP4725 & dac, const uint16_t val)
     dac.setVoltage(val, false); // false = don't write EEPROM
 }
 
-static void writeThrottle(const uint16_t t)
+static void writeThrottle(const uint16_t pwm)
 {
-    writeDac(dacT, 4095 - 4095 * (t - 1000) / 1000.);
+    writeDac(dacT, 4095 - 4095 * (pwm - 1000) / 1000.);
 }
 
-static void writeDemand(Adafruit_MCP4725 & dac, const uint16_t d)
+static void writeDemand(Adafruit_MCP4725 & dac, const uint16_t pwm)
 {
-    //const uint16_t v = 4095 - 4095 * (t - 1000) / 1000.;
-    //dac.setVoltage(v, false); // false = don't write EEPROM
+    writeDac(dac, 4095 * (pwm - 1000) / 1000.);
 }
 
 static void writeDemands(
@@ -45,6 +44,8 @@ static void writeDemands(
     writeThrottle(t);
 
     writeDemand(dacR, r);
+    writeDemand(dacP, p);
+    writeDemand(dacY, y);
 }
 
 void setup(void) 
@@ -90,6 +91,38 @@ void setup(void)
     writeThrottle(1000);  
 }
 
+static void getDemands(
+        const uint8_t curr_byte,
+        uint16_t & throttle,
+        uint16_t & roll,
+        uint16_t & pitch,
+        uint16_t & yaw)
+{
+    static uint8_t index;
+    static uint8_t buff[8];
+
+    buff[index++] = curr_byte;
+
+    // When index reaches 10, we have two sentinel bytes and an
+    // eight-byte demands message
+    if (index == 10) {
+
+        uint16_t demands[4];
+        memcpy(demands, &buff[2], 8); // skip sentinel bytes
+        index = 0;
+
+        throttle = demands[0];
+        roll = demands[1];
+        pitch = demands[2];
+        yaw = demands[3];
+
+        if (DEBUG) {
+            Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
+                    throttle, roll, pitch, yaw);
+        }
+    }
+}
+
 static void handleInputByte(
         const uint8_t curr_byte,
         uint16_t & throttle,
@@ -107,29 +140,8 @@ static void handleInputByte(
 
     if (ready) {
 
-        static uint8_t index;
-        static uint8_t buff[8];
+        getDemands(curr_byte, throttle, roll, pitch, yaw);
 
-        buff[index++] = curr_byte;
-
-        // When index reaches 10, we have two sentinel bytes and an
-        // eight-byte demands message
-        if (index == 10) {
-
-            uint16_t demands[4];
-            memcpy(demands, &buff[2], 8); // skip sentinel bytes
-            index = 0;
-
-            throttle = demands[0];
-            roll = demands[1];
-            pitch = demands[2];
-            yaw = demands[3];
-
-            if (DEBUG) {
-                Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
-                        throttle, roll, pitch, yaw);
-            }
-        }
     }
 
     prev_byte = curr_byte;

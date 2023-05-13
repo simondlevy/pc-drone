@@ -14,25 +14,19 @@ static const uint8_t POWER_PIN = 10;
 
 static const bool DEBUG = false;
 
+// Shorthand
+typedef Adafruit_MCP4725 Dac;
+
 // DACs
-static Adafruit_MCP4725 dacT;   // throttle
-static Adafruit_MCP4725 dacR;   // roll
-static Adafruit_MCP4725 dacP;   // pitch
-static Adafruit_MCP4725 dacY;   // yaw
+static Dac dacT;  // throttle
+static Dac dacR;  // roll
+static Dac dacP;  // pitch
+static Dac dacY;  // yaw
 
-static void writeDac(Adafruit_MCP4725 & dac, const uint16_t val)
+static void writeDemand(Dac & dac, const uint16_t pwm)
 {
-    dac.setVoltage(val, false); // false = don't write EEPROM
-}
-
-static void writeThrottle(const uint16_t pwm)
-{
-    writeDac(dacT, 4095 - 4095 * (pwm - 1000) / 1000.);
-}
-
-static void writeDemand(Adafruit_MCP4725 & dac, const uint16_t pwm)
-{
-    writeDac(dac, 4095 * (pwm - 1000) / 1000.);
+    dac.setVoltage(4095 - 4095 * (pwm - 1000) / 1000.,
+            false); // false = don't write EEPROM
 }
 
 static void writeDemands(
@@ -41,8 +35,7 @@ static void writeDemands(
         const uint16_t p,
         const uint16_t y)
 {
-    writeThrottle(t);
-
+    writeDemand(dacT, t);
     writeDemand(dacR, r);
     writeDemand(dacP, p);
     writeDemand(dacY, y);
@@ -86,9 +79,9 @@ void setup(void)
     delay(2000);
 
     // Throttle up and down to arm
-    writeThrottle(2000);  
+    writeDemand(dacT, 2000);  
     delay(1000);
-    writeThrottle(1000);  
+    writeDemand(dacT, 1000);  
 }
 
 static void getDemands(

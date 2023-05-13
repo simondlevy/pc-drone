@@ -12,26 +12,30 @@
 
 static const uint8_t POWER_PIN = 10;
 
+static const bool DEBUG = false;
+
+// DACs
 static Adafruit_MCP4725 dacT;   // throttle
 static Adafruit_MCP4725 dacR;   // roll
 static Adafruit_MCP4725 dacP;   // pitch
 static Adafruit_MCP4725 dacY;   // yaw
 
-/*
 static void writeThrottle(const uint16_t u)
 {
     const uint16_t v = 4095 - 4095 * (u - 1000) / 1000.;
 
     dacT.setVoltage(v, false); // false = don't write EEPROM
-}*/
+}
 
 void setup(void) 
 {
     // Start serial comms for demand input
     Serial.begin(115200);
 
-    // Start serial comms for debugging
-    Serial1.begin(115200);
+    // Start serial comms for debugging if indicated
+    if (DEBUG) {
+        Serial1.begin(115200);
+    }
 
     // Start DACs
     dacT.begin(0x60, &Wire);
@@ -68,11 +72,17 @@ void loop(void)
             // When index reaches 10, we have two sentinel bytes and an
             // eight-byte demands message
             if (index == 10) {
+
                 uint16_t demands[4];
                 memcpy(demands, &buff[2], 8); // skip sentinel bytes
                 index = 0;
-                Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
-                        demands[0], demands[1], demands[2], demands[3]);
+
+                writeThrottle(demands[0]);
+
+                if (DEBUG) {
+                    Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
+                            demands[0], demands[1], demands[2], demands[3]);
+                }
             }
         }
 

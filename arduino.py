@@ -31,12 +31,17 @@ class Arduino:
 
         else:
 
-            # Use zero as a sentinel
-            self.port.write(
-                    struct.pack(
-                        'HHHHH', 0, demands[0], demands[1], demands[2], demands[3]))
+            try:
 
-            print('*', end=' ')
+                # Use zero as a sentinel
+                self.port.write(
+                        struct.pack(
+                            'HHHHH', 0, demands[0], demands[1], demands[2], demands[3]))
+
+                print('*', end=' ')
+
+            except:
+                print('\nArduino disconnected')
 
         print()
 

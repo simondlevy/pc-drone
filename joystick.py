@@ -68,6 +68,8 @@ class Joystick(object):
                             self.get_pwm(1),
                             self.get_pwm(2))
 
+
+                # Count trigger (button) clicks, quitting after two
                 elif event.type == JOYBUTTONDOWN:
 
                     self.clicked += 1
@@ -85,7 +87,9 @@ class Joystick(object):
 def run_thread(program, arduino):
 
     while not program.done:
+
         arduino.write(program.sticks)
+
         time.sleep(.0001)  # yield to main thread
 
 

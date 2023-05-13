@@ -27,11 +27,6 @@ static void writeThrottle(const uint16_t u)
     dacT.setVoltage(v, false); // false = don't write EEPROM
 }
 
-static uint16_t throttle;
-static uint16_t roll;
-static uint16_t pitch;
-static uint16_t yaw;
-
 void setup(void) 
 {
     // Start serial comms for demand input
@@ -66,59 +61,69 @@ void setup(void)
     writeThrottle(2000);  
     delay(1000);
     writeThrottle(1000);  
+}
 
-    // Start interaction with neutral stick values
-    throttle = 1000;
-    roll = 1500;
-    pitch = 1500;
-    yaw = 1500;
+static void handleInputByte(
+        const uint8_t curr_byte,
+        uint16_t & throttle,
+        uint16_t & roll,
+        uint16_t & pitch,
+        uint16_t & yaw)
+{
+    static bool ready;
+    static uint8_t prev_byte;
+
+    // We're ready to read messages when we get two zero bytes in a row
+    if (curr_byte == 0 and prev_byte == 0) {
+        ready = true;
+    }
+
+    if (ready) {
+
+        static uint8_t index;
+        static uint8_t buff[8];
+
+        buff[index++] = curr_byte;
+
+        // When index reaches 10, we have two sentinel bytes and an
+        // eight-byte demands message
+        if (index == 10) {
+
+            uint16_t demands[4];
+            memcpy(demands, &buff[2], 8); // skip sentinel bytes
+            index = 0;
+
+            throttle = demands[0];
+            roll = demands[1];
+            pitch = demands[2];
+            yaw = demands[3];
+
+            if (DEBUG) {
+                Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
+                        throttle, roll, pitch, yaw);
+            }
+        }
+    }
+
+    prev_byte = curr_byte;
 }
 
 void loop(void) 
 {
+    static uint16_t throttle, roll, pitch, yaw;
+    static bool throttle_ready;
+
     while (Serial.available()) {
 
-        static bool ready;
-        static uint8_t prev_byte;
-
-        // Read current byte from serial connection
-        const auto curr_byte = Serial.read();
-
-        // We're ready to read messages when we get two zero bytes in a row
-        if (curr_byte == 0 and prev_byte == 0) {
-            ready = true;
-        }
-
-        if (ready) {
-
-            static uint8_t index;
-            static uint8_t buff[8];
-
-            buff[index++] = curr_byte;
-
-            // When index reaches 10, we have two sentinel bytes and an
-            // eight-byte demands message
-            if (index == 10) {
-
-                uint16_t demands[4];
-                memcpy(demands, &buff[2], 8); // skip sentinel bytes
-                index = 0;
-
-                throttle = demands[0];
-                roll = demands[1];
-                pitch = demands[2];
-                yaw = demands[3];
-
-                if (DEBUG) {
-                    Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
-                            throttle, roll, pitch, yaw);
-                }
-            }
-        }
-
-        prev_byte = curr_byte;
+        handleInputByte(Serial.read(), throttle, roll, pitch, yaw);
     }
 
-    writeThrottle(throttle);
+    if (throttle == 1000) {
+        throttle_ready = true;
+    }
+
+    if (throttle_ready) {
+        writeThrottle(throttle);
+    }
 
 }

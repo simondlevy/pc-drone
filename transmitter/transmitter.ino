@@ -52,6 +52,7 @@ void setup(void)
     pinMode(POWER_PIN, OUTPUT);
     digitalWrite(POWER_PIN, LOW);
 
+    /*
     // Poll for Enter
     while (true) {
         Serial.println("Turn on drone; wait for slow blink; then hit Enter to begin...");
@@ -59,7 +60,7 @@ void setup(void)
             break;
         }
         delay(1000);
-    }
+    }*/
 
     // Turn the transmitter on
     digitalWrite(POWER_PIN, HIGH);
@@ -67,13 +68,14 @@ void setup(void)
     // Wait a couple of seconds
     delay(2000);
 
-    Serial.println("Here we go!");
+    // Serial.println("Here we go!");
 
     // Throttle up and down to arm
     writeThrottle(2000);  
     delay(1000);
     writeThrottle(1000);  
 
+    /*
     // Wait a couple more seconds
     delay(2000);
 
@@ -84,7 +86,8 @@ void setup(void)
     delay(5000);
 
     // Throttle back down
-    writeThrottle(1000); 
+    writeThrottle(1000); */
+
 
     // Start interaction with neutral stick values
     throttle = 1000;
@@ -95,8 +98,6 @@ void setup(void)
 
 void loop(void) 
 {
-    return;
-
     while (Serial.available()) {
 
         static bool ready;

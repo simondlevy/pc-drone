@@ -65,9 +65,11 @@ void loop(void)
 
             buff[index++] = curr_byte;
     
+            // When index reaches 10, we have two sentinel bytes and an
+            // eight-byte demands message
             if (index == 10) {
                 uint16_t demands[4];
-                memcpy(demands, &buff[2], 8);
+                memcpy(demands, &buff[2], 8); // skip sentinel bytes
                 index = 0;
                 Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
                         demands[0], demands[1], demands[2], demands[3]);

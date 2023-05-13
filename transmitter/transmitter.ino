@@ -25,8 +25,18 @@ static Dac dacY;  // yaw
 
 static void writeDemand(Dac & dac, const uint16_t pwm)
 {
-    dac.setVoltage(4095 - 4095 * (pwm - 1000) / 1000.,
+    dac.setVoltage(4095 * (pwm - 1000) / 1000.,
             false); // false = don't write EEPROM
+}
+
+static void writeDemandInverse(Dac & dac, const uint16_t pwm)
+{
+    writeDemand(dac, 3000 - pwm);
+}
+
+static void writeThrottle(const uint16_t t)
+{
+    writeDemandInverse(dacT, t);
 }
 
 static void writeDemands(
@@ -35,10 +45,11 @@ static void writeDemands(
         const uint16_t p,
         const uint16_t y)
 {
-    writeDemand(dacT, t);
+    writeThrottle(t);
+
     writeDemand(dacR, r);
     writeDemand(dacP, p);
-    writeDemand(dacY, y);
+    writeDemandInverse(dacY, y);
 }
 
 void setup(void) 
@@ -65,8 +76,8 @@ void setup(void)
     pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
 
+    // Poll for input connection
     while (!Serial.available()) {
-        // poll for input connection
     }
 
     // Turn the transmitter on
@@ -75,13 +86,13 @@ void setup(void)
     // Turn LED on
     digitalWrite(LED_BUILTIN, HIGH);
 
-    // Wait a couple of seconds
-    delay(2000);
+    // Wait a second
+    delay(1000);
 
     // Throttle up and down to arm
-    writeDemand(dacT, 2000);  
+    writeThrottle(2000);  
     delay(1000);
-    writeDemand(dacT, 1000);  
+    writeThrottle(1000);  
 }
 
 static void getDemands(

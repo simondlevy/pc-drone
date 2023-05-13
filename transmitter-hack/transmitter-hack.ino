@@ -37,53 +37,16 @@ void setup(void)
     dacP.begin(0x60, &Wire1);
     dacY.begin(0x61, &Wire1);
 
-    // Turn off the transmitter
+    // Turn on the transmitter
     pinMode(POWER_PIN, OUTPUT);
-    /*
-    digitalWrite(POWER_PIN, LOW);
-
-    // Poll for Enter
-    while (true) {
-        Serial.println("Hit Enter to begin...");
-        if (Serial.available()) {
-            break;
-        }
-        delay(1000);
-    }*/
-
-    // Turn the transmitter on
     digitalWrite(POWER_PIN, HIGH);
-
-    /*
-    // Wait a couple of seconds
-    delay(2000);
-
-    Serial.println("Here we go!");
-
-    // Throttle up and down to arm
-    writeThrottle(2000);  
-    delay(1000);
-    writeThrottle(1000);  
-
-    // Wait a couple more seconds
-    delay(2000);
-
-    // Throttle up bit to spin the motors
-    writeThrottle(1200);  
-
-    // Run for a few seconds
-    delay(5000);
-
-    // Throttle back down
-    writeThrottle(1000); 
-    */
 }
 
 void loop(void) 
 {
-    /*
     while (Serial.available()) {
-    }*/
 
-    Serial1.println("hello");
+        Serial1.print(Serial.read());
+    }
+
 }

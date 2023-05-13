@@ -17,12 +17,13 @@ static Adafruit_MCP4725 dacR;   // roll
 static Adafruit_MCP4725 dacP;   // pitch
 static Adafruit_MCP4725 dacY;   // yaw
 
+/*
 static void writeThrottle(const uint16_t u)
 {
     const uint16_t v = 4095 - 4095 * (u - 1000) / 1000.;
 
     dacT.setVoltage(v, false); // false = don't write EEPROM
-}
+}*/
 
 void setup(void) 
 {
@@ -32,6 +33,7 @@ void setup(void)
     // Start serial comms for debugging
     Serial1.begin(115200);
 
+    // Start DACs
     dacT.begin(0x60, &Wire);
     dacR.begin(0x61, &Wire);
     dacP.begin(0x60, &Wire1);
@@ -46,7 +48,33 @@ void loop(void)
 {
     while (Serial.available()) {
 
-        Serial1.printf("0x%02X\n", Serial.read());
+        static bool ready;
+        static uint8_t prev_byte;
+
+        const auto curr_byte = Serial.read();
+
+        // Start reading messages when we get two zero bytes in a row
+        if (curr_byte == 0 and prev_byte == 0) {
+            ready = true;
+        }
+
+        if (ready) {
+
+            static uint8_t index;
+            static uint8_t buff[8];
+
+            buff[index++] = curr_byte;
+    
+            if (index == 10) {
+                uint16_t demands[4];
+                memcpy(demands, &buff[2], 8);
+                index = 0;
+                Serial1.printf("t=%d  r=%d  p=%d  y=%d\n", 
+                        demands[0], demands[1], demands[2], demands[3]);
+            }
+        }
+
+        prev_byte = curr_byte;
     }
 
 }

@@ -20,11 +20,20 @@ static Adafruit_MCP4725 dacR;   // roll
 static Adafruit_MCP4725 dacP;   // pitch
 static Adafruit_MCP4725 dacY;   // yaw
 
+static void writeDac(Adafruit_MCP4725 & dac, const uint16_t val)
+{
+    dac.setVoltage(val, false); // false = don't write EEPROM
+}
+
 static void writeThrottle(const uint16_t t)
 {
-    const uint16_t v = 4095 - 4095 * (t - 1000) / 1000.;
+    writeDac(dacT, 4095 - 4095 * (t - 1000) / 1000.);
+}
 
-    dacT.setVoltage(v, false); // false = don't write EEPROM
+static void writeDemand(Adafruit_MCP4725 & dac, const uint16_t d)
+{
+    //const uint16_t v = 4095 - 4095 * (t - 1000) / 1000.;
+    //dac.setVoltage(v, false); // false = don't write EEPROM
 }
 
 static void writeDemands(
@@ -34,6 +43,8 @@ static void writeDemands(
         const uint16_t y)
 {
     writeThrottle(t);
+
+    writeDemand(dacR, r);
 }
 
 void setup(void) 

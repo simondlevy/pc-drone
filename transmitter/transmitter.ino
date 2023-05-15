@@ -48,8 +48,8 @@ static void writeDemands(
     writeThrottle(t);
 
     writeDemandInverse(dacR, r);
-    writeDemand(dacP, p);
-    writeDemandInverse(dacY, y);
+    writeDemandInverse(dacP, p);
+    writeDemand(dacY, y);
 }
 
 void setup(void) 
@@ -177,5 +177,4 @@ void loop(void)
     if (throttle_ready) {
         writeDemands(throttle, roll, pitch, yaw);
     }
-
 }

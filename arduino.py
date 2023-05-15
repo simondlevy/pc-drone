@@ -19,8 +19,7 @@ class Arduino:
 
     def write(self, demands):
 
-        print('%i,%i,%i,%i' %
-                  (demands[0], demands[1], demands[2], demands[3]), end= ' ')
+        print('%i,%i,%i,%i' % (demands[0], demands[1], demands[2], demands[3]), end= ' ')
 
         if self.port is None:
 

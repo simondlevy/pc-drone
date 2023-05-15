@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 
 """
-Team Steeze
+Joystick controller for CX10 transmitter hack
 
-Joystick
+Copyright (c) 2023 Team Steeze & Simon D. Levy
+
+MIT License
 """
 
 import os
@@ -31,7 +33,6 @@ class Joystick(object):
 
         self.sticks = 1000, 1500, 1500, 1500
         self.done = False
-        self.clicked = 0
 
         if pygame.joystick.get_count() == 0:
             print("No joysticks detected.")
@@ -60,23 +61,18 @@ class Joystick(object):
 
                 if event.type == JOYAXISMOTION:
 
+                    # Quit on switch
+                    if event.axis == 4:
+                        self.quit()
+                        break
+
                     self.axis[event.axis] = event.value
 
                     self.sticks = (
-                            self.get_pwm(3, True),
-                            self.get_pwm(0),
+                            self.get_pwm(0, True),
                             self.get_pwm(1),
-                            self.get_pwm(2))
-
-
-                # Count trigger (button) clicks, quitting after two
-                elif event.type == JOYBUTTONDOWN:
-
-                    self.clicked += 1
-
-                    if self.clicked == 2:
-                        self.quit()
-                        break
+                            self.get_pwm(2),
+                            self.get_pwm(3))
 
     def quit(self, status=0):
         self.done = True

@@ -47,7 +47,7 @@ static void writeDemands(
 {
     writeThrottle(t);
 
-    writeDemand(dacR, r);
+    writeDemandInverse(dacR, r);
     writeDemand(dacP, p);
     writeDemandInverse(dacY, y);
 }

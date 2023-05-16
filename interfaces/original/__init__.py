@@ -185,13 +185,6 @@ class Interface:
         '''
         self.arduino.write(command)
 
-        # Serial comms - read back from Arduino
-        while True:
-            data = self.arduino.readline()
-            if data is None:
-                break
-            print('[AU]: ' + data.rstrip('\n'))  # strip out the new lines
-
     def reset(self):
         '''
         Resets the interface; e.g., restarts Arduino

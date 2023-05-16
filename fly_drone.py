@@ -134,10 +134,11 @@ class DroneFlyer:
         if self.flying:
 
             self.interface.record()
+            
+            zpos = 0
 
             if self.xypos is None:
                 self.xypos = np.zeros(2)
-                zpos = 0
 
             self._build_flight_data(zpos)
 

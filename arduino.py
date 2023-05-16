@@ -11,7 +11,7 @@ import struct
 
 class Arduino:
 
-    def __init__(self, portname='/dev/ttyACM0'):
+    def __init__(self, portname='COM3'):
 
         # Support hot-plugging Arduino
         self.port = None

@@ -11,15 +11,18 @@ import struct
 
 class Arduino:
 
-    def __init__(self, portname='/dev/ttyACM0'):
+    def __init__(self, portname='/dev/ttyACM0', verbose=False):
 
         # Support hot-plugging Arduino
         self.port = None
         self.portname = portname
+        self.verbose = verbose
 
     def write(self, demands):
 
-        print('%i,%i,%i,%i' % (demands[0], demands[1], demands[2], demands[3]), end= ' ')
+        if self.verbose:
+            print('%i,%i,%i,%i' % 
+                    (demands[0], demands[1], demands[2], demands[3]), end= ' ')
 
         if self.port is None:
 
@@ -42,12 +45,14 @@ class Arduino:
                             int(demands[2]), 
                             int(demands[3])))
 
-                print('*', end=' ')
+                if self.verbose:
+                    print('*', end=' ')
 
             except Exception as e:
                 print('\nArduino error: ' + str(e))
 
-        print()
+        if self.verbose:
+            print()
 
     def readline(self):
 

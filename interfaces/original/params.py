@@ -34,4 +34,5 @@ Z_TARGET = 65
 # min=1000, max=2000
 THROTTLE_MID = 1350
 
-TAKEOFF_ALTITUDE = 15
+# XXX Where is this even used?
+# TAKEOFF_ALTITUDE = 15

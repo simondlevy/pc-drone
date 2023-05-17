@@ -97,16 +97,7 @@ class DroneFlyer:
         # vehicle state: (zpos, xypos, theta)
         state = self.interface.getState()
 
-
-        if state is not None:
-
-            print('zpos=%d  xypos=%d,%d  theta=%d' %
-                    (int(state[0]),
-                    int(state[1][0]), 
-                    int(state[1][1]),
-                    int(np.degrees(state[2]))))
-
-        if self.flying:
+        if True:  # XXX self.flying:
 
             # state estimator failed; cut the throttle!
             if state is None:
@@ -195,6 +186,8 @@ class DroneFlyer:
         return self.interface.acquiredState()
 
     def _run_pid_controller(self, zpos):
+
+        print('z=%d  ztarg=%d' % (int(zpos), int(params.Z_TARGET)))
 
         # Store the old velocity error to compute its first derivative below
         self.e_dz_old = self.e_dz

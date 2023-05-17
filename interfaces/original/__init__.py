@@ -136,8 +136,8 @@ class Interface:
 
                 self.message = ('zpos=%d  xypos=%d,%d  theta=%d' %
                                 (int(state[0]),
-                                 int(state[1][1]),
                                  int(state[1][0]),
+                                 int(state[1][1]),
                                  int(np.degrees(state[2]))))
 
                 self.message_age = 0

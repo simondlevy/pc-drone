@@ -211,6 +211,10 @@ class DroneFlyer:
         self.e_ix = self._clamp(self.e_ix, -params.Kxwindup, params.Kxwindup)
         e_d2x = e_dx - e_dx_old
 
+        print('e_dx=%3.3f   e_ix=%3.3f   e_d2x=%3.3f' %
+              (self.e_dx, self.e_ix, e_d2x))
+
+
         xcommand = -params.Kx * (
                 self.e_dx * params.Kpx +
                 params.Kix * self.e_ix +
@@ -227,8 +231,7 @@ class DroneFlyer:
                      params.Kiy * self.e_iy +
                      params.Kdy * self.e_d2y))
 
-        print('xcommand=%d  ycommand=%d' % 
-                (int(xcommand), int(ycommand)))
+        # print('ycommand=%d' % int(ycommand))
 
         # commands are calculated in camera reference frame, so we must
         # rotate them into the vehicle reference frame with trig functions

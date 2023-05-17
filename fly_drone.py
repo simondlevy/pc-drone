@@ -187,6 +187,8 @@ class DroneFlyer:
 
     def _run_pid_controller(self, zpos):
 
+        print('x=%3.3f  xtarget=%3.3f' % (self.xypos[0], self.x_target))
+
         # Store the old velocity error to compute its first derivative below
         self.e_dz_old = self.e_dz
 
@@ -210,10 +212,6 @@ class DroneFlyer:
         self.e_ix += e_dx
         self.e_ix = self._clamp(self.e_ix, -params.Kxwindup, params.Kxwindup)
         e_d2x = e_dx - e_dx_old
-
-        print('e_dx=%3.3f   e_ix=%3.3f   e_d2x=%3.3f' %
-              (self.e_dx, self.e_ix, e_d2x))
-
 
         xcommand = -params.Kx * (
                 self.e_dx * params.Kpx +

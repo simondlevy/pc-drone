@@ -70,7 +70,7 @@ class Interface:
 
         return rval
 
-    def display(self, command, flighttoc, flighttic, x_target, ypos_target):
+    def display(self, command, flighttoc, flighttic, x_target, y_target):
         '''
         Displays current status.
         '''
@@ -83,8 +83,8 @@ class Interface:
         self._put_text(self.frame, 'Time: %5.3f' %
                        (flighttoc - flighttic), (10, 75))
 
-        cv2.rectangle(self.frame, (int(x_target)-5, int(ypos_target)-5),
-                      (int(x_target)+5, int(ypos_target)+5), (255, 0, 0),
+        cv2.rectangle(self.frame, (int(x_target)-5, int(y_target)-5),
+                      (int(x_target)+5, int(y_target)+5), (255, 0, 0),
                       thickness=1, lineType=8, shift=0)
 
         # dst=cv2.resize(self.frame, (1280,960), cv2.INTER_NEAREST)

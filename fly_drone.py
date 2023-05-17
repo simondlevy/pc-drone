@@ -62,11 +62,11 @@ class DroneFlyer:
         self.YAW_MID = 1500
 
         self.x_target = 300
-        self.ypos_target = 200
+        self.y_target = 200
         self.theta_target = 0  # 45.0/180.0*np.pi
 
         self.x_targ_seq = [self.x_target]
-        self.ypos_targ_seq = [self.ypos_target]
+        self.ypos_targ_seq = [self.y_target]
         self.zpos_targ_seq = [params.Z_TARGET]
         self.theta_targ_seq = [self.theta_target]
         self.flighttic = timeit.default_timer()
@@ -137,7 +137,7 @@ class DroneFlyer:
                 self.flighttoc,
                 self.flighttic,
                 self.x_target,
-                self.ypos_target)
+                self.y_target)
 
         key = self.interface.getKeyboardInput()
 
@@ -154,7 +154,7 @@ class DroneFlyer:
 
             if len(self.x_targ_seq) > 1:
                 self.x_target = self.x_targ_seq.pop(0)
-                self.ypos_target = self.ypos_targ_seq.pop(0)
+                self.y_target = self.ypos_targ_seq.pop(0)
                 params.Z_TARGET = self.zpos_targ_seq.pop(0)
                 self.theta_target = self.theta_targ_seq.pop(0)
             elif self.flt_mode == self._PROGRAM_SEQ_FM:
@@ -226,7 +226,7 @@ class DroneFlyer:
                 params.Kdx * e_d2x)
 
         self.e_dy_old = self.e_dy
-        e_dy = self.xypos[1] - self.ypos_target
+        e_dy = self.xypos[1] - self.y_target
         self.e_iy += e_dy
         self.e_iy = self._clamp(self.e_iy, -params.Kywindup, params.Kywindup)
         self.e_d2y = self.e_dy - self.e_dy_old
@@ -428,7 +428,7 @@ class DroneFlyer:
     def _build_flight_sequence(self):
 
         self.x_targ_seq = [self.x_target]
-        self.ypos_targ_seq = [self.ypos_target]
+        self.ypos_targ_seq = [self.y_target]
         self.zpos_targ_seq = [params.Z_TARGET]
         self.theta_targ_seq = [self.theta_target]
 

@@ -187,8 +187,6 @@ class DroneFlyer:
 
     def _run_pid_controller(self, zpos):
 
-        print('z=%d  ztarg=%d' % (int(zpos), int(params.Z_TARGET)))
-
         # Store the old velocity error to compute its first derivative below
         self.e_dz_old = self.e_dz
 
@@ -229,13 +227,18 @@ class DroneFlyer:
                      params.Kiy * self.e_iy +
                      params.Kdy * self.e_d2y))
 
-        # commands are calculated in camera reference frame
+        print('xcommand=%d  ycommand=%d' % 
+                (int(xcommand), int(ycommand)))
+
+        # commands are calculated in camera reference frame, so we must
+        # rotate them into the vehicle reference frame with trig functions
         self.roll = (xcommand * np.cos(self.theta) + ycommand *
                      np.sin(self.theta) + self.ROLL_MID)
         self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
                       np.cos(self.theta) + self.PITCH_MID)
         self.e_dt_old = self.e_dt
         self.e_dt = self.theta-self.theta_target
+
         # angle error should always be less than 180degrees (pi
         # radians)
         if (self.e_dt > np.pi):

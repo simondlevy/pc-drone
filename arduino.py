@@ -11,7 +11,7 @@ import struct
 
 class Arduino:
 
-    def __init__(self, portname='COM3'):
+    def __init__(self, portname='/dev/ttyACM0'):
 
         # Support hot-plugging Arduino
         self.port = None
@@ -35,12 +35,17 @@ class Arduino:
                 # Use zero as a sentinel
                 self.port.write(
                         struct.pack(
-                            'HHHHH', 0, demands[0], demands[1], demands[2], demands[3]))
+                            'HHHHH', 
+                            0, 
+                            int(demands[0]), 
+                            int(demands[1]), 
+                            int(demands[2]), 
+                            int(demands[3])))
 
                 print('*', end=' ')
 
-            except:
-                print('\nArduino disconnected')
+            except Exception as e:
+                print('\nArduino error: ' + str(e))
 
         print()
 

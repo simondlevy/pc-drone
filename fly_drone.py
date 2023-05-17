@@ -97,6 +97,15 @@ class DroneFlyer:
         # vehicle state: (zpos, xypos, theta)
         state = self.interface.getState()
 
+
+        if state is not None:
+
+            print('zpos=%d  xypos=%d,%d  theta=%d' %
+                    (int(state[0]),
+                    int(state[1][0]), 
+                    int(state[1][1]),
+                    int(np.degrees(state[2]))))
+
         if self.flying:
 
             # state estimator failed; cut the throttle!
@@ -108,6 +117,7 @@ class DroneFlyer:
 
             # state estimator working; use state to get demands
             else:
+
                 zpos, self.xypos, self.theta = state
                 if self.flt_mode == self._LANDING_FM:
                     self.throttle -= 20

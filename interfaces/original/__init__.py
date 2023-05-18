@@ -93,10 +93,10 @@ class Interface:
         if state is not None:
 
             message = ('x=%d  y=%d  z=%d  heading=%d' %
-                       (int(state[0]),
-                       int(state[1][0]),
-                       int(state[1][1]),
-                       int(np.degrees(state[2]))))
+                       (int(state[1][0]),
+                        int(state[1][1]),
+                        int(state[0]),
+                        int(np.degrees(state[2]))))
 
 
             # Fade out stale state messages over time

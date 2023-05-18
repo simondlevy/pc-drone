@@ -48,7 +48,7 @@ def get_keypoints(frame, params):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # Define color bounds
-    lower = np.array([115, 50, 10])
+    lower = np.array([105, 40, 0])
     upper = np.array([160, 255, 255])
 
     # Threshold the HSV image to get only blue colors

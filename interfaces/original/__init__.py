@@ -92,7 +92,7 @@ class Interface:
 
         if state is not None:
 
-            message = ('x=%d, y=%d  z=%d heading=%d' %
+            message = ('x=%d  y=%d  z=%d  heading=%d' %
                        (int(state[0]),
                        int(state[1][0]),
                        int(state[1][1]),

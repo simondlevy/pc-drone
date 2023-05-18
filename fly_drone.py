@@ -157,6 +157,8 @@ class DroneFlyer:
             self.recording_data = False
 
         if key == 27:  # exit on ESC
+            if self.flightdata is not None:
+                self._save_data()
             return False
 
         elif key == 32:  # space - take a snapshot and save it
@@ -229,8 +231,6 @@ class DroneFlyer:
                     (e_dy * params.Kpy +
                      params.Kiy * self.e_iy +
                      params.Kdy * self.e_d2y))
-
-        # print('ycommand=%d' % int(ycommand))
 
         # commands are calculated in camera reference frame, so we must
         # rotate them into the vehicle reference frame with trig functions
@@ -412,14 +412,17 @@ class DroneFlyer:
 
     def _save_data(self):
 
+        print(len(self.controlvarnames))
+        print(self.flightdata.shape)
+
         np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
                 str(self.flightnum) +
-                '_' + 'self.flightdata.npy', self.flightdata)
+                '_' + 'flightdata.npy', self.flightdata)
         np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
                 str(self.flightnum) +
-                '_' + 'self.controldata.npy', self.controldata)
+                '_' + 'controldata.npy', self.controldata)
         with open(LOG_DIR + '/' + self.timestamp + '_flt' +
-                  str(self.flightnum) + '_' + 'self.controlvarnames.npy',
+                  str(self.flightnum) + '_' + 'controlvarnames.npy',
                   'wb') as f:
             pickle.dump(self.controlvarnames, f)
 

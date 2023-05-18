@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/python3 
 """
 Created on Sat Apr 02 20:35:11 2016
 
@@ -13,23 +13,11 @@ import os
 
 plt.close('all')
 
-if len(sys.argv)>1:
-    fltname='flight_data\\'+sys.argv[1]    
-else:
-    search_dir = "flight_data\\"
-    # remove anything from the list that is not a file (directories, symlinks)
-    # thanks to J.F. Sebastion for pointing out that the requirement was a list 
-    # of files (presumably not including directories)  
-    files = filter(os.path.isfile, glob.glob(search_dir + "*.npy"))
-    files.sort(key=lambda x:os.path.getmtime(x))
-    #fltname='flight_data\\'+'2016_04_13_21_41_flt1_'
-    m=files[-1]
-    ms=m.split('_')
-    ms.pop() 
-    fltname='_'.join(ms)
-controldata=np.load(fltname+'_controldata.npy')
-controlvarnames=np.load(fltname+'_controlvarnames.npy')
-flightdata=np.load(fltname+'_flightdata.npy')
+fltname = sys.argv[1]
+
+controldata=np.load(fltname+'_controldata.npy', allow_pickle=True)
+controlvarnames=np.load(fltname+'_controlvarnames.npy', allow_pickle=True)
+flightdata=np.load(fltname+'_flightdata.npy', allow_pickle=True)
 
 cpdict=dict(zip(controlvarnames, controldata))
 
@@ -59,14 +47,14 @@ fig2=plt.figure(2)
 plt.clf()
 plt.subplot(211)
 plt.plot(t, x, t, y, t,z)
-plt.hold(True)
+# plt.hold(True)
 plt.plot([t[0], t[-1]], [350, 350])
 plt.plot([t[0], t[-1]], [250, 250])
 plt.plot([t[0], t[-1]], [65, 65])
 plt.subplot(212)
 
 plt.plot(t, dx, t, dy, t,dz)
-plt.hold(True)
+# plt.hold(True)
 # post-calculated velocity (no filtering)
 compdx=-1*(x[0:-1]-x[1:])
 compdy=-1*(y[0:-1]-y[1:])

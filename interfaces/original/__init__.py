@@ -134,7 +134,7 @@ class Interface:
                 (state, newimg) = self._get_state_and_image_from_keypoints(
                         frame, keypoints)
 
-                self.message = ('zpos=%d  xypos=%d,%d  theta=%d' %
+                self.message = ('x=%d, y=%d  z=%d heading=%d' %
                                 (int(state[0]),
                                  int(state[1][0]),
                                  int(state[1][1]),

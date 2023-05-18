@@ -175,7 +175,8 @@ class Interface:
         frame_pad = cv2.copyMakeBorder(self.frame, 91, 0, 75, 00,
                                        cv2.BORDER_CONSTANT,
                                        value=[255, 0, 0])
-        self.video_out.write(frame_pad)
+        # self.video_out.write(frame_pad)
+        self.video_out.write(self.frame)
 
     def sendCommand(self, command):
         '''

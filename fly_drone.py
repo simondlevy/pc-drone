@@ -129,15 +129,14 @@ class DroneFlyer:
                 self.flighttic,
                 self.x_target,
                 self.y_target,
-                state)
+                state, 
+                self.flying)
 
         key = self.interface.getKeyboardInput()
 
 
         if self.flying:
 
-            self.interface.record()
-            
             zpos = 0
 
             if self.xypos is None:

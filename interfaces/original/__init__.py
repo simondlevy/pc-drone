@@ -71,7 +71,7 @@ class Interface:
 
         return rval
 
-    def display(self, command, flighttoc, flighttic, x_target, y_target, state):
+    def display(self, command, flighttoc, flighttic, x_target, y_target, state, flying):
         '''
         Displays current status.
         '''
@@ -106,6 +106,20 @@ class Interface:
                                color=(level, level, level))
 
         cv2.imshow('Hit ESC to exit', frame)
+
+        if flying:
+
+            border_top  = 91
+            border_left = 75
+
+            frame_pad = cv2.copyMakeBorder(
+                    frame,
+                    border_top, 0, border_left, 0,
+                    cv2.BORDER_CONSTANT,
+                    value=[255, 0, 0])
+
+            self.video_out.write(frame_pad)
+
 
     def getKeyboardInput(self):
         '''
@@ -170,24 +184,6 @@ class Interface:
             retval, self.frame_o = self.vc.read()
 
         return retval
-
-    def record(self):
-        '''
-        Records one data frame
-        '''
-
-        border_top  = 91
-        border_left = 75
-
-        frame_pad = cv2.copyMakeBorder(
-                self.frame,
-                border_top, 0, border_left, 0,
-                cv2.BORDER_CONSTANT,
-                value=[255, 0, 0])
-
-        self.video_out.write(frame_pad)
-
-        # self.video_out.write(self.frame)
 
     def sendCommand(self, command):
         '''

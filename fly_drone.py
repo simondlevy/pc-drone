@@ -128,7 +128,8 @@ class DroneFlyer:
                 self.flighttoc,
                 self.flighttic,
                 self.x_target,
-                self.y_target)
+                self.y_target,
+                state)
 
         key = self.interface.getKeyboardInput()
 
@@ -411,9 +412,6 @@ class DroneFlyer:
                           self.throttle, self.roll, self.pitch, self.yaw]))))
 
     def _save_data(self):
-
-        print(len(self.controlvarnames))
-        print(self.flightdata.shape)
 
         np.save(LOG_DIR + '/' + self.timestamp + '_flt' +
                 str(self.flightnum) +

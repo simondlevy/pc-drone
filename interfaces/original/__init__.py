@@ -19,12 +19,14 @@ class Interface:
     CAL_FILE = 'interfaces/original/camera_cal_data_2016_03_25_15_23.npz'
     SNAP_FILE = 'drone_track_640_480_USBFHD01M'
 
-    def __init__(self, log_dir, timestamp):
+    def __init__(self, log_dir, timestamp, flip_image=True):
         '''
         Creates an Interface object supporting state estimation and vehicle
         commands
         '''
         self.params = init_params()
+
+        self.flip_image = flip_image
 
         # load calibration data to undistort images
         calfile = np.load(self.CAL_FILE)
@@ -59,8 +61,7 @@ class Interface:
 
         self.arduino = Arduino()
 
-        self.message = None
-        self.message_age = 0
+        self.state_age = 0
 
     def acquiredState(self):
         '''
@@ -70,25 +71,41 @@ class Interface:
 
         return rval
 
-    def display(self, command, flighttoc, flighttic, x_target, y_target):
+    def display(self, command, flighttoc, flighttic, x_target, y_target, state):
         '''
         Displays current status.
         '''
 
+        frame = cv2.flip(self.frame, -1) if self.flip_image else self.frame
+
         cmdstr = 'thr=%d rol=%d pit=%d yaw=%d' % (
                 command[0], command[1], command[2], command[3])
 
-        self._put_text(self.frame, cmdstr, (10, 50))
+        self._put_text(frame, cmdstr, (10, 50))
 
-        self._put_text(self.frame, 'Time: %5.3f' %
+        self._put_text(frame, 'Time: %5.3f' %
                        (flighttoc - flighttic), (10, 75))
 
-        cv2.rectangle(self.frame, (int(x_target)-5, int(y_target)-5),
+        cv2.rectangle(frame, (int(x_target)-5, int(y_target)-5),
                       (int(x_target)+5, int(y_target)+5), (255, 0, 0),
                       thickness=1, lineType=8, shift=0)
 
-        # dst=cv2.resize(self.frame, (1280,960), cv2.INTER_NEAREST)
-        cv2.imshow('Hit ESC to exit', self.frame)
+        if state is not None:
+
+            message = ('x=%d, y=%d  z=%d heading=%d' %
+                       (int(state[0]),
+                       int(state[1][0]),
+                       int(state[1][1]),
+                       int(np.degrees(state[2]))))
+
+
+            # Fade out stale state messages over time
+            level = (255 - self.state_age)
+            if level > 128:
+                self._put_text(frame, message, (10, 25),
+                               color=(level, level, level))
+
+        cv2.imshow('Hit ESC to exit', frame)
 
     def getKeyboardInput(self):
         '''
@@ -134,24 +151,10 @@ class Interface:
                 (state, newimg) = self._get_state_and_image_from_keypoints(
                         frame, keypoints)
 
-                self.message = ('x=%d, y=%d  z=%d heading=%d' %
-                                (int(state[0]),
-                                 int(state[1][0]),
-                                 int(state[1][1]),
-                                 int(np.degrees(state[2]))))
-
-                self.message_age = 0
+                self.state_age = 0
 
             else:
-                self.message_age += 1
-
-        if self.message is not None:
-
-            # Fade out stale state messages over time
-            level = (255 - self.message_age)
-            if level > 128:
-                self._put_text(newimg, self.message, (10, 25),
-                               color=(level, level, level))
+                self.state_age += 1
 
         self.frame = newimg
 

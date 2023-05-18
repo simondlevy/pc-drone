@@ -57,7 +57,7 @@ class Interface:
         self.frame_o = None
         self.key = None
 
-        self.arduino = Arduino(verbose=True)
+        self.arduino = Arduino()
 
         self.message = None
         self.message_age = 0
@@ -172,11 +172,19 @@ class Interface:
         '''
         Records one data frame
         '''
-        frame_pad = cv2.copyMakeBorder(self.frame, 91, 0, 75, 00,
-                                       cv2.BORDER_CONSTANT,
-                                       value=[255, 0, 0])
-        # self.video_out.write(frame_pad)
-        self.video_out.write(self.frame)
+
+        border_top  = 91
+        border_left = 75
+
+        frame_pad = cv2.copyMakeBorder(
+                self.frame,
+                border_top, 0, border_left, 0,
+                cv2.BORDER_CONSTANT,
+                value=[255, 0, 0])
+
+        self.video_out.write(frame_pad)
+
+        # self.video_out.write(self.frame)
 
     def sendCommand(self, command):
         '''

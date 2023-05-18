@@ -132,6 +132,7 @@ class DroneFlyer:
 
         key = self.interface.getKeyboardInput()
 
+
         if self.flying:
 
             self.interface.record()

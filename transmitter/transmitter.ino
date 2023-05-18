@@ -23,6 +23,8 @@ static Dac dacR;  // roll
 static Dac dacP;  // pitch
 static Dac dacY;  // yaw
 
+static bool armed;
+
 static void writeDemand(Dac & dac, const uint16_t pwm)
 {
     dac.setVoltage(4095 * (pwm - 1000) / 1000.,
@@ -52,25 +54,17 @@ static void writeDemands(
     writeDemand(dacY, y);
 }
 
-void setup(void) 
+static void disarm(void)
 {
-    // Start serial comms for demand input
-    Serial.begin(115200);
-
-    // Start serial comms for debugging if indicated
-    if (DEBUG) {
-        Serial1.begin(115200);
-    }
-
-    // Start DACs
-    dacT.begin(0x60, &Wire);
-    dacR.begin(0x61, &Wire);
-    dacP.begin(0x60, &Wire1);
-    dacY.begin(0x61, &Wire1);
-
     // Turn off the transmitter
     pinMode(POWER_PIN, OUTPUT);
     digitalWrite(POWER_PIN, LOW);
+    armed = false;
+}
+
+static void arm(void)
+{
+    disarm();
 
     // Turn off LED
     pinMode(LED_BUILTIN, OUTPUT);
@@ -93,6 +87,29 @@ void setup(void)
     writeThrottle(2000);  
     delay(1000);
     writeThrottle(1000);  
+
+    armed = true;
+}
+
+void setup(void) 
+{
+    // Start serial comms for demand input
+    Serial.begin(115200);
+
+    // Start serial comms for debugging if indicated
+    if (DEBUG) {
+        Serial1.begin(115200);
+    }
+
+    // Start DACs
+    dacT.begin(0x60, &Wire);
+    dacR.begin(0x61, &Wire);
+    dacP.begin(0x60, &Wire1);
+    dacY.begin(0x61, &Wire1);
+
+    arm();
+
+
 }
 
 static void getDemands(
@@ -166,8 +183,12 @@ void loop(void)
 
     // Failsafe: cut throttle on input disconnect
     if (millis() - msec_prev > 1000) {
-        digitalWrite(LED_BUILTIN, LOW);
         throttle = 1000;
+        disarm();
+    }
+
+    if (!armed) {
+        arm();
     }
 
     if (throttle == 1000) {

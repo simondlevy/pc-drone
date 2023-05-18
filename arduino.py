@@ -46,7 +46,7 @@ class Arduino:
                             int(demands[3])))
 
                 if self.verbose:
-                    print('*', end=' ')
+                    print(', *', end=' ')
 
             except Exception as e:
                 print('\nArduino error: ' + str(e))

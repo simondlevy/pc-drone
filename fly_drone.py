@@ -40,12 +40,9 @@ class DroneFlyer:
         self.timestamp = timestamp
 
         self.throttle = 1000
-        self.roll = 1500  # moves left/right
-        self.pitch = 1500  # moves front back
-        self.yaw = 1500  # self.yaw, rotates the drone
-
-        self.xypos = (350, 250)
-        self.theta = 0
+        self.roll = params.ROLL_MID
+        self.pitch = params.PITCH_MID
+        self.yaw = params.YAW_MID
 
         self.command = ''
         self.flying = False
@@ -57,9 +54,6 @@ class DroneFlyer:
         self.e_iz, self.e_ix, self.e_iy, self.e_it = 0, 0, 0, 0
         self.e_d2z, self.e_d2x, self.e_d2y, self.e_d2t = 0, 0, 0, 0
 
-        self.ROLL_MID = 1500
-        self.PITCH_MID = 1500
-        self.YAW_MID = 1500
 
         self.x_target = 300
         self.y_target = 200
@@ -134,7 +128,6 @@ class DroneFlyer:
 
         key = self.interface.getKeyboardInput()
 
-
         if self.flying:
 
             zpos = 0
@@ -190,8 +183,6 @@ class DroneFlyer:
 
     def _run_pid_controller(self, zpos):
 
-        print('x=%3.3f  xtarget=%3.3f' % (self.xypos[0], self.x_target))
-
         # Store the old velocity error to compute its first derivative below
         self.e_dz_old = self.e_dz
 
@@ -234,10 +225,13 @@ class DroneFlyer:
 
         # commands are calculated in camera reference frame, so we must
         # rotate them into the vehicle reference frame with trig functions
+
         self.roll = (xcommand * np.cos(self.theta) + ycommand *
-                     np.sin(self.theta) + self.ROLL_MID)
+                     np.sin(self.theta) + params.ROLL_MID)
+
         self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
-                      np.cos(self.theta) + self.PITCH_MID)
+                      np.cos(self.theta) + params.PITCH_MID)
+
         self.e_dt_old = self.e_dt
         self.e_dt = self.theta-self.theta_target
 
@@ -253,7 +247,7 @@ class DroneFlyer:
         self.e_d2t = self.e_dt - self.e_dt_old
         self.yaw = params.Kt * (
                 self.e_dt * params.Kpt + params.Kit * self.e_it + params.Kdt *
-                self.e_d2t) + self.YAW_MID
+                self.e_d2t) + params.YAW_MID
         if zpos > 0:
             self.roll = self._clamp(self.roll, 1000, 2000)
             self.pitch = self._clamp(self.pitch, 1000, 2000)
@@ -265,8 +259,8 @@ class DroneFlyer:
     def _take_off(self):
 
         self.throttle = params.THROTTLE_MID
-        self.roll = self.ROLL_MID  # turns left
-        self.pitch = self.PITCH_MID
+        self.roll = params.ROLL_MID  # turns left
+        self.pitch = params.PITCH_MID
         self.e_ix = 0
         self.e_iy = 0
         self.e_iz = 0

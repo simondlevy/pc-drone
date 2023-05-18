@@ -205,9 +205,6 @@ class Interface:
         Closes the interface at the end of the run
         '''
 
-        # re-open and then close the serial port which will w for Arduino Uno
-        # to do a reset this forces the quadcopter to power off motors.  Will
-        # need to power cycle the drone to reconnect
         self.reset()
         self.arduino.close()
 

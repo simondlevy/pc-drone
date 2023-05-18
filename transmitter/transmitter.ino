@@ -56,20 +56,12 @@ static void writeDemands(
 
 static void disarm(void)
 {
-    // Turn off the transmitter
-    pinMode(POWER_PIN, OUTPUT);
     digitalWrite(POWER_PIN, LOW);
     armed = false;
 }
 
 static void arm(void)
 {
-    disarm();
-
-    // Turn off LED
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, LOW);
-
     // Poll for input connection
     while (!Serial.available()) {
     }
@@ -96,6 +88,9 @@ void setup(void)
     // Start serial comms for demand input
     Serial.begin(115200);
 
+    // We'll use a digital pin to turn the transmitter on/off
+    pinMode(POWER_PIN, OUTPUT);
+
     // Start serial comms for debugging if indicated
     if (DEBUG) {
         Serial1.begin(115200);
@@ -107,8 +102,8 @@ void setup(void)
     dacP.begin(0x60, &Wire1);
     dacY.begin(0x61, &Wire1);
 
+    disarm();
     arm();
-
 
 }
 

@@ -57,7 +57,7 @@ class Interface:
         self.frame_o = None
         self.key = None
 
-        self.arduino = Arduino()
+        self.arduino = Arduino(verbose=True)
 
         self.message = None
         self.message_age = 0

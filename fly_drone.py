@@ -97,7 +97,7 @@ class DroneFlyer:
         # vehicle state: (zpos, xypos, theta)
         state = self.interface.getState()
 
-        if True:  # XXX self.flying:
+        if self.flying:
 
             # state estimator failed; cut the throttle!
             if state is None:

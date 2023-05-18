@@ -103,7 +103,7 @@ static void getDemands(
         uint16_t & yaw)
 {
     static uint8_t index;
-    static uint8_t buff[8];
+    static uint8_t buff[10];
 
     buff[index++] = curr_byte;
 

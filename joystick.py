@@ -92,7 +92,7 @@ def run_thread(program, arduino):
 if __name__ == "__main__":
 
     program = Joystick()
-    arduino = Arduino()
+    arduino = Arduino(verbose=True)
 
     thread = Thread(target=run_thread, args=(program, arduino))
     thread.start()

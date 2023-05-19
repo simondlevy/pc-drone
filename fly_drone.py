@@ -150,6 +150,7 @@ class DroneFlyer:
             self.recording_data = False
 
         if key == 27:  # exit on ESC
+            self.interface.halt()
             if self.flightdata is not None:
                 self._save_data()
             return False
@@ -232,7 +233,7 @@ class DroneFlyer:
         self.pitch = (-xcommand * np.sin(self.theta) + ycommand *
                       np.cos(self.theta) + params.PITCH_MID)
 
-        # self.pitch = 1000
+        self.pitch = 1000
 
         self.e_dt_old = self.e_dt
         self.e_dt = self.theta-self.theta_target

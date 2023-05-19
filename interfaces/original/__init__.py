@@ -211,6 +211,13 @@ class Interface:
         self.vc.release()
         self.video_out.release()
 
+    def halt(self):
+        '''
+        Throttle down at end of run
+        '''
+        self.arduino.write((1000, 1500, 1500, 1500))
+        self.arduino.close()
+
     def takeSnapshot(self, index):
         '''
         Takes a snapshot of the current interface status.

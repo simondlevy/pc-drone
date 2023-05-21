@@ -70,8 +70,6 @@ class Interface(MulticopterServer):
         m3 = thr + rol - pit - yaw
         m4 = thr - rol + pit - yaw
 
-        print(m1, m2, m3, m4)
-
         return np.array([m1, m2, m3, m4])
 
     # PC-Drone Interface methods ---------------------------------------------
@@ -93,7 +91,6 @@ class Interface(MulticopterServer):
         '''
         Displays current status
         '''
-        return
         print('thr=%d rol=%d pit=%d yaw=%d' % (
             command[0], command[1], command[2], command[3]))
 

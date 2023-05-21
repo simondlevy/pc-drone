@@ -79,7 +79,6 @@ class DroneFlyer:
 
         # XXX 
         self.zprev = 0
-        self.velErrorI = 0
 
     def begin(self):
         '''
@@ -189,18 +188,18 @@ class DroneFlyer:
     def _run_pid_controller(self, zpos):
 
         # Store the old velocity error to compute its first derivative below
-        self.e_dz_old = self.e_dz
+        # self.e_dz_old = self.e_dz
 
         # Altitude PID control compute velocity error deriviate as difference
         # between actual altitude and altitude target
         self.e_dz = zpos - params.Z_TARGET
 
+        '''
         self.e_iz += self.e_dz
         self.e_iz = self._clamp(self.e_iz, -params.Kzwindup, params.Kzwindup)
 
         e_d2z = self.e_dz - self.e_dz_old
 
-        '''
         self.throttle = (params.THROTTLE_MID -
                          params.Kz *
                          (params.Kpz * self.e_dz +
@@ -213,9 +212,9 @@ class DroneFlyer:
         vel = (zpos - self.zprev) * 5000
         self.zprev = zpos
         velError = - vel - self.e_dz
-        self.velErrorI = self._clamp(self.velErrorI + velError, 
+        self.e_iz = self._clamp(self.e_iz + velError, 
                 -params.Kzwindup, params.Kzwindup)
-        thr = params.Kpz * velError + params.Kiz * self.velErrorI
+        thr = params.Kpz * velError + params.Kiz * self.e_iz
         self.throttle = thr * 1000 + 1000
 
         print(int(zpos), int(self.throttle))

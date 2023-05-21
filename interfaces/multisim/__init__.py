@@ -80,13 +80,20 @@ class Interface(MulticopterServer):
         # Quit after a lack up updates from simulator
         return time() - self.previousUpdateTime < 1.0
 
-    def display(self, command, flighttoc, flighttic, x_target, ypos_target):
+    def display(
+            self,
+            command,
+            flighttoc,
+            flighttic,
+            x_target,
+            y_target,
+            state,
+            flying):
         '''
         Displays current status
         '''
-        return
         print('thr=%d rol=%d pit=%d yaw=%d' % (
-                command[0], command[1], command[2], command[3]))
+            command[0], command[1], command[2], command[3]))
 
     def getKeyboardInput(self):
         '''
@@ -121,22 +128,22 @@ class Interface(MulticopterServer):
 
         return True
 
-    def record(self):
-
-        pass
-
     def sendCommand(self, command):
 
         self.command = command
-
-    def reset(self):
-
-        pass
 
     def close(self):
 
         self.kb.set_normal_term()
 
-    def takeSnapshot(self, index):
+    def halt(self):
+        pass
 
+    def record(self):
+        pass
+
+    def reset(self):
+        pass
+
+    def takeSnapshot(self, index):
         pass

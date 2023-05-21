@@ -19,7 +19,7 @@ Ky = Kx
 Kywindup = Kxwindup
 
 Kpz = 2 
-Kiz = 0 # .1 
+Kiz = .1 
 Kdz =  2
 Kz = 1
 Kzwindup = 10000
@@ -32,7 +32,7 @@ Kt = 2
 Z_TARGET = 15
 
 # min=1000, max=2000
-THROTTLE_MID = 1480
+THROTTLE_MID = 2000
 ROLL_MID = 1500
 PITCH_MID = 1500
 YAW_MID = 1500

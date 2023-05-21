@@ -79,6 +79,7 @@ class DroneFlyer:
 
         # XXX 
         self.zprev = 0
+        self.velErrorI = 0
 
     def begin(self):
         '''
@@ -209,11 +210,12 @@ class DroneFlyer:
 
 
         # XXX fake up altitude PID for now
-        Kp = 1 / 16
         vel = (zpos - self.zprev) * 5000
         self.zprev = zpos
-        velError = (params.Z_TARGET - zpos) - vel
-        thr = Kp * velError
+        velError = - vel - self.e_dz
+        self.velErrorI = self._clamp(self.velErrorI + velError, 
+                -params.Kzwindup, params.Kzwindup)
+        thr = params.Kpz * velError + params.Kiz * self.velErrorI
         self.throttle = thr * 1000 + 1000
 
         print(int(zpos), int(self.throttle))

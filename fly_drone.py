@@ -13,6 +13,7 @@ import pickle
 import os
 import timeit
 from datetime import datetime
+from time import time
 
 # Un-comment one of these
 # from interfaces.original import Interface, params
@@ -79,6 +80,7 @@ class DroneFlyer:
 
         # XXX 
         self.zprev = 0
+        self.tprev = time()
 
     def begin(self):
         '''
@@ -217,7 +219,8 @@ class DroneFlyer:
         thr = params.Kpz * velError + params.Kiz * self.e_iz
         self.throttle = thr * 1000 + 1000
 
-        print(int(zpos), int(self.throttle))
+        print((zpos - self.zprev) / (time() - self.tprev))
+        self.tprev = time()
 
         e_dx_old = self.e_dx
         e_dx = self.xypos[0]-self.x_target

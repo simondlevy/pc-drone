@@ -144,7 +144,7 @@ class Interface:
 
     def getState(self):
         '''
-        Returns current vehicle state: (zpos, xypos, theta)
+        Returns current vehicle state: (zpos, (xpos, ypos), theta)
         '''
         frame_undistort = self._undistort_crop(
                 self.frame_o, self.map1, self.map2, self.roi)

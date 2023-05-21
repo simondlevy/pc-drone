@@ -88,7 +88,7 @@ class DroneFlyer:
         Runs one step of the interface (acquire data, send commands).
         Returns True if step was successful, False otherwise.
         '''
-        # vehicle state: (zpos, xypos, theta)
+        # vehicle state: (zpos, (xpos, ypos), theta)
         state = self.interface.getState()
 
         if self.flying:

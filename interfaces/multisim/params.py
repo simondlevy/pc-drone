@@ -6,11 +6,11 @@ Copyright (c) 2023 perrystao, Simon D. Levy
 MIT License
 '''
 
-Kpx = 1
-Kix = .03
-Kdx = 10
-Kx = 1
-Kxwindup = 200000
+Kpx = 0 # 1
+Kix = 0 # .03
+Kdx = 0 # 10
+Kx = 0 # 1
+Kxwindup = 0 # 200000
 
 Kpy = Kpx
 Kiy = Kix

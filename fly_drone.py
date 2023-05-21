@@ -214,7 +214,7 @@ class DroneFlyer:
         tcurr = time()
         vel = (zpos - self.zprev) / (tcurr - self.tprev) * 10
         velError = - vel - self.e_dz
-        print(zpos, vel, velError)
+        print('zpos=%+3.3f vel=%+3.3f  velError=%+3.3f' % (zpos, vel, velError))
         self.e_iz = self._clamp(self.e_iz + velError, 
                 -params.Kzwindup, params.Kzwindup)
         thr = params.Kpz * velError + params.Kiz * self.e_iz

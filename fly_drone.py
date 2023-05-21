@@ -77,6 +77,9 @@ class DroneFlyer:
 
         self.snapnum = 100
 
+        # XXX 
+        self.zprev = 0
+
     def begin(self):
         '''
         Returns True if interface devices started successfully, False otherwise
@@ -184,6 +187,7 @@ class DroneFlyer:
 
     def _run_pid_controller(self, zpos):
 
+        '''
         # Store the old velocity error to compute its first derivative below
         self.e_dz_old = self.e_dz
 
@@ -201,6 +205,16 @@ class DroneFlyer:
                          (params.Kpz * self.e_dz +
                           params.Kiz * self.e_iz +
                           params.Kdz * e_d2z))
+
+        '''
+
+        # XXX fake up altitude PID for now
+        Kp = 1.0
+        vel = 500 * (zpos - self.zprev)
+        self.zprev = zpos
+        velError = (params.Z_TARGET - zpos) - vel
+        thr = Kp * velError
+        self.throttle = thr * 1000 + 1000
 
         e_dx_old = self.e_dx
         e_dx = self.xypos[0]-self.x_target

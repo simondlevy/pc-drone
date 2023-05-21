@@ -55,16 +55,6 @@ class Interface(MulticopterServer):
         # Get command from main program
         cthr, crol, cpit, cyaw = self.command
 
-        # XXX fake up altitude PID for now
-        Kp = 1.0
-        Z_TARGET = 15
-        alt = self.state[0]
-        vel = 500 * (alt - self.alt_prev)
-        self.alt_prev = alt
-        velError = (Z_TARGET - alt) - vel
-        thr = Kp * velError
-        cthr = thr * 1000 + 1000
-
         # Convert throttle from [1000,2000] to [0,1]
         thr = (cthr - 1000) / 1000
 

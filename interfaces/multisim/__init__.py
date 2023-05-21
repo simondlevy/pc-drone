@@ -35,6 +35,8 @@ class Interface(MulticopterServer):
 
         self.previousUpdateTime = time()
 
+        self.alt_prev = 0
+
     # MulticopterServer methods ----------------------------------------------
 
     def getMotors(self, t, ms_state, _):
@@ -60,6 +62,15 @@ class Interface(MulticopterServer):
         rol = (crol - 1500) / 500
         pit = (cpit - 1500) / 500
         yaw = (cyaw - 1500) / 500
+
+        # XXX fake up altitude PID for now
+        Kp = 1.0
+        Z_TARGET = 15
+        alt = self.state[0]
+        vel = 500 * (alt - self.alt_prev)
+        self.alt_prev = alt
+        velError = (Z_TARGET - alt) - vel
+        thr = Kp * velError
 
         # Constrain throttle to [0,1)
         thr = 0 if thr < 0 else 0.999999 if thr > 1 else thr
@@ -91,6 +102,7 @@ class Interface(MulticopterServer):
         '''
         Displays current status
         '''
+        return
         print('thr=%d rol=%d pit=%d yaw=%d' % (
             command[0], command[1], command[2], command[3]))
 
